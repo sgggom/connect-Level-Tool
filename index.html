@@ -77,7 +77,7 @@
             font-size: 0.9em;
         }
 
-        input[type="number"], select {
+        input[type="number"], input[type="text"], select {
             width: 80px;
             padding: 8px;
             font-size: 0.9em;
@@ -91,6 +91,15 @@
         select {
             width: 100%;
             cursor: pointer;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            text-align: left;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.65);
         }
 
         option {
@@ -637,6 +646,34 @@
                 </div>
 
                 <div class="config-section">
+                    <div class="config-title">配置组</div>
+                    <div class="config-grid" style="grid-template-columns: 1fr;">
+                        <div class="config-item">
+                            <label>配置名：</label>
+                            <input type="text" id="configGroupName" placeholder="输入配置名后保存">
+                        </div>
+                        <div class="config-item">
+                            <label>已保存：</label>
+                            <select id="configGroupSelect" onchange="loadSelectedConfigGroup()">
+                                <option value="">请选择配置组</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="controls-row" style="margin-top: 8px;">
+                        <button class="btn-primary" onclick="saveCurrentConfigGroup()">保存配置组</button>
+                        <button class="btn-secondary" onclick="deleteSelectedConfigGroup()">删除配置组</button>
+                        <button class="btn-export" onclick="triggerImportConfigGroups()">读取配置组</button>
+                    </div>
+                    <input
+                        type="file"
+                        id="configGroupFileInput"
+                        accept=".json,application/json"
+                        onchange="handleConfigGroupFileChange(event)"
+                        style="display: none;"
+                    >
+                </div>
+
+                <div class="config-section">
                     <div class="config-title">批量生成</div>
                     <div class="config-grid">
                         <div class="config-item">
@@ -645,6 +682,7 @@
                         </div>
                     </div>
                     <div class="controls-row" style="margin-top: 8px;">
+                        <button class="btn-primary" onclick="exportConfigToClipboard()">导出配置</button>
                         <button class="btn-export" onclick="batchGenerate()">导出批量</button>
                     </div>
                 </div>
@@ -745,6 +783,8 @@
         let placedCounts = {};
         let stepGenerationState = null;
         let playModeState = null;
+        let savedConfigGroups = [];
+        const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
         const COLUMN_BASE_DIRECTIONS = [0, 1, 2, 5, 7];
 
@@ -829,6 +869,357 @@
             const parsed = parseFloat(element.value);
             if (!Number.isFinite(parsed)) return defaultValue;
             return Math.max(0, Math.min(1, parsed));
+        }
+
+        function getDirectionTitleById(directionId) {
+            const directionTitles = {
+                0: '无规则',
+                1: '向上',
+                2: '向下',
+                3: '向左',
+                4: '向右',
+                5: '上下向内',
+                6: '左右向内',
+                7: '上下向外',
+                8: '左右向外'
+            };
+            return directionTitles[directionId] || '无规则';
+        }
+
+        function getCurrentConfigSnapshot() {
+            return {
+                width: parseInt(document.getElementById('width')?.value, 10) || 8,
+                height: parseInt(document.getElementById('height')?.value, 10) || 14,
+                count8: parseInt(document.getElementById('count8')?.value, 10) || 0,
+                count6: parseInt(document.getElementById('count6')?.value, 10) || 0,
+                direction: parseInt(
+                    document.querySelector('input[name="direction"]:checked')?.value,
+                    10
+                ) || 0,
+                sameLie: getProbabilityValue('sameLie', 0.1),
+                sameNum: getProbabilityValue('sameNum', 0.1),
+                xianglinSame: getProbabilityValue('xianglinSame', 0.1),
+                directionBothCtrl: getProbabilityValue('directionBothCtrl', 0.5),
+                batchCount: parseInt(document.getElementById('batchCount')?.value, 10) || 10
+            };
+        }
+
+        function setSliderControlValue(sliderId, valueLabelId, rawValue, decimals = 2) {
+            const slider = document.getElementById(sliderId);
+            if (slider) slider.value = String(rawValue);
+            const valueLabel = document.getElementById(valueLabelId);
+            if (!valueLabel) return;
+            if (decimals <= 0) {
+                valueLabel.textContent = String(parseInt(String(rawValue), 10));
+                return;
+            }
+            const numericValue = Number(rawValue);
+            if (!Number.isFinite(numericValue)) {
+                valueLabel.textContent = '0.00';
+                return;
+            }
+            valueLabel.textContent = numericValue.toFixed(decimals);
+        }
+
+        function applyConfigSnapshot(config) {
+            if (!config || typeof config !== 'object') return;
+            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+            const width = clamp(
+                Number.isFinite(Number(config.width)) ? Number(config.width) : 8,
+                6,
+                10
+            );
+            const height = clamp(
+                Number.isFinite(Number(config.height)) ? Number(config.height) : 14,
+                6,
+                14
+            );
+            const count8 = Math.round(clamp(
+                Number.isFinite(Number(config.count8)) ? Number(config.count8) : 0,
+                0,
+                20
+            ));
+            const count6 = Math.round(clamp(
+                Number.isFinite(Number(config.count6)) ? Number(config.count6) : 0,
+                0,
+                20
+            ));
+            const direction = Math.round(clamp(
+                Number.isFinite(Number(config.direction)) ? Number(config.direction) : 0,
+                0,
+                8
+            ));
+            const sameLie = clamp(
+                Number.isFinite(Number(config.sameLie)) ? Number(config.sameLie) : 0.1,
+                0,
+                1
+            );
+            const sameNum = clamp(
+                Number.isFinite(Number(config.sameNum)) ? Number(config.sameNum) : 0.1,
+                0,
+                1
+            );
+            const xianglinSame = Number.isFinite(Number(config.xianglinSame))
+                ? Number(config.xianglinSame)
+                : 0.1;
+            const directionBothCtrl = clamp(
+                Number.isFinite(Number(config.directionBothCtrl))
+                    ? Number(config.directionBothCtrl)
+                    : 0.5,
+                0,
+                1
+            );
+            const batchCount = Math.round(clamp(
+                Number.isFinite(Number(config.batchCount)) ? Number(config.batchCount) : 10,
+                1,
+                100
+            ));
+
+            if (playModeState && playModeState.active) {
+                exitPlayMode({ restoreBoard: true, silent: true });
+            }
+
+            setSliderControlValue('width', 'widthValue', Math.round(width), 0);
+            setSliderControlValue('height', 'heightValue', Math.round(height), 0);
+            setSliderControlValue('sameLie', 'sameLieValue', sameLie, 2);
+            setSliderControlValue('sameNum', 'sameNumValue', sameNum, 2);
+            setSliderControlValue('xianglinSame', 'xianglinSameValue', clamp(xianglinSame, 0, 1), 2);
+            setSliderControlValue('directionBothCtrl', 'directionBothCtrlValue', directionBothCtrl, 2);
+
+            const count8Input = document.getElementById('count8');
+            if (count8Input) count8Input.value = String(count8);
+            const count6Input = document.getElementById('count6');
+            if (count6Input) count6Input.value = String(count6);
+            const batchCountInput = document.getElementById('batchCount');
+            if (batchCountInput) batchCountInput.value = String(batchCount);
+
+            selectDirection(direction);
+            calculatePool();
+            setDefaultInfoText();
+        }
+
+        function buildDefaultConfigName(config) {
+            const directionTitle = getDirectionTitleById(config.direction);
+            return `${config.width}x${config.height}_${directionTitle}`;
+        }
+
+        function persistConfigGroups() {
+            try {
+                localStorage.setItem(CONFIG_GROUP_STORAGE_KEY, JSON.stringify(savedConfigGroups));
+            } catch (error) {
+                console.error('Failed to persist config groups:', error);
+            }
+        }
+
+        function renderConfigGroupSelect(selectedName = '') {
+            const select = document.getElementById('configGroupSelect');
+            if (!select) return;
+
+            const targetName = selectedName || select.value || '';
+            select.innerHTML = '<option value="">请选择配置组</option>';
+
+            for (const group of savedConfigGroups) {
+                const option = document.createElement('option');
+                option.value = group.name;
+                option.textContent = group.name;
+                select.appendChild(option);
+            }
+
+            if (targetName && savedConfigGroups.some(group => group.name === targetName)) {
+                select.value = targetName;
+            } else {
+                select.value = '';
+            }
+        }
+
+        function loadConfigGroupsFromStorage() {
+            try {
+                const rawValue = localStorage.getItem(CONFIG_GROUP_STORAGE_KEY);
+                if (!rawValue) {
+                    savedConfigGroups = [];
+                    renderConfigGroupSelect();
+                    return;
+                }
+                const parsed = JSON.parse(rawValue);
+                if (!Array.isArray(parsed)) {
+                    savedConfigGroups = [];
+                    renderConfigGroupSelect();
+                    return;
+                }
+                savedConfigGroups = parsed.filter((item) => {
+                    return item && typeof item.name === 'string' && item.config;
+                });
+                renderConfigGroupSelect();
+            } catch (error) {
+                console.error('Failed to load config groups:', error);
+                savedConfigGroups = [];
+                renderConfigGroupSelect();
+            }
+        }
+
+        function saveCurrentConfigGroup() {
+            const nameInput = document.getElementById('configGroupName');
+            const currentConfig = getCurrentConfigSnapshot();
+            const typedName = (nameInput?.value || '').trim();
+            const groupName = typedName || buildDefaultConfigName(currentConfig);
+
+            const existingIndex = savedConfigGroups.findIndex(group => group.name === groupName);
+            const configGroup = { name: groupName, config: currentConfig };
+            const overwritten = existingIndex >= 0;
+            if (overwritten) {
+                savedConfigGroups[existingIndex] = configGroup;
+            } else {
+                savedConfigGroups.push(configGroup);
+            }
+
+            persistConfigGroups();
+            renderConfigGroupSelect(groupName);
+            if (nameInput) nameInput.value = groupName;
+
+            const info = document.getElementById('info');
+            if (info) {
+                info.textContent = overwritten
+                    ? `配置组已覆盖：${groupName}`
+                    : `配置组已保存：${groupName}`;
+            }
+        }
+
+        function loadSelectedConfigGroup() {
+            const select = document.getElementById('configGroupSelect');
+            const nameInput = document.getElementById('configGroupName');
+            const selectedName = select?.value || '';
+            if (!selectedName) return;
+
+            const selectedGroup = savedConfigGroups.find(group => group.name === selectedName);
+            if (!selectedGroup) return;
+
+            applyConfigSnapshot(selectedGroup.config);
+            if (nameInput) nameInput.value = selectedGroup.name;
+
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已加载配置组：${selectedGroup.name}`;
+        }
+
+        function deleteSelectedConfigGroup() {
+            const select = document.getElementById('configGroupSelect');
+            const nameInput = document.getElementById('configGroupName');
+            const selectedName = select?.value || '';
+            if (!selectedName) {
+                alert('请先在下拉列表中选择要删除的配置组。');
+                return;
+            }
+
+            savedConfigGroups = savedConfigGroups.filter(group => group.name !== selectedName);
+            persistConfigGroups();
+            renderConfigGroupSelect();
+
+            if (nameInput && nameInput.value.trim() === selectedName) {
+                nameInput.value = '';
+            }
+
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已删除配置组：${selectedName}`;
+        }
+
+        function triggerImportConfigGroups() {
+            const fileInput = document.getElementById('configGroupFileInput');
+            if (!fileInput) return;
+            fileInput.value = '';
+            fileInput.click();
+        }
+
+        function buildImportedConfigGroupName(item, index, usedNames) {
+            const orderValue = Number(item?.['序号']);
+            const rawBaseName = Number.isFinite(orderValue)
+                ? `序号${Math.round(orderValue)}`
+                : `配置${index + 1}`;
+            let name = rawBaseName;
+            let suffix = 2;
+            while (usedNames.has(name)) {
+                name = `${rawBaseName}_${suffix}`;
+                suffix++;
+            }
+            usedNames.add(name);
+            return name;
+        }
+
+        function mapImportedConfigItem(item) {
+            const toNumber = (value, fallback) => {
+                const numberValue = Number(value);
+                return Number.isFinite(numberValue) ? numberValue : fallback;
+            };
+            return {
+                width: toNumber(item?.['宽度'], 8),
+                height: toNumber(item?.['高度'], 14),
+                count8: toNumber(item?.['8张同色'], 0),
+                count6: toNumber(item?.['6张同色'], 0),
+                direction: toNumber(item?.['方向'], 0),
+                sameLie: toNumber(item?.['同列/同行同数字概率'], 0.1),
+                sameNum: toNumber(item?.['同位置相同概率'], 0.1),
+                xianglinSame: toNumber(item?.['相邻列同位置相同概率'], 0.1),
+                directionBothCtrl: toNumber(item?.['方向上下重叠控制'], 0.5),
+                batchCount: 10
+            };
+        }
+
+        function importConfigGroupsFromJsonContent(jsonText) {
+            let parsed;
+            try {
+                parsed = JSON.parse(jsonText);
+            } catch (error) {
+                throw new Error('JSON格式错误，无法解析。');
+            }
+            if (!Array.isArray(parsed)) {
+                throw new Error('JSON根节点必须是数组。');
+            }
+
+            const usedNames = new Set();
+            const importedGroups = [];
+            for (let index = 0; index < parsed.length; index++) {
+                const item = parsed[index];
+                if (!item || typeof item !== 'object') continue;
+                const groupName = buildImportedConfigGroupName(item, index, usedNames);
+                importedGroups.push({
+                    name: groupName,
+                    config: mapImportedConfigItem(item)
+                });
+            }
+
+            if (importedGroups.length === 0) {
+                throw new Error('JSON中没有可用的配置数据。');
+            }
+
+            savedConfigGroups = importedGroups;
+            persistConfigGroups();
+            renderConfigGroupSelect();
+
+            const nameInput = document.getElementById('configGroupName');
+            if (nameInput) nameInput.value = '';
+
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已导入配置组：${importedGroups.length} 条（已覆盖本地配置组）`;
+        }
+
+        function handleConfigGroupFileChange(event) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const content = typeof reader.result === 'string' ? reader.result : '';
+                    importConfigGroupsFromJsonContent(content);
+                } catch (error) {
+                    console.error('Failed to import config groups:', error);
+                    alert(error.message || '导入失败，请检查JSON格式。');
+                }
+            };
+            reader.onerror = () => {
+                console.error('Failed to read config group file:', reader.error);
+                alert('读取文件失败，请重试。');
+            };
+            reader.readAsText(file, 'utf-8');
         }
 
         function cloneBoardData(boardData) {
@@ -2433,6 +2824,45 @@
             return targetNumber;
         }
 
+        function exportConfigToClipboard() {
+            const width = parseInt(document.getElementById('width')?.value, 10) || 8;
+            const height = parseInt(document.getElementById('height')?.value, 10) || 14;
+            const count8 = parseInt(document.getElementById('count8')?.value, 10) || 0;
+            const count6 = parseInt(document.getElementById('count6')?.value, 10) || 0;
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value,
+                10
+            ) || 0;
+            const sameLie = getProbabilityValue('sameLie', 0.1);
+            const sameNum = getProbabilityValue('sameNum', 0.1);
+            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
+            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+
+            const toCompactNumber = (value) => String(Number(value.toFixed(2)));
+            const values = [
+                width,
+                height,
+                count8,
+                count6,
+                direction,
+                toCompactNumber(sameLie),
+                toCompactNumber(sameNum),
+                toCompactNumber(xianglinSame),
+                toCompactNumber(directionBothCtrl)
+            ];
+
+            const tsvText = values.join('\t');
+            navigator.clipboard.writeText(tsvText).then(() => {
+                const info = document.getElementById('info');
+                if (info) {
+                    info.textContent = '配置数值已复制到剪贴板（TAB分隔）';
+                }
+            }).catch((error) => {
+                console.error('Failed to export config:', error);
+                alert('配置导出失败，请手动复制。');
+            });
+        }
+
         function exportToClipboard() {
             const width = parseInt(document.getElementById('width').value) || 8;
             const height = parseInt(document.getElementById('height').value) || 14;
@@ -2922,12 +3352,14 @@
         }
 
         function init() {
+            loadConfigGroupsFromStorage();
             const board = document.getElementById('board');
             if (board) {
                 board.addEventListener('click', handleBoardCellClick);
                 generateBoard();
             } else {
                 window.addEventListener('DOMContentLoaded', () => {
+                    loadConfigGroupsFromStorage();
                     const readyBoard = document.getElementById('board');
                     if (readyBoard) readyBoard.addEventListener('click', handleBoardCellClick);
                     generateBoard();
