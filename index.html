@@ -25,18 +25,13 @@
             margin: 0 auto;
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.8em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
+            grid-template-columns: minmax(420px, 470px) minmax(0, 1fr);
             gap: 15px;
             min-width: 0;
+            align-items: start;
+            height: calc(100vh - 30px);
         }
 
         .panel {
@@ -44,6 +39,17 @@
             flex-direction: column;
             gap: 10px;
             min-width: 0;
+        }
+
+        .config-panel {
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .workspace-panel {
+            height: 100%;
+            min-height: 0;
         }
 
         .config-section {
@@ -112,6 +118,14 @@
             align-items: center;
             gap: 8px;
             width: 100%;
+        }
+
+        .short-slider {
+            max-width: 250px;
+        }
+
+        .short-slider input[type="range"] {
+            max-width: 170px;
         }
 
         input[type="range"] {
@@ -183,6 +197,11 @@
             gap: 8px;
         }
 
+        .direction-grid.compact {
+            grid-template-columns: repeat(9, minmax(0, 1fr));
+            gap: 6px;
+        }
+
         .direction-item {
             background: rgba(255,255,255,0.05);
             padding: 8px;
@@ -210,6 +229,30 @@
             font-weight: bold;
             color: #667eea;
             font-size: 0.85em;
+        }
+
+        .direction-grid.compact .direction-item {
+            padding: 6px 0;
+        }
+
+        .direction-grid.compact .direction-name {
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .probability-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .probability-grid .config-item {
+            display: block;
+        }
+
+        .probability-grid .config-item label {
+            display: block;
+            white-space: normal;
+            margin-bottom: 4px;
         }
 
         .result-section {
@@ -305,27 +348,64 @@
 
         .controls-row button {
             flex: 1;
+            white-space: nowrap;
+        }
+
+        .config-group-actions {
+            flex-wrap: nowrap;
+        }
+
+        .config-group-actions button {
+            min-width: 0;
+            padding: 9px 8px;
+            font-size: 0.84em;
         }
 
         .board-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: flex-start;
             width: 100%;
             min-width: 0;
             flex: 1;
             overflow: hidden;
-            max-height: 75vh;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .board-top-tools {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .board-top-actions {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .board-top-actions button {
+            width: 100%;
+            min-width: 0;
+            padding: 9px 10px;
         }
 
         .board-wrapper {
-            transform-origin: top center;
+            transform-origin: top left;
             transition: transform 0.3s ease;
             min-width: 0;
-            max-height: 70vh;
+            max-height: none;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
+            width: max-content;
         }
 
         .board {
@@ -370,8 +450,8 @@
         }
 
         .info {
-            text-align: center;
-            margin-top: 10px;
+            text-align: left;
+            margin-top: 2px;
             font-size: 0.9em;
             opacity: 0.8;
         }
@@ -385,18 +465,28 @@
         }
 
         .board-layout {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 330px;
             gap: 10px;
             width: 100%;
-            min-height: 0;
+            height: 100%;
             flex: 1;
+            align-items: start;
         }
 
+        .board-side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: auto;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .board-layout .result-section,
         .board-layout .stats-section {
             margin-top: 0;
-            width: 320px;
-            flex-shrink: 0;
-            align-self: flex-start;
+            width: auto;
         }
 
         .stats-line {
@@ -438,61 +528,105 @@
             width: 100%;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1500px) {
+            .main-content {
+                grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+            }
+
+            .board-layout {
+                grid-template-columns: minmax(0, 1fr) 300px;
+            }
+        }
+
+        @media (max-width: 1280px) {
             .main-content {
                 grid-template-columns: 1fr;
+                height: auto;
             }
+
+            .config-panel {
+                height: auto;
+                max-height: none;
+                overflow: visible;
+                padding-right: 0;
+            }
+
+            .workspace-panel {
+                height: auto;
+                min-height: 0;
+            }
+
             .direction-grid {
                 grid-template-columns: repeat(5, 1fr);
             }
-            .board-layout {
-                flex-direction: column;
+
+            .direction-grid.compact {
+                grid-template-columns: repeat(9, minmax(0, 1fr));
             }
-            .board-layout .stats-section {
-                width: 100%;
+
+            .board-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .board-side-panel {
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .board-container {
+                height: 72vh;
             }
         }
 
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-content {
+                height: auto;
+            }
+
             .direction-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
+
+            .direction-grid.compact {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+
             .cell {
                 width: 80px;
                 height: 100px;
             }
+
             .board {
                 gap: 1px;
                 padding: 5px;
             }
-        }
-            .direction-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-    
 
-        @media (max-width: 600px) {
-            .main-content {
-                grid-template-columns: 1fr;
+            .controls-row button {
+                min-width: 120px;
             }
-            .direction-grid {
-                grid-template-columns: repeat(3, 1fr);
+
+            .board-top-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>阵型生成器</h1>
-
         <div class="main-content">
-            <div class="panel">
+            <div class="panel config-panel">
                 <div class="config-section">
                     <div class="config-title">棋盘尺寸</div>
                     <div class="config-grid">
                         <div class="config-item">
                             <label>宽度：</label>
-                            <div class="slider-wrap">
+                            <div class="slider-wrap short-slider">
                                 <input
                                     type="range"
                                     id="width"
@@ -507,7 +641,7 @@
                         </div>
                         <div class="config-item">
                             <label>高度：</label>
-                            <div class="slider-wrap">
+                            <div class="slider-wrap short-slider">
                                 <input
                                     type="range"
                                     id="height"
@@ -539,49 +673,49 @@
 
                 <div class="config-section">
                     <div class="config-title">方向规则</div>
-                    <div class="direction-grid">
-                        <div class="direction-item selected" onclick="selectDirection(0)">
+                    <div class="direction-grid compact">
+                        <div class="direction-item selected" onclick="selectDirection(0)" title="无规则">
                             <input type="radio" name="direction" value="0" checked>
-                            <div class="direction-name">0. 无规则</div>
+                            <div class="direction-name">0</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(1)">
+                        <div class="direction-item" onclick="selectDirection(1)" title="向上">
                             <input type="radio" name="direction" value="1">
-                            <div class="direction-name">1. 向上</div>
+                            <div class="direction-name">1</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(2)">
+                        <div class="direction-item" onclick="selectDirection(2)" title="向下">
                             <input type="radio" name="direction" value="2">
-                            <div class="direction-name">2. 向下</div>
+                            <div class="direction-name">2</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(3)">
+                        <div class="direction-item" onclick="selectDirection(3)" title="向左">
                             <input type="radio" name="direction" value="3">
-                            <div class="direction-name">3. 向左</div>
+                            <div class="direction-name">3</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(4)">
+                        <div class="direction-item" onclick="selectDirection(4)" title="向右">
                             <input type="radio" name="direction" value="4">
-                            <div class="direction-name">4. 向右</div>
+                            <div class="direction-name">4</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(5)">
+                        <div class="direction-item" onclick="selectDirection(5)" title="上下向内">
                             <input type="radio" name="direction" value="5">
-                            <div class="direction-name">5. 上下向内</div>
+                            <div class="direction-name">5</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(6)">
+                        <div class="direction-item" onclick="selectDirection(6)" title="左右向内">
                             <input type="radio" name="direction" value="6">
-                            <div class="direction-name">6. 左右向内</div>
+                            <div class="direction-name">6</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(7)">
+                        <div class="direction-item" onclick="selectDirection(7)" title="上下向外">
                             <input type="radio" name="direction" value="7">
-                            <div class="direction-name">7. 上下向外</div>
+                            <div class="direction-name">7</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(8)">
+                        <div class="direction-item" onclick="selectDirection(8)" title="左右向外">
                             <input type="radio" name="direction" value="8">
-                            <div class="direction-name">8. 左右向外</div>
+                            <div class="direction-name">8</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="config-section">
                     <div class="config-title">概率参数 (0-1)</div>
-                    <div class="config-grid">
+                    <div class="config-grid probability-grid">
                         <div class="config-item">
                             <label>同列/同行同数字概率：</label>
                             <div class="slider-wrap">
@@ -642,6 +776,21 @@
                                 <span class="slider-value" id="directionBothCtrlValue">0.50</span>
                             </div>
                         </div>
+                        <div class="config-item">
+                            <label>同色邻近概率（8格）：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="distanceCtrl"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value="0.1"
+                                    oninput="document.getElementById('distanceCtrlValue').textContent=parseFloat(this.value).toFixed(2);"
+                                >
+                                <span class="slider-value" id="distanceCtrlValue">0.10</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -659,10 +808,11 @@
                             </select>
                         </div>
                     </div>
-                    <div class="controls-row" style="margin-top: 8px;">
+                    <div class="controls-row config-group-actions" style="margin-top: 8px;">
                         <button class="btn-primary" onclick="saveCurrentConfigGroup()">保存配置组</button>
                         <button class="btn-secondary" onclick="deleteSelectedConfigGroup()">删除配置组</button>
                         <button class="btn-export" onclick="triggerImportConfigGroups()">读取配置组</button>
+                        <button class="btn-primary" onclick="exportConfigToClipboard()">导出参数</button>
                     </div>
                     <input
                         type="file"
@@ -675,99 +825,98 @@
 
                 <div class="config-section">
                     <div class="config-title">批量生成</div>
-                    <div class="config-grid">
-                        <div class="config-item">
+                    <div class="controls-row" style="margin-top: 8px;">
+                        <div class="config-item" style="flex: 1; min-width: 180px;">
                             <label>生成数量：</label>
                             <input type="number" id="batchCount" min="1" max="100" value="10">
                         </div>
-                    </div>
-                    <div class="controls-row" style="margin-top: 8px;">
-                        <button class="btn-primary" onclick="exportConfigToClipboard()">导出配置</button>
                         <button class="btn-export" onclick="batchGenerate()">导出批量</button>
-                    </div>
-                </div>
-
-                <div class="result-section">
-                    <div class="result-title">配置结果</div>
-                    <div class="result-grid">
-                        <div class="result-item">
-                            <div class="result-value" id="result8">0</div>
-                            <div class="result-label">8张种类</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-value" id="result6">0</div>
-                            <div class="result-label">6张种类</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-value" id="result4">0</div>
-                            <div class="result-label">4张种类</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-value" id="result2">0</div>
-                            <div class="result-label">2张种类</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-value" id="resultTotalTypes">0</div>
-                            <div class="result-label">种类数</div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-value" id="resultTotalCards">0</div>
-                            <div class="result-label">总卡牌</div>
-                        </div>
                     </div>
                 </div>
 
                 <div class="error-msg" id="errorMsg" style="display: none;"></div>
             </div>
 
-            <div class="panel">
-                <div class="controls-row">
-                    <button class="btn-generate" onclick="fillBoard()">填入数字</button>
-                    <button class="btn-primary" onclick="generateBoard()">刷新棋盘</button>
-                </div>
-                <div class="controls-row">
-                    <button class="btn-secondary" onclick="clearBoard()">清空</button>
-                    <button class="btn-export" id="btnExportSingle" onclick="exportToClipboard()">导出当前</button>
-                </div>
-
-                <div class="info" id="info"></div>
+            <div class="panel workspace-panel">
                 <div class="board-layout">
-                    <div class="stats-section">
-                        <div class="result-title">每关统计</div>
-                        <div class="stats-actions">
-                            <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
-                            <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
-                                style="margin-top: 8px;">试玩模式</button>
-                            <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
-                                style="margin-top: 8px;">模拟100局</button>
+                    <div class="board-container">
+                        <div class="board-top-tools">
+                            <div class="board-top-actions">
+                                <button class="btn-generate" onclick="fillBoard()">填入数字</button>
+                                <button class="btn-primary" onclick="generateBoard()">刷新棋盘</button>
+                                <button class="btn-secondary" onclick="clearBoard()">清空</button>
+                                <button class="btn-export" id="btnExportSingle"
+                                    onclick="exportToClipboard()">导出当前</button>
+                            </div>
+                            <div class="info" id="info"></div>
                         </div>
-                        <div class="stats-grid">
-                            <div class="stats-item">
-                                <div class="stats-item-title">数字池分布</div>
-                                <div class="stats-line" id="levelStatsTypes">-</div>
-                            </div>
-                            <div class="stats-item">
-                                <div class="stats-item-title">相邻数字对数</div>
-                                <div class="stats-line" id="levelStatsPairs">-</div>
-                            </div>
-                            <div class="stats-item">
-                                <div class="stats-item-title">相邻基准线相同数字数量</div>
-                                <div class="stats-line" id="levelStatsAdjacent">-</div>
-                            </div>
-                            <div class="stats-item">
-                                <div class="stats-item-title">方向上下重叠统计（数字:数量）</div>
-                                <div class="stats-line" id="levelStatsDirectionBoth">-</div>
-                            </div>
-                            <div class="stats-item">
-                                <div class="stats-item-title">模拟100局胜率</div>
-                                <div class="stats-line" id="levelStatsSimulation">-</div>
-                            </div>
+                        <div class="board-wrapper" id="boardWrapper">
+                            <div class="board" id="board"></div>
                         </div>
                     </div>
 
-                    <div class="board-container">
-                        <div class="board-wrapper" id="boardWrapper">
-                            <div class="board" id="board"></div>
+                    <div class="board-side-panel">
+                        <div class="result-section">
+                            <div class="result-title">配置结果</div>
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <div class="result-value" id="result8">0</div>
+                                    <div class="result-label">8张种类</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-value" id="result6">0</div>
+                                    <div class="result-label">6张种类</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-value" id="result4">0</div>
+                                    <div class="result-label">4张种类</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-value" id="result2">0</div>
+                                    <div class="result-label">2张种类</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-value" id="resultTotalTypes">0</div>
+                                    <div class="result-label">种类数</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-value" id="resultTotalCards">0</div>
+                                    <div class="result-label">总卡牌</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-section">
+                            <div class="result-title">每关统计</div>
+                            <div class="stats-actions">
+                                <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
+                                <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
+                                    style="margin-top: 8px;">试玩模式</button>
+                                <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
+                                    style="margin-top: 8px;">模拟100局</button>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stats-item">
+                                    <div class="stats-item-title">数字池分布</div>
+                                    <div class="stats-line" id="levelStatsTypes">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">相邻数字对数</div>
+                                    <div class="stats-line" id="levelStatsPairs">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">相邻基准线相同数字数量</div>
+                                    <div class="stats-line" id="levelStatsAdjacent">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">方向上下重叠统计（数字:数量）</div>
+                                    <div class="stats-line" id="levelStatsDirectionBoth">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">模拟100局胜率</div>
+                                    <div class="stats-line" id="levelStatsSimulation">-</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -900,7 +1049,8 @@
                 sameNum: getProbabilityValue('sameNum', 0.1),
                 xianglinSame: getProbabilityValue('xianglinSame', 0.1),
                 directionBothCtrl: getProbabilityValue('directionBothCtrl', 0.5),
-                batchCount: parseInt(document.getElementById('batchCount')?.value, 10) || 10
+                batchCount: parseInt(document.getElementById('batchCount')?.value, 10) || 10,
+                distanceCtrl: getProbabilityValue('distanceCtrl', 0.1)
             };
         }
 
@@ -970,6 +1120,11 @@
                 0,
                 1
             );
+            const distanceCtrl = clamp(
+                Number.isFinite(Number(config.distanceCtrl)) ? Number(config.distanceCtrl) : 0.1,
+                0,
+                1
+            );
             const batchCount = Math.round(clamp(
                 Number.isFinite(Number(config.batchCount)) ? Number(config.batchCount) : 10,
                 1,
@@ -986,6 +1141,7 @@
             setSliderControlValue('sameNum', 'sameNumValue', sameNum, 2);
             setSliderControlValue('xianglinSame', 'xianglinSameValue', clamp(xianglinSame, 0, 1), 2);
             setSliderControlValue('directionBothCtrl', 'directionBothCtrlValue', directionBothCtrl, 2);
+            setSliderControlValue('distanceCtrl', 'distanceCtrlValue', distanceCtrl, 2);
 
             const count8Input = document.getElementById('count8');
             if (count8Input) count8Input.value = String(count8);
@@ -1159,7 +1315,11 @@
                 sameNum: toNumber(item?.['同位置相同概率'], 0.1),
                 xianglinSame: toNumber(item?.['相邻列同位置相同概率'], 0.1),
                 directionBothCtrl: toNumber(item?.['方向上下重叠控制'], 0.5),
-                batchCount: 10
+                batchCount: 10,
+                distanceCtrl: toNumber(
+                    item?.['距离参数'] ?? item?.['同色邻近概率（8格）'] ?? item?.['同色邻近概率'],
+                    0.1
+                )
             };
         }
 
@@ -2068,6 +2228,7 @@
             const sameNum = getProbabilityValue('sameNum', 0.1);
             const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
             const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
 
             generateBoard();
             shuffleImages();
@@ -2077,7 +2238,8 @@
                 sameLie,
                 sameNum,
                 xianglinSame,
-                directionBothCtrl
+                directionBothCtrl,
+                distanceCtrl
             );
 
             const fillOrder = getFillOrder(width, height, direction);
@@ -2123,6 +2285,7 @@
             const sameNum = getProbabilityValue('sameNum', 0.1);
             const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
             const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
 
             const btn = document.getElementById('btnExportSingle');
             if (btn) {
@@ -2194,7 +2357,7 @@
                     const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const getAdjacentSamePositionCandidateNumbers = () => {
@@ -2249,6 +2412,23 @@
                         }
                     }
                     return adjacentSet;
+                };
+
+                const getAroundNeighborCandidateSet = () => {
+                    const aroundSet = new Set();
+                    for (let di = -1; di <= 1; di++) {
+                        for (let dj = -1; dj <= 1; dj++) {
+                            if (di === 0 && dj === 0) continue;
+                            const ni = i + di;
+                            const nj = j + dj;
+                            if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
+                            const value = filledCells[ni]?.[nj];
+                            if (value !== null && value !== undefined) {
+                                aroundSet.add(value);
+                            }
+                        }
+                    }
+                    return aroundSet;
                 };
 
                 const getDirectionBothCandidateSet = () => {
@@ -2315,7 +2495,7 @@
                     const source = allowedCandidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const pickAnyCard = (forbiddenNumbers = new Set()) => {
@@ -2333,12 +2513,14 @@
                     const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const adjacentSamePositionNumbers = getAdjacentSamePositionCandidateNumbers();
                 const adjacentLineNumbers = Array.from(getAdjacentLineCandidateSet());
+                const aroundNeighborNumbers = Array.from(getAroundNeighborCandidateSet());
                 const forbiddenNumbers = new Set();
+                const aroundNeighborNumberSet = new Set(aroundNeighborNumbers);
 
                 const tryAdjacentLineSet = Math.random() < sameNum;
                 if (!tryAdjacentLineSet) {
@@ -2372,6 +2554,41 @@
 
                 if (num === null) {
                     num = getNextCard();
+                }
+
+                if (num !== null) {
+                    if (aroundNeighborNumberSet.has(num) && Math.random() >= distanceCtrl) {
+                        const replaceForbiddenNumbers = new Set(forbiddenNumbers);
+                        aroundNeighborNumberSet.forEach(value => replaceForbiddenNumbers.add(value));
+                        const preferUsedForReplace = Math.random() < sameLie;
+                        let replacement = pickByGroupPreference(
+                            preferUsedForReplace,
+                            replaceForbiddenNumbers
+                        );
+                        if (replacement === null) {
+                            replacement = pickByGroupPreference(
+                                !preferUsedForReplace,
+                                replaceForbiddenNumbers
+                            );
+                        }
+                        if (replacement === null && tryAdjacentLineSet) {
+                            replacement = pickByCandidateNumbers(
+                                adjacentLineNumbers,
+                                replaceForbiddenNumbers
+                            );
+                        }
+                        if (replacement === null) {
+                            replacement = pickAnyCard(replaceForbiddenNumbers);
+                        }
+                        if (replacement !== null) {
+                            num = replacement;
+                        }
+                    }
+
+                    const reservedCard = getSpecificCard(num);
+                    if (reservedCard === null) {
+                        num = getNextCard();
+                    }
                 }
 
                 if (num !== null) {
@@ -2837,6 +3054,7 @@
             const sameNum = getProbabilityValue('sameNum', 0.1);
             const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
             const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
 
             const toCompactNumber = (value) => String(Number(value.toFixed(2)));
             const values = [
@@ -2848,7 +3066,8 @@
                 toCompactNumber(sameLie),
                 toCompactNumber(sameNum),
                 toCompactNumber(xianglinSame),
-                toCompactNumber(directionBothCtrl)
+                toCompactNumber(directionBothCtrl),
+                toCompactNumber(distanceCtrl)
             ];
 
             const tsvText = values.join('\t');
@@ -2900,7 +3119,8 @@
             sameLie,
             sameNum,
             xianglinSame,
-            directionBothCtrl
+            directionBothCtrl,
+            distanceCtrl
         ) {
             const width = parseInt(document.getElementById('width').value) || 8;
             const height = parseInt(document.getElementById('height').value) || 14;
@@ -2971,7 +3191,7 @@
                     const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const getAdjacentSamePositionCandidateNumbers = () => {
@@ -3026,6 +3246,23 @@
                         }
                     }
                     return adjacentSet;
+                };
+
+                const getAroundNeighborCandidateSet = () => {
+                    const aroundSet = new Set();
+                    for (let di = -1; di <= 1; di++) {
+                        for (let dj = -1; dj <= 1; dj++) {
+                            if (di === 0 && dj === 0) continue;
+                            const ni = i + di;
+                            const nj = j + dj;
+                            if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
+                            const value = filledCells[ni]?.[nj];
+                            if (value !== null && value !== undefined) {
+                                aroundSet.add(value);
+                            }
+                        }
+                    }
+                    return aroundSet;
                 };
 
                 const getDirectionBothCandidateSet = () => {
@@ -3092,7 +3329,7 @@
                     const source = allowedCandidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const pickAnyCard = (forbiddenNumbers = new Set()) => {
@@ -3110,12 +3347,14 @@
                     const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
                     const picked = chooseCandidateByControl(source);
                     if (picked === null) return null;
-                    return getSpecificCard(picked);
+                    return picked;
                 };
 
                 const adjacentSamePositionNumbers = getAdjacentSamePositionCandidateNumbers();
                 const adjacentLineNumbers = Array.from(getAdjacentLineCandidateSet());
+                const aroundNeighborNumbers = Array.from(getAroundNeighborCandidateSet());
                 const forbiddenNumbers = new Set();
+                const aroundNeighborNumberSet = new Set(aroundNeighborNumbers);
 
                 const tryAdjacentLineSet = Math.random() < sameNum;
                 if (!tryAdjacentLineSet) {
@@ -3149,6 +3388,41 @@
 
                 if (num === null) {
                     num = getNextCard();
+                }
+
+                if (num !== null) {
+                    if (aroundNeighborNumberSet.has(num) && Math.random() >= distanceCtrl) {
+                        const replaceForbiddenNumbers = new Set(forbiddenNumbers);
+                        aroundNeighborNumberSet.forEach(value => replaceForbiddenNumbers.add(value));
+                        const preferUsedForReplace = Math.random() < sameLie;
+                        let replacement = pickByGroupPreference(
+                            preferUsedForReplace,
+                            replaceForbiddenNumbers
+                        );
+                        if (replacement === null) {
+                            replacement = pickByGroupPreference(
+                                !preferUsedForReplace,
+                                replaceForbiddenNumbers
+                            );
+                        }
+                        if (replacement === null && tryAdjacentLineSet) {
+                            replacement = pickByCandidateNumbers(
+                                adjacentLineNumbers,
+                                replaceForbiddenNumbers
+                            );
+                        }
+                        if (replacement === null) {
+                            replacement = pickAnyCard(replaceForbiddenNumbers);
+                        }
+                        if (replacement !== null) {
+                            num = replacement;
+                        }
+                    }
+
+                    const reservedCard = getSpecificCard(num);
+                    if (reservedCard === null) {
+                        num = getNextCard();
+                    }
                 }
 
                 if (num !== null) {
@@ -3324,6 +3598,7 @@
             const sameNum = getProbabilityValue('sameNum', 0.1);
             const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
             const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
 
             let result = '';
             const width = parseInt(document.getElementById('width').value) || 8;
@@ -3335,7 +3610,8 @@
                     sameLie,
                     sameNum,
                     xianglinSame,
-                    directionBothCtrl
+                    directionBothCtrl,
+                    distanceCtrl
                 );
                 const boardStr = JSON.stringify(boardData);
                 const exportAverages = calculateExportAverages(boardData, direction);
