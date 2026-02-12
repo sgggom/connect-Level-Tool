@@ -1,0 +1,2967 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阵型生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 15px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 15px;
+            min-width: 0;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .config-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .config-title {
+            font-size: 1em;
+            margin-bottom: 10px;
+            color: #f093fb;
+            font-weight: bold;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-item label {
+            white-space: nowrap;
+            font-size: 0.9em;
+        }
+
+        input[type="number"], select {
+            width: 80px;
+            padding: 8px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            text-align: center;
+        }
+
+        select {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #38ef7d;
+        }
+
+        .slider-value {
+            min-width: 38px;
+            text-align: right;
+            font-size: 0.85em;
+            color: #38ef7d;
+            font-weight: 600;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 15px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 15px rgba(250, 112, 154, 0.4);
+        }
+
+        .direction-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .direction-item {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .direction-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .direction-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .direction-item input {
+            display: none;
+        }
+
+        .direction-name {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 0.85em;
+        }
+
+        .result-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-title {
+            font-size: 1em;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .result-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #38ef7d;
+        }
+
+        .result-label {
+            font-size: 0.75em;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .pool-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .pool-title {
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #f093fb;
+            font-weight: bold;
+        }
+
+        .pool-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .pool-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pool-count {
+            background: rgba(255,255,255,0.3);
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 0.8em;
+        }
+
+        .error-msg {
+            background: rgba(245, 87, 108, 0.3);
+            color: #f5576c;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls-row button {
+            flex: 1;
+        }
+
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
+            max-height: 75vh;
+        }
+
+        .board-wrapper {
+            transform-origin: top center;
+            transition: transform 0.3s ease;
+            min-width: 0;
+            max-height: 70vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .board {
+            display: grid;
+            gap: 1px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .cell {
+            width: 150px;
+            height: 190px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .cell.filled {
+            background: rgba(102, 126, 234, 0.4);
+            padding: 2px;
+        }
+
+        .board.play-mode .cell.filled {
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+        }
+
+        .board.play-mode .cell.play-selected {
+            box-shadow: inset 0 0 0 3px #ffd166, 0 0 12px rgba(255, 209, 102, 0.8);
+        }
+
+        .cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .stats-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            margin-top: 10px;
+        }
+
+        .board-layout {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            min-height: 0;
+            flex: 1;
+        }
+
+        .board-layout .stats-section {
+            margin-top: 0;
+            width: 320px;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .stats-line {
+            text-align: left;
+            margin-top: 6px;
+            font-size: 0.85em;
+            line-height: 1.45;
+            opacity: 0.9;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .stats-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .stats-item-title {
+            font-size: 0.78em;
+            letter-spacing: 0.02em;
+            opacity: 0.8;
+            color: #b9d7ff;
+            margin-bottom: 4px;
+        }
+
+        .stats-actions {
+            margin-bottom: 8px;
+        }
+
+        .stats-actions button {
+            width: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .direction-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+            .board-layout {
+                flex-direction: column;
+            }
+            .board-layout .stats-section {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .direction-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .cell {
+                width: 80px;
+                height: 100px;
+            }
+            .board {
+                gap: 1px;
+                padding: 5px;
+            }
+        }
+            .direction-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+    
+
+        @media (max-width: 600px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .direction-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>阵型生成器</h1>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="config-section">
+                    <div class="config-title">棋盘尺寸</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>宽度：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="width"
+                                    min="6"
+                                    max="10"
+                                    step="1"
+                                    value="8"
+                                    oninput="document.getElementById('widthValue').textContent=this.value; calculatePool();"
+                                >
+                                <span class="slider-value" id="widthValue">8</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label>高度：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="height"
+                                    min="6"
+                                    max="14"
+                                    step="1"
+                                    value="14"
+                                    oninput="document.getElementById('heightValue').textContent=this.value; calculatePool();"
+                                >
+                                <span class="slider-value" id="heightValue">14</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">数字配置</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>8张同色：</label>
+                            <input type="number" id="count8" min="0" max="20" value="0" onchange="calculatePool()">
+                        </div>
+                        <div class="config-item">
+                            <label>6张同色：</label>
+                            <input type="number" id="count6" min="0" max="20" value="0" onchange="calculatePool()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">方向规则</div>
+                    <div class="direction-grid">
+                        <div class="direction-item selected" onclick="selectDirection(0)">
+                            <input type="radio" name="direction" value="0" checked>
+                            <div class="direction-name">0. 无规则</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(1)">
+                            <input type="radio" name="direction" value="1">
+                            <div class="direction-name">1. 向上</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(2)">
+                            <input type="radio" name="direction" value="2">
+                            <div class="direction-name">2. 向下</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(3)">
+                            <input type="radio" name="direction" value="3">
+                            <div class="direction-name">3. 向左</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(4)">
+                            <input type="radio" name="direction" value="4">
+                            <div class="direction-name">4. 向右</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(5)">
+                            <input type="radio" name="direction" value="5">
+                            <div class="direction-name">5. 上下向内</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(6)">
+                            <input type="radio" name="direction" value="6">
+                            <div class="direction-name">6. 左右向内</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(7)">
+                            <input type="radio" name="direction" value="7">
+                            <div class="direction-name">7. 上下向外</div>
+                        </div>
+                        <div class="direction-item" onclick="selectDirection(8)">
+                            <input type="radio" name="direction" value="8">
+                            <div class="direction-name">8. 左右向外</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">概率参数 (0-1)</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>同列/同行同数字概率：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="sameLie"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value="0.1"
+                                    oninput="document.getElementById('sameLieValue').textContent=parseFloat(this.value).toFixed(2);"
+                                >
+                                <span class="slider-value" id="sameLieValue">0.10</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label>同位置相同概率：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="sameNum"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value="0.1"
+                                    oninput="document.getElementById('sameNumValue').textContent=parseFloat(this.value).toFixed(2);"
+                                >
+                                <span class="slider-value" id="sameNumValue">0.10</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label>相邻列同位置相同概率：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="xianglinSame"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value="0.1"
+                                    oninput="document.getElementById('xianglinSameValue').textContent=parseFloat(this.value).toFixed(2);"
+                                >
+                                <span class="slider-value" id="xianglinSameValue">0.10</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label>方向上下重叠控制：</label>
+                            <div class="slider-wrap">
+                                <input
+                                    type="range"
+                                    id="directionBothCtrl"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value="0.50"
+                                    oninput="document.getElementById('directionBothCtrlValue').textContent=parseFloat(this.value).toFixed(2);"
+                                >
+                                <span class="slider-value" id="directionBothCtrlValue">0.50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">批量生成</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>生成数量：</label>
+                            <input type="number" id="batchCount" min="1" max="100" value="10">
+                        </div>
+                    </div>
+                    <div class="controls-row" style="margin-top: 8px;">
+                        <button class="btn-export" onclick="batchGenerate()">导出批量</button>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <div class="result-title">配置结果</div>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-value" id="result8">0</div>
+                            <div class="result-label">8张种类</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-value" id="result6">0</div>
+                            <div class="result-label">6张种类</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-value" id="result4">0</div>
+                            <div class="result-label">4张种类</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-value" id="result2">0</div>
+                            <div class="result-label">2张种类</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-value" id="resultTotalTypes">0</div>
+                            <div class="result-label">种类数</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-value" id="resultTotalCards">0</div>
+                            <div class="result-label">总卡牌</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-msg" id="errorMsg" style="display: none;"></div>
+            </div>
+
+            <div class="panel">
+                <div class="controls-row">
+                    <button class="btn-generate" onclick="fillBoard()">填入数字</button>
+                    <button class="btn-primary" onclick="generateBoard()">刷新棋盘</button>
+                </div>
+                <div class="controls-row">
+                    <button class="btn-secondary" onclick="clearBoard()">清空</button>
+                    <button class="btn-export" id="btnExportSingle" onclick="exportToClipboard()">导出当前</button>
+                </div>
+
+                <div class="info" id="info"></div>
+                <div class="board-layout">
+                    <div class="stats-section">
+                        <div class="result-title">每关统计</div>
+                        <div class="stats-actions">
+                            <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
+                            <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
+                                style="margin-top: 8px;">试玩模式</button>
+                            <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
+                                style="margin-top: 8px;">模拟100局</button>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stats-item">
+                                <div class="stats-item-title">数字池分布</div>
+                                <div class="stats-line" id="levelStatsTypes">-</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-item-title">相邻数字对数</div>
+                                <div class="stats-line" id="levelStatsPairs">-</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-item-title">相邻基准线相同数字数量</div>
+                                <div class="stats-line" id="levelStatsAdjacent">-</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-item-title">方向上下重叠统计（数字:数量）</div>
+                                <div class="stats-line" id="levelStatsDirectionBoth">-</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-item-title">模拟100局胜率</div>
+                                <div class="stats-line" id="levelStatsSimulation">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="board-container">
+                        <div class="board-wrapper" id="boardWrapper">
+                            <div class="board" id="board"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPool = [];
+        let filledCells = [];
+        let poolCards = [];
+        let imageMapping = [];
+        let placedCounts = {};
+        let stepGenerationState = null;
+        let playModeState = null;
+        const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
+        const COLUMN_BASE_DIRECTIONS = [0, 1, 2, 5, 7];
+
+        function isRowBaseDirection(direction) {
+            if (ROW_BASE_DIRECTIONS.includes(direction)) return true;
+            if (COLUMN_BASE_DIRECTIONS.includes(direction)) return false;
+            return false;
+        }
+
+        function getLocalBaseDirectionByCell(direction, rowIndex, colIndex, width, height) {
+            switch (direction) {
+                case 1: return 1;
+                case 2: return 2;
+                case 3: return 3;
+                case 4: return 4;
+                case 5:
+                    return rowIndex < height / 2 ? 2 : 1;
+                case 6:
+                    return colIndex < width / 2 ? 4 : 3;
+                case 7:
+                    return rowIndex < height / 2 ? 1 : 2;
+                case 8:
+                    return colIndex < width / 2 ? 3 : 4;
+                default:
+                    return 0;
+            }
+        }
+
+        function collectDirectionalSideNumbers(rowIndex, colIndex, width, height, localDirection, sideType) {
+            const sideNumbers = new Set();
+            if (localDirection === 0) return sideNumbers;
+
+            let stepI = 0;
+            let stepJ = 0;
+            if (localDirection === 1) {
+                stepI = sideType === 'top' ? 1 : -1;
+            } else if (localDirection === 2) {
+                stepI = sideType === 'top' ? -1 : 1;
+            } else if (localDirection === 3) {
+                stepJ = sideType === 'top' ? 1 : -1;
+            } else if (localDirection === 4) {
+                stepJ = sideType === 'top' ? -1 : 1;
+            }
+
+            let ni = rowIndex + stepI;
+            let nj = colIndex + stepJ;
+            while (ni >= 0 && ni < height && nj >= 0 && nj < width) {
+                const value = filledCells[ni]?.[nj];
+                if (Number.isInteger(value) && value > 0) {
+                    sideNumbers.add(value);
+                }
+                ni += stepI;
+                nj += stepJ;
+            }
+            return sideNumbers;
+        }
+
+        function shuffleImages() {
+            imageMapping = Array.from({length: 34}, (_, i) => i + 1);
+            for (let i = imageMapping.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [imageMapping[i], imageMapping[j]] = [imageMapping[j], imageMapping[i]];
+            }
+        }
+
+        function getImageForNumber(num) {
+            const index = (num - 1) % imageMapping.length;
+            return imageMapping[index];
+        }
+
+        function selectDirection(index) {
+            document.querySelectorAll('.direction-item').forEach((item, i) => {
+                item.classList.toggle('selected', i === index);
+            });
+            const radio = document.querySelector(`input[name="direction"][value="${index}"]`);
+            if (radio) radio.checked = true;
+        }
+
+        function getProbabilityValue(elementId, defaultValue = 0.1) {
+            const element = document.getElementById(elementId);
+            if (!element) return defaultValue;
+            const parsed = parseFloat(element.value);
+            if (!Number.isFinite(parsed)) return defaultValue;
+            return Math.max(0, Math.min(1, parsed));
+        }
+
+        function cloneBoardData(boardData) {
+            if (!Array.isArray(boardData)) return [];
+            return boardData.map((row) => Array.isArray(row) ? [...row] : []);
+        }
+
+        function hasFilledCells(boardData) {
+            if (!Array.isArray(boardData)) return false;
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const value of row) {
+                    if (Number.isInteger(value) && value > 0) return true;
+                }
+            }
+            return false;
+        }
+
+        function setDefaultInfoText() {
+            const width = parseInt(document.getElementById('width').value) || 0;
+            const height = parseInt(document.getElementById('height').value) || 0;
+            const info = document.getElementById('info');
+            if (!info) return;
+            if (width > 0 && height > 0) {
+                info.textContent = `棋盘: ${width}×${height} = ${width * height} 格`;
+            } else {
+                info.textContent = '';
+            }
+        }
+
+        function updatePlayModeButton() {
+            const playButton = document.getElementById('btnPlayMode');
+            if (!playButton) return;
+            playButton.textContent = (playModeState && playModeState.active) ? '退出试玩' : '试玩模式';
+        }
+
+        function clearPlaySelectionVisual() {
+            if (!playModeState || !playModeState.selected) return;
+            const { row, col } = playModeState.selected;
+            const selectedCell = document.getElementById(`cell-${row}-${col}`);
+            if (selectedCell) selectedCell.classList.remove('play-selected');
+            playModeState.selected = null;
+        }
+
+        function setPlaySelection(row, col) {
+            if (!playModeState) return;
+            clearPlaySelectionVisual();
+            const selectedCell = document.getElementById(`cell-${row}-${col}`);
+            if (selectedCell) selectedCell.classList.add('play-selected');
+            playModeState.selected = { row, col };
+        }
+
+        function syncBoardDisplayByData(boardData) {
+            if (!Array.isArray(boardData)) return;
+            for (let i = 0; i < boardData.length; i++) {
+                for (let j = 0; j < boardData[i].length; j++) {
+                    renderCellNumber(i, j, boardData[i][j]);
+                }
+            }
+        }
+
+        function getCellPositionByElement(cellElement) {
+            if (!cellElement || !cellElement.id) return null;
+            const idMatch = cellElement.id.match(/^cell-(\d+)-(\d+)$/);
+            if (!idMatch) return null;
+            return {
+                row: parseInt(idMatch[1], 10),
+                col: parseInt(idMatch[2], 10)
+            };
+        }
+
+        function isPlayBoardCleared(boardData) {
+            if (!Array.isArray(boardData)) return true;
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const value of row) {
+                    if (Number.isInteger(value) && value > 0) return false;
+                }
+            }
+            return true;
+        }
+
+        function canConnectByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return false;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return false;
+            if (startRow === targetRow && startCol === targetCol) return false;
+
+            const extHeight = height + 2;
+            const extWidth = width + 2;
+            const grid = Array.from({ length: extHeight }, () => Array(extWidth).fill(0));
+
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const value = boardData[i]?.[j];
+                    if (Number.isInteger(value) && value > 0) {
+                        grid[i + 1][j + 1] = value;
+                    }
+                }
+            }
+
+            const startExtRow = startRow + 1;
+            const startExtCol = startCol + 1;
+            const targetExtRow = targetRow + 1;
+            const targetExtCol = targetCol + 1;
+
+            if (grid[startExtRow][startExtCol] === 0 || grid[targetExtRow][targetExtCol] === 0) {
+                return false;
+            }
+
+            const directionSteps = [
+                [-1, 0],
+                [1, 0],
+                [0, -1],
+                [0, 1]
+            ];
+
+            const visited = Array.from(
+                { length: extHeight },
+                () => Array.from({ length: extWidth }, () => Array(4).fill(Infinity))
+            );
+
+            grid[startExtRow][startExtCol] = 0;
+            const queue = [];
+            let queueIndex = 0;
+
+            for (let dir = 0; dir < 4; dir++) {
+                const [dr, dc] = directionSteps[dir];
+                let nextRow = startExtRow + dr;
+                let nextCol = startExtCol + dc;
+                while (
+                    nextRow >= 0 &&
+                    nextRow < extHeight &&
+                    nextCol >= 0 &&
+                    nextCol < extWidth
+                ) {
+                    if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                        return true;
+                    }
+                    if (grid[nextRow][nextCol] !== 0) break;
+                    if (visited[nextRow][nextCol][dir] > 0) {
+                        visited[nextRow][nextCol][dir] = 0;
+                        queue.push({ row: nextRow, col: nextCol, dir, turns: 0 });
+                    }
+                    nextRow += dr;
+                    nextCol += dc;
+                }
+            }
+
+            while (queueIndex < queue.length) {
+                const current = queue[queueIndex];
+                queueIndex++;
+
+                for (let nextDir = 0; nextDir < 4; nextDir++) {
+                    const nextTurns = current.turns + (nextDir === current.dir ? 0 : 1);
+                    if (nextTurns > 2) continue;
+
+                    const [dr, dc] = directionSteps[nextDir];
+                    let nextRow = current.row + dr;
+                    let nextCol = current.col + dc;
+
+                    while (
+                        nextRow >= 0 &&
+                        nextRow < extHeight &&
+                        nextCol >= 0 &&
+                        nextCol < extWidth
+                    ) {
+                        if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                            return true;
+                        }
+                        if (grid[nextRow][nextCol] !== 0) break;
+                        if (visited[nextRow][nextCol][nextDir] > nextTurns) {
+                            visited[nextRow][nextCol][nextDir] = nextTurns;
+                            queue.push({ row: nextRow, col: nextCol, dir: nextDir, turns: nextTurns });
+                        }
+                        nextRow += dr;
+                        nextCol += dc;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function processPlayCellSelection(row, col) {
+            if (!playModeState || !playModeState.active) return;
+            const boardData = playModeState.boardData;
+            const currentValue = boardData?.[row]?.[col];
+            if (!Number.isInteger(currentValue) || currentValue <= 0) return;
+
+            const info = document.getElementById('info');
+            const selected = playModeState.selected;
+            if (!selected) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = `试玩模式：已选中 ${currentValue}`;
+                return;
+            }
+
+            if (selected.row === row && selected.col === col) {
+                clearPlaySelectionVisual();
+                if (info) info.textContent = '试玩模式：已取消选择';
+                return;
+            }
+
+            const selectedValue = boardData?.[selected.row]?.[selected.col];
+            if (!Number.isInteger(selectedValue) || selectedValue <= 0) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = `试玩模式：已选中 ${currentValue}`;
+                return;
+            }
+
+            if (selectedValue !== currentValue) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentValue}`;
+                return;
+            }
+
+            const canConnect = canConnectByLianliankan(
+                boardData,
+                selected.row,
+                selected.col,
+                row,
+                col
+            );
+
+            if (!canConnect) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = '试玩模式：路径不满足连连看规则，请重选';
+                return;
+            }
+
+            boardData[selected.row][selected.col] = null;
+            boardData[row][col] = null;
+            const direction = Number.isInteger(playModeState.direction) ? playModeState.direction : 0;
+            applyDirectionShiftUntilStable(boardData, direction);
+            syncBoardDisplayByData(boardData);
+            playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
+            clearPlaySelectionVisual();
+
+            if (isPlayBoardCleared(boardData)) {
+                if (info) info.textContent = `试玩模式：已清空棋盘，共消除 ${playModeState.clearedPairs} 对`;
+            } else {
+                if (info) info.textContent = `试玩模式：已消除 ${playModeState.clearedPairs} 对`;
+            }
+        }
+
+        function exitPlayMode(options = {}) {
+            const { restoreBoard = true, silent = false } = options;
+            if (!playModeState || !playModeState.active) return;
+
+            if (restoreBoard && Array.isArray(playModeState.originalBoard)) {
+                syncBoardDisplayByData(playModeState.originalBoard);
+                filledCells = cloneBoardData(playModeState.originalBoard);
+            }
+
+            const board = document.getElementById('board');
+            if (board) board.classList.remove('play-mode');
+
+            playModeState = null;
+            updatePlayModeButton();
+
+            if (!silent) {
+                setDefaultInfoText();
+            }
+        }
+
+        function enterPlayMode() {
+            if (playModeState && playModeState.active) return;
+            if (!hasFilledCells(filledCells)) {
+                alert('请先生成关卡，再进入试玩模式。');
+                return;
+            }
+
+            resetStepGenerationState();
+            const sourceBoard = cloneBoardData(filledCells);
+            playModeState = {
+                active: true,
+                originalBoard: sourceBoard,
+                boardData: cloneBoardData(sourceBoard),
+                selected: null,
+                clearedPairs: 0,
+                direction: parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0)
+            };
+
+            const board = document.getElementById('board');
+            if (board) board.classList.add('play-mode');
+
+            updatePlayModeButton();
+            const info = document.getElementById('info');
+            if (info) info.textContent = '试玩模式：点击两张相同且可连通的牌进行消除';
+        }
+
+        function togglePlayMode() {
+            if (playModeState && playModeState.active) {
+                exitPlayMode({ restoreBoard: true, silent: false });
+                return;
+            }
+            enterPlayMode();
+        }
+
+        function handleBoardCellClick(event) {
+            if (!playModeState || !playModeState.active) return;
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+            const position = getCellPositionByElement(cellElement);
+            if (!position) return;
+            processPlayCellSelection(position.row, position.col);
+        }
+
+        function getRemovablePairsForBoard(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return [];
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return [];
+
+            const positionsByNumber = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const value = boardData[i]?.[j];
+                    if (!Number.isInteger(value) || value <= 0) continue;
+                    if (!positionsByNumber.has(value)) positionsByNumber.set(value, []);
+                    positionsByNumber.get(value).push({ row: i, col: j });
+                }
+            }
+
+            const pairs = [];
+            positionsByNumber.forEach((positions) => {
+                if (!positions || positions.length < 2) return;
+                for (let left = 0; left < positions.length - 1; left++) {
+                    for (let right = left + 1; right < positions.length; right++) {
+                        const first = positions[left];
+                        const second = positions[right];
+                        if (!canConnectByLianliankan(
+                            boardData,
+                            first.row,
+                            first.col,
+                            second.row,
+                            second.col
+                        )) {
+                            continue;
+                        }
+                        const isAdjacent = Math.abs(first.row - second.row) +
+                            Math.abs(first.col - second.col) === 1;
+                        pairs.push({
+                            row1: first.row,
+                            col1: first.col,
+                            row2: second.row,
+                            col2: second.col,
+                            adjacent: isAdjacent
+                        });
+                    }
+                }
+            });
+            return pairs;
+        }
+
+        function pickRandomPair(pairs) {
+            if (!pairs || pairs.length === 0) return null;
+            const index = Math.floor(Math.random() * pairs.length);
+            return pairs[index];
+        }
+
+        function compactValues(values, towardStart) {
+            const nonEmpty = values.filter((value) => Number.isInteger(value) && value > 0);
+            const emptyCount = values.length - nonEmpty.length;
+            const emptyValues = Array.from({ length: emptyCount }, () => null);
+            return towardStart ? [...nonEmpty, ...emptyValues] : [...emptyValues, ...nonEmpty];
+        }
+
+        function getPartitionIndices(length, isFirstPart) {
+            const indices = [];
+            for (let index = 0; index < length; index++) {
+                const inFirstPart = index < (length / 2);
+                if ((isFirstPart && inFirstPart) || (!isFirstPart && !inFirstPart)) {
+                    indices.push(index);
+                }
+            }
+            return indices;
+        }
+
+        function applySegmentCompaction(boardData, segmentIndices, getValue, setValue, towardStart) {
+            if (!segmentIndices || segmentIndices.length === 0) return false;
+            const originalValues = segmentIndices.map((index) => getValue(index));
+            const compactedValues = compactValues(originalValues, towardStart);
+            let changed = false;
+            for (let idx = 0; idx < segmentIndices.length; idx++) {
+                if (originalValues[idx] !== compactedValues[idx]) {
+                    changed = true;
+                }
+                setValue(segmentIndices[idx], compactedValues[idx]);
+            }
+            return changed;
+        }
+
+        function applyDirectionShiftOnce(boardData, direction) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return false;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return false;
+
+            let changed = false;
+            const topRows = getPartitionIndices(height, true);
+            const bottomRows = getPartitionIndices(height, false);
+            const leftCols = getPartitionIndices(width, true);
+            const rightCols = getPartitionIndices(width, false);
+
+            const compactColumn = (colIndex, rowIndices, towardTop) => {
+                const segmentChanged = applySegmentCompaction(
+                    boardData,
+                    rowIndices,
+                    (rowIndex) => boardData[rowIndex]?.[colIndex] ?? null,
+                    (rowIndex, value) => {
+                        boardData[rowIndex][colIndex] = value;
+                    },
+                    towardTop
+                );
+                if (segmentChanged) changed = true;
+            };
+
+            const compactRow = (rowIndex, colIndices, towardLeft) => {
+                const segmentChanged = applySegmentCompaction(
+                    boardData,
+                    colIndices,
+                    (colIndex) => boardData[rowIndex]?.[colIndex] ?? null,
+                    (colIndex, value) => {
+                        boardData[rowIndex][colIndex] = value;
+                    },
+                    towardLeft
+                );
+                if (segmentChanged) changed = true;
+            };
+
+            switch (direction) {
+                case 1:
+                    for (let col = 0; col < width; col++) compactColumn(col, topRows.concat(bottomRows), true);
+                    break;
+                case 2:
+                    for (let col = 0; col < width; col++) compactColumn(col, topRows.concat(bottomRows), false);
+                    break;
+                case 3:
+                    for (let row = 0; row < height; row++) compactRow(row, leftCols.concat(rightCols), true);
+                    break;
+                case 4:
+                    for (let row = 0; row < height; row++) compactRow(row, leftCols.concat(rightCols), false);
+                    break;
+                case 5:
+                    for (let col = 0; col < width; col++) {
+                        compactColumn(col, topRows, false);
+                        compactColumn(col, bottomRows, true);
+                    }
+                    break;
+                case 6:
+                    for (let row = 0; row < height; row++) {
+                        compactRow(row, leftCols, false);
+                        compactRow(row, rightCols, true);
+                    }
+                    break;
+                case 7:
+                    for (let col = 0; col < width; col++) {
+                        compactColumn(col, topRows, true);
+                        compactColumn(col, bottomRows, false);
+                    }
+                    break;
+                case 8:
+                    for (let row = 0; row < height; row++) {
+                        compactRow(row, leftCols, true);
+                        compactRow(row, rightCols, false);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return changed;
+        }
+
+        function applyDirectionShiftUntilStable(boardData, direction) {
+            const maxIterations = (boardData.length || 0) * ((boardData[0]?.length || 0) + 1);
+            let iteration = 0;
+            while (iteration < maxIterations) {
+                const changed = applyDirectionShiftOnce(boardData, direction);
+                if (!changed) break;
+                iteration++;
+            }
+        }
+
+        function simulateSingleGame(baseBoardData, direction) {
+            const boardData = cloneBoardData(baseBoardData);
+            if (!hasFilledCells(boardData)) return false;
+
+            const maxSteps = boardData.length * (boardData[0]?.length || 0);
+            let stepCount = 0;
+
+            while (!isPlayBoardCleared(boardData) && stepCount <= maxSteps) {
+                const allPairs = getRemovablePairsForBoard(boardData);
+                if (allPairs.length === 0) return false;
+
+                const adjacentPairs = allPairs.filter(pair => pair.adjacent);
+                const selectedPair = pickRandomPair(
+                    adjacentPairs.length > 0 ? adjacentPairs : allPairs
+                );
+                if (!selectedPair) return false;
+
+                boardData[selectedPair.row1][selectedPair.col1] = null;
+                boardData[selectedPair.row2][selectedPair.col2] = null;
+                applyDirectionShiftUntilStable(boardData, direction);
+                stepCount++;
+            }
+
+            return isPlayBoardCleared(boardData);
+        }
+
+        function simulatePlayGames() {
+            const GAME_COUNT = 100;
+            const sourceBoard = (playModeState && playModeState.active &&
+                Array.isArray(playModeState.originalBoard))
+                ? cloneBoardData(playModeState.originalBoard)
+                : cloneBoardData(filledCells);
+            const direction = (playModeState && playModeState.active)
+                ? playModeState.direction
+                : parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
+
+            if (!hasFilledCells(sourceBoard)) {
+                alert('请先生成关卡，再进行模拟试玩。');
+                return;
+            }
+
+            let winCount = 0;
+            for (let gameIndex = 0; gameIndex < GAME_COUNT; gameIndex++) {
+                if (simulateSingleGame(sourceBoard, direction)) {
+                    winCount++;
+                }
+            }
+
+            const winRate = (winCount / GAME_COUNT) * 100;
+            const resultText = `${winCount}/${GAME_COUNT}（${winRate.toFixed(2)}%）`;
+            const statsSimulation = document.getElementById('levelStatsSimulation');
+            if (statsSimulation) statsSimulation.textContent = resultText;
+
+            const info = document.getElementById('info');
+            if (info) {
+                info.textContent = `模拟试玩完成：胜利 ${winCount} 局 / ${GAME_COUNT} 局，胜率 ${winRate.toFixed(2)}%`;
+            }
+        }
+
+        function calculatePool() {
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+            const count8 = parseInt(document.getElementById('count8').value) || 0;
+            const count6 = parseInt(document.getElementById('count6').value) || 0;
+
+            const totalCells = width * height;
+            const cardsFrom8 = count8 * 8;
+            const cardsFrom6 = count6 * 6;
+            const usedCards = cardsFrom8 + cardsFrom6;
+
+            const errorMsg = document.getElementById('errorMsg');
+            const resultSection = document.getElementById('resultSection');
+
+            if (usedCards > totalCells) {
+                if (errorMsg) {
+                    errorMsg.style.display = 'block';
+                    errorMsg.textContent = '错误：超出棋盘容量！';
+                }
+                if (resultSection) resultSection.style.display = 'none';
+                return;
+            }
+
+            if (errorMsg) errorMsg.style.display = 'none';
+            if (resultSection) resultSection.style.display = 'block';
+
+            const remainingCards = totalCells - usedCards;
+            let count4 = Math.floor(remainingCards / 4);
+            const remainder = remainingCards % 4;
+
+            let count2 = 0;
+            if (remainder >= 2) {
+                count2 = 1;
+            }
+
+            const totalTypes = count8 + count6 + count4 + count2;
+            const totalCards = count8 * 8 + count6 * 6 + count4 * 4 + count2 * 2;
+
+            const result8 = document.getElementById('result8');
+            const result6 = document.getElementById('result6');
+            const result4 = document.getElementById('result4');
+            const result2 = document.getElementById('result2');
+            const resultTotalTypes = document.getElementById('resultTotalTypes');
+            const resultTotalCards = document.getElementById('resultTotalCards');
+
+            if (result8) result8.textContent = count8;
+            if (result6) result6.textContent = count6;
+            if (result4) result4.textContent = count4;
+            if (result2) result2.textContent = count2;
+            if (resultTotalTypes) resultTotalTypes.textContent = totalTypes;
+            if (resultTotalCards) resultTotalCards.textContent = totalCards;
+        }
+
+        function generateBoard() {
+            exitPlayMode({ restoreBoard: false, silent: true });
+            resetStepGenerationState();
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+
+            if (width < 6 || width > 10 || height < 6 || height > 14) {
+                alert('尺寸请设置在：宽度 6-10，高度 6-14');
+                return;
+            }
+
+            const btn = document.getElementById('btnExportSingle');
+            if (btn) {
+                btn.style.background = '';
+            }
+
+            calculatePool();
+            calculatePoolForGenerate(width, height);
+
+            const board = document.getElementById('board');
+            if (!board) return;
+            board.innerHTML = '';
+            board.style.gridTemplateColumns = `repeat(${width}, 150px)`;
+            if (width > 8) board.style.gridTemplateColumns = `repeat(${width}, 120px)`;
+
+            filledCells = [];
+
+            for (let i = 0; i < height; i++) {
+                filledCells[i] = [];
+                for (let j = 0; j < width; j++) {
+                    filledCells[i][j] = null;
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${i}-${j}`;
+                    board.appendChild(cell);
+                }
+            }
+
+            setDefaultInfoText();
+            resetLevelStats();
+
+            setTimeout(scaleBoard, 100);
+        }
+
+        function clearBoard() {
+            exitPlayMode({ restoreBoard: false, silent: true });
+            resetStepGenerationState();
+            if (!filledCells || filledCells.length === 0) return;
+
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+
+            const btn = document.getElementById('btnExportSingle');
+            if (btn) {
+                btn.style.background = '';
+            }
+
+            for (let i = 0; i < height; i++) {
+                if (!filledCells[i]) continue;
+                for (let j = 0; j < width; j++) {
+                    filledCells[i][j] = null;
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    if (cell) {
+                        cell.className = 'cell';
+                        cell.innerHTML = '';
+                    }
+                }
+            }
+            poolCards = [];
+            resetLevelStats();
+            setDefaultInfoText();
+        }
+
+        function getCellColor(num) {
+            const colors = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)',
+                'rgba(83, 102, 255, 0.7)',
+                'rgba(40, 167, 69, 0.7)',
+                'rgba(220, 53, 69, 0.7)',
+                'rgba(0, 123, 255, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(23, 162, 184, 0.7)',
+                'rgba(255, 7, 84, 0.7)',
+                'rgba(108, 117, 125, 0.7)',
+                'rgba(102, 16, 242, 0.7)',
+                'rgba(253, 126, 20, 0.7)',
+                'rgba(32, 201, 151, 0.7)',
+                'rgba(255, 123, 254, 0.7)',
+                'rgba(134, 199, 89, 0.7)'
+            ];
+            const index = (num - 1) % colors.length;
+            return colors[index];
+        }
+
+        function resetStepGenerationState() {
+            stepGenerationState = null;
+            const stepButton = document.getElementById('btnStepGenerate');
+            if (stepButton) stepButton.textContent = '分步生成';
+        }
+
+        function buildStepGroups(fillOrder, direction) {
+            const groups = [];
+            let currentGroup = [];
+            for (const item of fillOrder) {
+                if (item.firstInGroup && currentGroup.length > 0) {
+                    groups.push(currentGroup);
+                    currentGroup = [];
+                }
+                currentGroup.push(item);
+            }
+            if (currentGroup.length > 0) {
+                groups.push(currentGroup);
+            }
+
+            if (groups.length <= 1) return groups;
+
+            const isRowDirection = isRowBaseDirection(direction);
+            const groupMeta = groups.map((group, originalIndex) => {
+                let axisIndex = null;
+                for (const item of group) {
+                    const axisValue = isRowDirection ? item.groupRow : item.groupCol;
+                    if (axisValue !== null && axisValue !== undefined) {
+                        axisIndex = axisValue;
+                        break;
+                    }
+                }
+                return { group, originalIndex, axisIndex };
+            });
+
+            const ordered = [groupMeta[0]];
+            const used = new Set([groupMeta[0].originalIndex]);
+
+            while (ordered.length < groupMeta.length) {
+                const generatedAxis = ordered
+                    .map(item => item.axisIndex)
+                    .filter(axis => axis !== null && axis !== undefined);
+
+                let best = null;
+                for (const candidate of groupMeta) {
+                    if (used.has(candidate.originalIndex)) continue;
+
+                    let minGap = Number.POSITIVE_INFINITY;
+                    let isAdjacent = false;
+                    if (generatedAxis.length > 0 &&
+                        candidate.axisIndex !== null &&
+                        candidate.axisIndex !== undefined) {
+                        for (const axis of generatedAxis) {
+                            const gap = Math.abs(candidate.axisIndex - axis);
+                            if (gap < minGap) minGap = gap;
+                            if (gap === 1) isAdjacent = true;
+                        }
+                    }
+
+                    if (!best) {
+                        best = { candidate, isAdjacent, minGap };
+                        continue;
+                    }
+
+                    if (isAdjacent && !best.isAdjacent) {
+                        best = { candidate, isAdjacent, minGap };
+                        continue;
+                    }
+
+                    if (isAdjacent === best.isAdjacent) {
+                        if (minGap < best.minGap) {
+                            best = { candidate, isAdjacent, minGap };
+                            continue;
+                        }
+                        if (minGap === best.minGap &&
+                            candidate.originalIndex < best.candidate.originalIndex) {
+                            best = { candidate, isAdjacent, minGap };
+                        }
+                    }
+                }
+
+                if (!best) break;
+                ordered.push(best.candidate);
+                used.add(best.candidate.originalIndex);
+            }
+
+            return ordered.map(item => item.group);
+        }
+
+        function renderCellNumber(i, j, num) {
+            const cell = document.getElementById(`cell-${i}-${j}`);
+            if (!cell) return;
+            if (!Number.isInteger(num) || num <= 0) {
+                cell.className = 'cell';
+                cell.innerHTML = '';
+                return;
+            }
+            cell.className = 'cell filled';
+            cell.innerHTML = '';
+            const imgNum = getImageForNumber(num);
+            const img = document.createElement('img');
+            img.src = `img/${imgNum}.png`;
+            img.alt = num.toString();
+            cell.appendChild(img);
+        }
+
+        function revealNextStepGroup() {
+            if (!stepGenerationState) return;
+            const { groups, boardData, direction } = stepGenerationState;
+            if (stepGenerationState.currentStepIndex >= groups.length) {
+                resetStepGenerationState();
+                return;
+            }
+
+            const currentGroup = groups[stepGenerationState.currentStepIndex];
+            for (const item of currentGroup) {
+                const { i, j } = item;
+                const num = boardData[i]?.[j] ?? 0;
+                if (!filledCells[i]) filledCells[i] = [];
+                filledCells[i][j] = num;
+                renderCellNumber(i, j, num);
+            }
+
+            stepGenerationState.currentStepIndex++;
+            updateLevelStats(direction);
+            setTimeout(scaleBoard, 100);
+
+            const stepButton = document.getElementById('btnStepGenerate');
+            if (!stepButton) return;
+            if (stepGenerationState.currentStepIndex >= groups.length) {
+                stepButton.textContent = '分步生成';
+                stepGenerationState = null;
+            } else {
+                stepButton.textContent =
+                    `下一步 (${stepGenerationState.currentStepIndex}/${groups.length})`;
+            }
+        }
+
+        function startStepGeneration() {
+            exitPlayMode({ restoreBoard: false, silent: true });
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+            if (!width || !height) return;
+
+            const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
+            const sameLie = getProbabilityValue('sameLie', 0.1);
+            const sameNum = getProbabilityValue('sameNum', 0.1);
+            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
+            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+
+            generateBoard();
+            shuffleImages();
+
+            const boardData = generateSingleLevel(
+                direction,
+                sameLie,
+                sameNum,
+                xianglinSame,
+                directionBothCtrl
+            );
+
+            const fillOrder = getFillOrder(width, height, direction);
+            const groups = buildStepGroups(fillOrder, direction);
+
+            filledCells = [];
+            for (let i = 0; i < height; i++) {
+                filledCells[i] = [];
+                for (let j = 0; j < width; j++) {
+                    filledCells[i][j] = null;
+                    renderCellNumber(i, j, null);
+                }
+            }
+
+            stepGenerationState = {
+                boardData,
+                groups,
+                currentStepIndex: 0,
+                direction
+            };
+
+            revealNextStepGroup();
+        }
+
+        function stepGenerateOrNext() {
+            if (!stepGenerationState) {
+                startStepGeneration();
+                return;
+            }
+            revealNextStepGroup();
+        }
+
+        function fillBoard() {
+            exitPlayMode({ restoreBoard: false, silent: true });
+            resetStepGenerationState();
+            shuffleImages();
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+            if (!width || !height) return;
+
+            const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
+            const sameLie = getProbabilityValue('sameLie', 0.1);
+            const sameNum = getProbabilityValue('sameNum', 0.1);
+            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
+            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+
+            const btn = document.getElementById('btnExportSingle');
+            if (btn) {
+                btn.style.background = '';
+            }
+
+            calculatePool();
+            calculatePoolForGenerate(width, height);
+
+            filledCells = [];
+            for (let i = 0; i < height; i++) {
+                filledCells[i] = [];
+                for (let j = 0; j < width; j++) {
+                    filledCells[i][j] = null;
+                }
+            }
+
+            const fillOrder = getFillOrder(width, height, direction);
+
+            placedCounts = {};
+            currentPool.forEach(item => {
+                placedCounts[item.number] = 0;
+            });
+
+            for (let idx = 0; idx < fillOrder.length; idx++) {
+                const {i, j, prevI, prevJ, firstInGroup, groupCol, groupRow} = fillOrder[idx];
+                let num = null;
+                const isRowDirection = isRowBaseDirection(direction);
+
+                const hasPoolNumber = (targetNumber) => {
+                    const poolItem = currentPool.find(p => p.number === targetNumber);
+                    return !!poolItem && placedCounts[targetNumber] < poolItem.count;
+                };
+
+                const getGroupUsedNumbers = () => {
+                    const usedInGroup = new Set();
+                    if (isRowDirection) {
+                        for (let jj = 0; jj < width; jj++) {
+                            if (filledCells[i]?.[jj] !== null && filledCells[i]?.[jj] !== undefined) {
+                                usedInGroup.add(filledCells[i][jj]);
+                            }
+                        }
+                    } else {
+                        for (let ii = 0; ii < height; ii++) {
+                            if (filledCells[ii]?.[j] !== null && filledCells[ii]?.[j] !== undefined) {
+                                usedInGroup.add(filledCells[ii][j]);
+                            }
+                        }
+                    }
+                    return usedInGroup;
+                };
+
+                const pickByGroupPreference = (preferUsed, forbiddenNumbers = new Set()) => {
+                    const usedInGroup = getGroupUsedNumbers();
+                    const candidates = [];
+                    const allowedCandidates = [];
+                    for (const poolItem of currentPool) {
+                        const canUse = placedCounts[poolItem.number] < poolItem.count;
+                        if (!canUse) continue;
+                        const inGroup = usedInGroup.has(poolItem.number);
+                        if ((preferUsed && inGroup) || (!preferUsed && !inGroup)) {
+                            candidates.push(poolItem.number);
+                            if (!forbiddenNumbers.has(poolItem.number)) {
+                                allowedCandidates.push(poolItem.number);
+                            }
+                        }
+                    }
+                    if (candidates.length === 0) return null;
+                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const getAdjacentSamePositionCandidateNumbers = () => {
+                    const adjacentCandidates = [];
+                    if (isRowDirection) {
+                        const upNum = i > 0 ? filledCells[i - 1]?.[j] : null;
+                        const downNum = i < height - 1 ? filledCells[i + 1]?.[j] : null;
+                        if (upNum !== null && upNum !== undefined) {
+                            adjacentCandidates.push(upNum);
+                        }
+                        if (downNum !== null && downNum !== undefined) {
+                            adjacentCandidates.push(downNum);
+                        }
+                    } else {
+                        const leftNum = j > 0 ? filledCells[i]?.[j - 1] : null;
+                        const rightNum = j < width - 1 ? filledCells[i]?.[j + 1] : null;
+                        if (leftNum !== null && leftNum !== undefined) {
+                            adjacentCandidates.push(leftNum);
+                        }
+                        if (rightNum !== null && rightNum !== undefined) {
+                            adjacentCandidates.push(rightNum);
+                        }
+                    }
+                    return adjacentCandidates;
+                };
+
+                const getAdjacentLineCandidateSet = () => {
+                    const adjacentSet = new Set();
+                    if (isRowDirection) {
+                        const adjacentRows = [];
+                        if (i > 0) adjacentRows.push(i - 1);
+                        if (i < height - 1) adjacentRows.push(i + 1);
+                        for (const rowIndex of adjacentRows) {
+                            for (let colIndex = 0; colIndex < width; colIndex++) {
+                                const value = filledCells[rowIndex]?.[colIndex];
+                                if (value !== null && value !== undefined) {
+                                    adjacentSet.add(value);
+                                }
+                            }
+                        }
+                    } else {
+                        const adjacentCols = [];
+                        if (j > 0) adjacentCols.push(j - 1);
+                        if (j < width - 1) adjacentCols.push(j + 1);
+                        for (const colIndex of adjacentCols) {
+                            for (let rowIndex = 0; rowIndex < height; rowIndex++) {
+                                const value = filledCells[rowIndex]?.[colIndex];
+                                if (value !== null && value !== undefined) {
+                                    adjacentSet.add(value);
+                                }
+                            }
+                        }
+                    }
+                    return adjacentSet;
+                };
+
+                const getDirectionBothCandidateSet = () => {
+                    const localDirection = getLocalBaseDirectionByCell(direction, i, j, width, height);
+                    const upperSet = collectDirectionalSideNumbers(
+                        i,
+                        j,
+                        width,
+                        height,
+                        localDirection,
+                        'top'
+                    );
+                    const lowerSet = collectDirectionalSideNumbers(
+                        i,
+                        j,
+                        width,
+                        height,
+                        localDirection,
+                        'bottom'
+                    );
+                    const bothSet = new Set();
+                    upperSet.forEach((value) => {
+                        if (lowerSet.has(value)) bothSet.add(value);
+                    });
+                    return bothSet;
+                };
+
+                const chooseCandidateByControl = (candidateNumbers) => {
+                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
+                    const directionBothSet = getDirectionBothCandidateSet();
+
+                    let bestScore = -Infinity;
+                    let bestCandidates = [];
+                    for (const candidate of candidateNumbers) {
+                        const inDirectionBoth = directionBothSet.has(candidate);
+                        const directionScore = inDirectionBoth ? directionBothCtrl : (1 - directionBothCtrl);
+                        const score = directionScore;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestCandidates = [candidate];
+                        } else if (score === bestScore) {
+                            bestCandidates.push(candidate);
+                        }
+                    }
+                    if (bestCandidates.length === 0) return null;
+                    return bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+                };
+
+                const pickByCandidateNumbers = (candidateNumbers, forbiddenNumbers = new Set()) => {
+                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
+                    const uniqueCandidates = [];
+                    const seen = new Set();
+                    for (const candidate of candidateNumbers) {
+                        if (seen.has(candidate)) continue;
+                        seen.add(candidate);
+                        if (!hasPoolNumber(candidate)) continue;
+                        uniqueCandidates.push(candidate);
+                    }
+                    if (uniqueCandidates.length === 0) return null;
+                    const allowedCandidates = uniqueCandidates.filter(
+                        candidate => !forbiddenNumbers.has(candidate)
+                    );
+                    if (allowedCandidates.length === 0) return null;
+                    const source = allowedCandidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const pickAnyCard = (forbiddenNumbers = new Set()) => {
+                    const candidates = [];
+                    const allowedCandidates = [];
+                    for (const poolItem of currentPool) {
+                        const canUse = placedCounts[poolItem.number] < poolItem.count;
+                        if (!canUse) continue;
+                        candidates.push(poolItem.number);
+                        if (!forbiddenNumbers.has(poolItem.number)) {
+                            allowedCandidates.push(poolItem.number);
+                        }
+                    }
+                    if (candidates.length === 0) return null;
+                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const adjacentSamePositionNumbers = getAdjacentSamePositionCandidateNumbers();
+                const adjacentLineNumbers = Array.from(getAdjacentLineCandidateSet());
+                const forbiddenNumbers = new Set();
+
+                const tryAdjacentLineSet = Math.random() < sameNum;
+                if (!tryAdjacentLineSet) {
+                    adjacentLineNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                const trySamePosition = Math.random() < xianglinSame;
+                if (trySamePosition) {
+                    num = pickByCandidateNumbers(adjacentSamePositionNumbers, forbiddenNumbers);
+                } else {
+                    adjacentSamePositionNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                if (num === null) {
+                    if (tryAdjacentLineSet) {
+                        num = pickByCandidateNumbers(adjacentLineNumbers, forbiddenNumbers);
+                    }
+                }
+
+                if (num === null) {
+                    const preferUsed = Math.random() < sameLie;
+                    num = pickByGroupPreference(preferUsed, forbiddenNumbers);
+                    if (num === null) {
+                        num = pickByGroupPreference(!preferUsed, forbiddenNumbers);
+                    }
+                }
+
+                if (num === null) {
+                    num = pickAnyCard(forbiddenNumbers);
+                }
+
+                if (num === null) {
+                    num = getNextCard();
+                }
+
+                if (num !== null) {
+                    placedCounts[num] = (placedCounts[num] || 0) + 1;
+                    filledCells[i][j] = num;
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    if (cell) {
+                        cell.className = 'cell filled';
+                        cell.innerHTML = '';
+                        const imgNum = getImageForNumber(num);
+                        const img = document.createElement('img');
+                        img.src = `img/${imgNum}.png`;
+                        img.alt = num.toString();
+                        cell.appendChild(img);
+                    }
+                }
+            }
+            updateLevelStats(direction);
+            setTimeout(scaleBoard, 100);
+        }
+
+        function resetLevelStats() {
+            const statsTypes = document.getElementById('levelStatsTypes');
+            const statsPairs = document.getElementById('levelStatsPairs');
+            const statsAdjacent = document.getElementById('levelStatsAdjacent');
+            const statsDirectionBoth = document.getElementById('levelStatsDirectionBoth');
+            const statsSimulation = document.getElementById('levelStatsSimulation');
+            if (statsTypes) statsTypes.textContent = '-';
+            if (statsPairs) statsPairs.textContent = '-';
+            if (statsAdjacent) statsAdjacent.textContent = '-';
+            if (statsDirectionBoth) statsDirectionBoth.textContent = '-';
+            if (statsSimulation) statsSimulation.textContent = '-';
+        }
+
+        function updateLevelStats(direction) {
+            if (!filledCells || filledCells.length === 0) {
+                resetLevelStats();
+                return;
+            }
+
+            const width = parseInt(document.getElementById('width').value) || 0;
+            const height = parseInt(document.getElementById('height').value) || 0;
+            if (width <= 0 || height <= 0) {
+                resetLevelStats();
+                return;
+            }
+
+            const numberCountMap = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const value = filledCells[i]?.[j];
+                    if (!Number.isInteger(value) || value <= 0) continue;
+                    numberCountMap.set(value, (numberCountMap.get(value) || 0) + 1);
+                }
+            }
+
+            const countByCopies = (copies) => {
+                let total = 0;
+                numberCountMap.forEach((count) => {
+                    if (count === copies) total++;
+                });
+                return total;
+            };
+
+            const usedTypeCount = numberCountMap.size;
+            const kinds8 = countByCopies(8);
+            const kinds6 = countByCopies(6);
+            const kinds4 = countByCopies(4);
+            const kinds2 = countByCopies(2);
+
+            let adjacentPairCount = 0;
+            const visited = Array.from({ length: height }, () => Array(width).fill(false));
+            const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const startValue = filledCells[i]?.[j];
+                    if (!Number.isInteger(startValue) || startValue <= 0 || visited[i][j]) continue;
+
+                    let componentSize = 0;
+                    const stack = [[i, j]];
+                    visited[i][j] = true;
+
+                    while (stack.length > 0) {
+                        const [ci, cj] = stack.pop();
+                        componentSize++;
+                        for (const [di, dj] of directions) {
+                            const ni = ci + di;
+                            const nj = cj + dj;
+                            if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
+                            if (visited[ni][nj]) continue;
+                            if (filledCells[ni]?.[nj] !== startValue) continue;
+                            visited[ni][nj] = true;
+                            stack.push([ni, nj]);
+                        }
+                    }
+                    adjacentPairCount += Math.floor(componentSize / 2);
+                }
+            }
+
+            const isRowDirection = isRowBaseDirection(direction);
+            const lineCount = isRowDirection ? height : width;
+            const lineSets = [];
+            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                const numberSet = new Set();
+                if (isRowDirection) {
+                    for (let j = 0; j < width; j++) {
+                        const value = filledCells[lineIndex]?.[j];
+                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                    }
+                } else {
+                    for (let i = 0; i < height; i++) {
+                        const value = filledCells[i]?.[lineIndex];
+                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                    }
+                }
+                lineSets.push(numberSet);
+            }
+
+            const countIntersection = (leftSet, rightSet) => {
+                let overlapCount = 0;
+                leftSet.forEach((value) => {
+                    if (rightSet.has(value)) overlapCount++;
+                });
+                return overlapCount;
+            };
+
+            const adjacentOverlapStats = [];
+            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                let overlapTotal = 0;
+                if (lineIndex > 0) {
+                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex - 1]);
+                }
+                if (lineIndex < lineCount - 1) {
+                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex + 1]);
+                }
+                adjacentOverlapStats.push(overlapTotal);
+            }
+            const adjacentOverlapSum = adjacentOverlapStats.reduce((sum, value) => sum + value, 0);
+            const adjacentOverlapAvg = lineCount > 0 ? adjacentOverlapSum / lineCount : 0;
+
+            const lineLabel = isRowDirection ? '行' : '列';
+            const formatRows = (entries, chunkSize = 4) => {
+                if (!entries || entries.length === 0) return '-';
+                const lines = [];
+                for (let i = 0; i < entries.length; i += chunkSize) {
+                    lines.push(entries.slice(i, i + chunkSize).join('  |  '));
+                }
+                return lines.join('\n');
+            };
+
+            const getLocalBaseDirection = (rowIndex, colIndex) => {
+                switch (direction) {
+                    case 1: return 1;
+                    case 2: return 2;
+                    case 3: return 3;
+                    case 4: return 4;
+                    case 5:
+                        return rowIndex < height / 2 ? 2 : 1;
+                    case 6:
+                        return colIndex < width / 2 ? 4 : 3;
+                    case 7:
+                        return rowIndex < height / 2 ? 1 : 2;
+                    case 8:
+                        return colIndex < width / 2 ? 3 : 4;
+                    default:
+                        return 0;
+                }
+            };
+
+            const collectSideNumbers = (rowIndex, colIndex, localDirection, sideType) => {
+                const sideNumbers = new Set();
+                if (localDirection === 0) return sideNumbers;
+
+                let stepI = 0;
+                let stepJ = 0;
+                if (localDirection === 1) {
+                    stepI = sideType === 'top' ? 1 : -1;
+                } else if (localDirection === 2) {
+                    stepI = sideType === 'top' ? -1 : 1;
+                } else if (localDirection === 3) {
+                    stepJ = sideType === 'top' ? 1 : -1;
+                } else if (localDirection === 4) {
+                    stepJ = sideType === 'top' ? -1 : 1;
+                }
+
+                let ni = rowIndex + stepI;
+                let nj = colIndex + stepJ;
+                while (ni >= 0 && ni < height && nj >= 0 && nj < width) {
+                    const value = filledCells[ni]?.[nj];
+                    if (Number.isInteger(value) && value > 0) {
+                        sideNumbers.add(value);
+                    }
+                    ni += stepI;
+                    nj += stepJ;
+                }
+                return sideNumbers;
+            };
+
+            const mergeSetMap = new Map();
+            const lowerSetMap = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const current = filledCells[i]?.[j];
+                    if (!Number.isInteger(current) || current <= 0) continue;
+                    const localDirection = getLocalBaseDirection(i, j);
+                    if (localDirection === 0) continue;
+
+                    const upperSet = collectSideNumbers(i, j, localDirection, 'top');
+                    const lowerSet = collectSideNumbers(i, j, localDirection, 'bottom');
+
+                    if (!mergeSetMap.has(current)) mergeSetMap.set(current, new Set());
+                    if (!lowerSetMap.has(current)) lowerSetMap.set(current, new Set());
+
+                    upperSet.forEach((value) => mergeSetMap.get(current).add(value));
+                    lowerSet.forEach((value) => lowerSetMap.get(current).add(value));
+                }
+            }
+
+            const directionBothStats = [];
+            const sortedNumbers = Array.from(numberCountMap.keys()).sort((a, b) => a - b);
+            for (const numberValue of sortedNumbers) {
+                const upperSet = mergeSetMap.get(numberValue) || new Set();
+                const lowerSet = lowerSetMap.get(numberValue) || new Set();
+                let bothCount = 0;
+                upperSet.forEach((value) => {
+                    if (lowerSet.has(value)) bothCount++;
+                });
+                directionBothStats.push(`${numberValue}:${bothCount}`);
+            }
+            const directionBothValues = directionBothStats.map((entry) => {
+                const parts = entry.split(':');
+                return parseInt(parts[1], 10) || 0;
+            });
+            const directionBothSum = directionBothValues.reduce((sum, value) => sum + value, 0);
+            const directionBothAvg = directionBothValues.length > 0
+                ? directionBothSum / directionBothValues.length
+                : 0;
+
+            const statsTypes = document.getElementById('levelStatsTypes');
+            const statsPairs = document.getElementById('levelStatsPairs');
+            const statsAdjacent = document.getElementById('levelStatsAdjacent');
+            const statsDirectionBoth = document.getElementById('levelStatsDirectionBoth');
+            if (statsTypes) {
+                statsTypes.textContent =
+                    `使用:${usedTypeCount}  |  8张:${kinds8}  |  6张:${kinds6}\n` +
+                    `4张:${kinds4}  |  2张:${kinds2}`;
+            }
+            if (statsPairs) statsPairs.textContent = `${adjacentPairCount}`;
+            if (statsAdjacent) {
+                statsAdjacent.textContent =
+                    `${formatRows(adjacentOverlapStats.map((value, index) => `${lineLabel}${index + 1}:${value}`), 3)}\n` +
+                    `合计:${adjacentOverlapSum}  |  平均:${adjacentOverlapAvg.toFixed(2)}`;
+            }
+            if (statsDirectionBoth) {
+                if (direction === 0) {
+                    statsDirectionBoth.textContent = '方向0不统计';
+                } else {
+                    statsDirectionBoth.textContent =
+                        `${formatRows(directionBothStats, 4)}\n` +
+                        `合计:${directionBothSum}  |  平均:${directionBothAvg.toFixed(2)}`;
+                }
+            }
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getFillOrder(width, height, direction) {
+            const order = [];
+            const used = new Set();
+
+            const addCell = (i, j, firstInGroup, groupCol, groupRow) => {
+                const key = `${i},${j}`;
+                if (!used.has(key)) {
+                    order.push({i, j, prevI: null, prevJ: null, firstInGroup, groupCol, groupRow});
+                    used.add(key);
+                }
+            };
+
+            const addAdjacent = (i, j, isRow, firstInGroup, groupCol, groupRow) => {
+                const neighbors = isRow
+                    ? [[i, j-1], [i, j+1]]
+                    : [[i-1, j], [i+1, j]];
+                for (const [ni, nj] of neighbors) {
+                    if (ni >= 0 && ni < height && nj >= 0 && nj < width) {
+                        const key = `${ni},${nj}`;
+                        if (!used.has(key)) {
+                            order.push({i: ni, j: nj, prevI: i, prevJ: j, firstInGroup: false, groupCol, groupRow});
+                            used.add(key);
+                        }
+                    }
+                }
+            };
+
+            switch (direction) {
+                case 0: {
+                    const cols = shuffleArray(Array.from({length: width}, (_, i) => i));
+                    for (let colIdx = 0; colIdx < cols.length; colIdx++) {
+                        const col = cols[colIdx];
+                        for (let i = 0; i < height; i++) {
+                            const firstInGroup = (i === 0);
+                            addCell(i, col, firstInGroup, col, null);
+                            if (i < height - 1) {
+                                addAdjacent(i, col, false, false, col, null);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 1: {
+                    for (let j = 0; j < width; j++) {
+                        for (let i = height - 1; i >= 0; i--) {
+                            const firstInGroup = (i === height - 1);
+                            addCell(i, j, firstInGroup, j, null);
+                            if (i > 0) {
+                                addAdjacent(i, j, false, false, j, null);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 2: {
+                    for (let j = 0; j < width; j++) {
+                        for (let i = 0; i < height; i++) {
+                            const firstInGroup = (i === 0);
+                            addCell(i, j, firstInGroup, j, null);
+                            if (i < height - 1) {
+                                addAdjacent(i, j, false, false, j, null);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 3: {
+                    const rows = shuffleArray(Array.from({length: height}, (_, i) => i));
+                    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+                        const row = rows[rowIdx];
+                        for (let j = width - 1; j >= 0; j--) {
+                            const firstInGroup = (j === width - 1);
+                            addCell(row, j, firstInGroup, null, row);
+                            if (j > 0) {
+                                addAdjacent(row, j, true, false, null, row);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 4: {
+                    const rows = shuffleArray(Array.from({length: height}, (_, i) => i));
+                    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+                        const row = rows[rowIdx];
+                        for (let j = 0; j < width; j++) {
+                            const firstInGroup = (j === 0);
+                            addCell(row, j, firstInGroup, null, row);
+                            if (j < width - 1) {
+                                addAdjacent(row, j, true, false, null, row);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 5: {
+                    const colsIn = [...Array(width).keys()].sort((a, b) => Math.abs(a - width / 2) - Math.abs(b - width / 2)).reverse();
+                    for (let colIdx = 0; colIdx < colsIn.length; colIdx++) {
+                        const col = colsIn[colIdx];
+                        for (let i = 0; i < height; i++) {
+                            const firstInGroup = (i === 0);
+                            addCell(i, col, firstInGroup, col, null);
+                            if (i < height - 1) {
+                                addAdjacent(i, col, false, false, col, null);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 6: {
+                    const rowsIn = [...Array(height).keys()].sort((a, b) => Math.abs(a - height / 2) - Math.abs(b - height / 2)).reverse();
+                    for (let rowIdx = 0; rowIdx < rowsIn.length; rowIdx++) {
+                        const row = rowsIn[rowIdx];
+                        for (let j = 0; j < width; j++) {
+                            const firstInGroup = (j === 0);
+                            addCell(row, j, firstInGroup, null, row);
+                            if (j < width - 1) {
+                                addAdjacent(row, j, true, false, null, row);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 7: {
+                    const colsOut = [...Array(width).keys()].sort((a, b) => Math.abs(a - width / 2) - Math.abs(b - width / 2));
+                    for (let colIdx = 0; colIdx < colsOut.length; colIdx++) {
+                        const col = colsOut[colIdx];
+                        for (let i = 0; i < height; i++) {
+                            const firstInGroup = (i === 0);
+                            addCell(i, col, firstInGroup, col, null);
+                            if (i < height - 1) {
+                                addAdjacent(i, col, false, false, col, null);
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 8: {
+                    const rowsOut = [...Array(height).keys()].sort((a, b) => Math.abs(a - height / 2) - Math.abs(b - height / 2));
+                    for (let rowIdx = 0; rowIdx < rowsOut.length; rowIdx++) {
+                        const row = rowsOut[rowIdx];
+                        for (let j = 0; j < width; j++) {
+                            const firstInGroup = (j === 0);
+                            addCell(row, j, firstInGroup, null, row);
+                            if (j < width - 1) {
+                                addAdjacent(row, j, true, false, null, row);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            return order;
+        }
+
+        function getPoolCards() {
+            if (poolCards.length > 0) return poolCards;
+            if (!currentPool || currentPool.length === 0) return [];
+            poolCards = [];
+            currentPool.forEach(poolItem => {
+                for (let i = 0; i < poolItem.count; i++) poolCards.push(poolItem.number);
+            });
+            poolCards = shuffleArray(poolCards);
+            return poolCards;
+        }
+
+        function getNextCard() {
+            const cards = getPoolCards();
+            return cards && cards.length > 0 ? cards.pop() : null;
+        }
+
+        function getSpecificCard(targetNumber) {
+            const cards = getPoolCards();
+            if (!cards || cards.length === 0) return null;
+            const cardIndex = cards.indexOf(targetNumber);
+            if (cardIndex === -1) return null;
+            cards.splice(cardIndex, 1);
+            return targetNumber;
+        }
+
+        function exportToClipboard() {
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+
+            const boardData = getBoardData();
+            const boardStr = JSON.stringify(boardData);
+
+            navigator.clipboard.writeText(boardStr).then(() => {
+                const btn = document.getElementById('btnExportSingle');
+                if (btn) {
+                    btn.style.background = 'rgba(150, 150, 150, 0.6)';
+                    btn.style.cursor = 'pointer';
+                }
+            }).catch(() => {
+                alert('复制失败，请手动复制');
+            });
+        }
+
+        function getBoardData() {
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+            const data = [];
+            for (let i = 0; i < height; i++) {
+                const row = [];
+                for (let j = 0; j < width; j++) {
+                    row.push(filledCells[i]?.[j] ?? 0);
+                }
+                data.push(row);
+            }
+            return data;
+        }
+
+        function generateSingleLevel(
+            direction,
+            sameLie,
+            sameNum,
+            xianglinSame,
+            directionBothCtrl
+        ) {
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+
+            currentPool = [];
+            poolCards = [];
+            calculatePoolForGenerate(width, height);
+
+            const fillOrder = getFillOrder(width, height, direction);
+            filledCells = [];
+
+            for (let i = 0; i < height; i++) {
+                filledCells[i] = [];
+                for (let j = 0; j < width; j++) {
+                    filledCells[i][j] = null;
+                }
+            }
+
+            placedCounts = {};
+            currentPool.forEach(item => {
+                placedCounts[item.number] = 0;
+            });
+
+            for (let idx = 0; idx < fillOrder.length; idx++) {
+                const {i, j, prevI, prevJ, firstInGroup, groupCol, groupRow} = fillOrder[idx];
+                let num = null;
+                const isRowDirection = isRowBaseDirection(direction);
+
+                const hasPoolNumber = (targetNumber) => {
+                    const poolItem = currentPool.find(p => p.number === targetNumber);
+                    return !!poolItem && placedCounts[targetNumber] < poolItem.count;
+                };
+
+                const getGroupUsedNumbers = () => {
+                    const usedInGroup = new Set();
+                    if (isRowDirection) {
+                        for (let jj = 0; jj < width; jj++) {
+                            if (filledCells[i]?.[jj] !== null && filledCells[i]?.[jj] !== undefined) {
+                                usedInGroup.add(filledCells[i][jj]);
+                            }
+                        }
+                    } else {
+                        for (let ii = 0; ii < height; ii++) {
+                            if (filledCells[ii]?.[j] !== null && filledCells[ii]?.[j] !== undefined) {
+                                usedInGroup.add(filledCells[ii][j]);
+                            }
+                        }
+                    }
+                    return usedInGroup;
+                };
+
+                const pickByGroupPreference = (preferUsed, forbiddenNumbers = new Set()) => {
+                    const usedInGroup = getGroupUsedNumbers();
+                    const candidates = [];
+                    const allowedCandidates = [];
+                    for (const poolItem of currentPool) {
+                        const canUse = placedCounts[poolItem.number] < poolItem.count;
+                        if (!canUse) continue;
+                        const inGroup = usedInGroup.has(poolItem.number);
+                        if ((preferUsed && inGroup) || (!preferUsed && !inGroup)) {
+                            candidates.push(poolItem.number);
+                            if (!forbiddenNumbers.has(poolItem.number)) {
+                                allowedCandidates.push(poolItem.number);
+                            }
+                        }
+                    }
+                    if (candidates.length === 0) return null;
+                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const getAdjacentSamePositionCandidateNumbers = () => {
+                    const adjacentCandidates = [];
+                    if (isRowDirection) {
+                        const upNum = i > 0 ? filledCells[i - 1]?.[j] : null;
+                        const downNum = i < height - 1 ? filledCells[i + 1]?.[j] : null;
+                        if (upNum !== null && upNum !== undefined) {
+                            adjacentCandidates.push(upNum);
+                        }
+                        if (downNum !== null && downNum !== undefined) {
+                            adjacentCandidates.push(downNum);
+                        }
+                    } else {
+                        const leftNum = j > 0 ? filledCells[i]?.[j - 1] : null;
+                        const rightNum = j < width - 1 ? filledCells[i]?.[j + 1] : null;
+                        if (leftNum !== null && leftNum !== undefined) {
+                            adjacentCandidates.push(leftNum);
+                        }
+                        if (rightNum !== null && rightNum !== undefined) {
+                            adjacentCandidates.push(rightNum);
+                        }
+                    }
+                    return adjacentCandidates;
+                };
+
+                const getAdjacentLineCandidateSet = () => {
+                    const adjacentSet = new Set();
+                    if (isRowDirection) {
+                        const adjacentRows = [];
+                        if (i > 0) adjacentRows.push(i - 1);
+                        if (i < height - 1) adjacentRows.push(i + 1);
+                        for (const rowIndex of adjacentRows) {
+                            for (let colIndex = 0; colIndex < width; colIndex++) {
+                                const value = filledCells[rowIndex]?.[colIndex];
+                                if (value !== null && value !== undefined) {
+                                    adjacentSet.add(value);
+                                }
+                            }
+                        }
+                    } else {
+                        const adjacentCols = [];
+                        if (j > 0) adjacentCols.push(j - 1);
+                        if (j < width - 1) adjacentCols.push(j + 1);
+                        for (const colIndex of adjacentCols) {
+                            for (let rowIndex = 0; rowIndex < height; rowIndex++) {
+                                const value = filledCells[rowIndex]?.[colIndex];
+                                if (value !== null && value !== undefined) {
+                                    adjacentSet.add(value);
+                                }
+                            }
+                        }
+                    }
+                    return adjacentSet;
+                };
+
+                const getDirectionBothCandidateSet = () => {
+                    const localDirection = getLocalBaseDirectionByCell(direction, i, j, width, height);
+                    const upperSet = collectDirectionalSideNumbers(
+                        i,
+                        j,
+                        width,
+                        height,
+                        localDirection,
+                        'top'
+                    );
+                    const lowerSet = collectDirectionalSideNumbers(
+                        i,
+                        j,
+                        width,
+                        height,
+                        localDirection,
+                        'bottom'
+                    );
+                    const bothSet = new Set();
+                    upperSet.forEach((value) => {
+                        if (lowerSet.has(value)) bothSet.add(value);
+                    });
+                    return bothSet;
+                };
+
+                const chooseCandidateByControl = (candidateNumbers) => {
+                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
+                    const directionBothSet = getDirectionBothCandidateSet();
+
+                    let bestScore = -Infinity;
+                    let bestCandidates = [];
+                    for (const candidate of candidateNumbers) {
+                        const inDirectionBoth = directionBothSet.has(candidate);
+                        const directionScore = inDirectionBoth ? directionBothCtrl : (1 - directionBothCtrl);
+                        const score = directionScore;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestCandidates = [candidate];
+                        } else if (score === bestScore) {
+                            bestCandidates.push(candidate);
+                        }
+                    }
+                    if (bestCandidates.length === 0) return null;
+                    return bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+                };
+
+                const pickByCandidateNumbers = (candidateNumbers, forbiddenNumbers = new Set()) => {
+                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
+                    const uniqueCandidates = [];
+                    const seen = new Set();
+                    for (const candidate of candidateNumbers) {
+                        if (seen.has(candidate)) continue;
+                        seen.add(candidate);
+                        if (!hasPoolNumber(candidate)) continue;
+                        uniqueCandidates.push(candidate);
+                    }
+                    if (uniqueCandidates.length === 0) return null;
+                    const allowedCandidates = uniqueCandidates.filter(
+                        candidate => !forbiddenNumbers.has(candidate)
+                    );
+                    if (allowedCandidates.length === 0) return null;
+                    const source = allowedCandidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const pickAnyCard = (forbiddenNumbers = new Set()) => {
+                    const candidates = [];
+                    const allowedCandidates = [];
+                    for (const poolItem of currentPool) {
+                        const canUse = placedCounts[poolItem.number] < poolItem.count;
+                        if (!canUse) continue;
+                        candidates.push(poolItem.number);
+                        if (!forbiddenNumbers.has(poolItem.number)) {
+                            allowedCandidates.push(poolItem.number);
+                        }
+                    }
+                    if (candidates.length === 0) return null;
+                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                    const picked = chooseCandidateByControl(source);
+                    if (picked === null) return null;
+                    return getSpecificCard(picked);
+                };
+
+                const adjacentSamePositionNumbers = getAdjacentSamePositionCandidateNumbers();
+                const adjacentLineNumbers = Array.from(getAdjacentLineCandidateSet());
+                const forbiddenNumbers = new Set();
+
+                const tryAdjacentLineSet = Math.random() < sameNum;
+                if (!tryAdjacentLineSet) {
+                    adjacentLineNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                const trySamePosition = Math.random() < xianglinSame;
+                if (trySamePosition) {
+                    num = pickByCandidateNumbers(adjacentSamePositionNumbers, forbiddenNumbers);
+                } else {
+                    adjacentSamePositionNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                if (num === null) {
+                    if (tryAdjacentLineSet) {
+                        num = pickByCandidateNumbers(adjacentLineNumbers, forbiddenNumbers);
+                    }
+                }
+
+                if (num === null) {
+                    const preferUsed = Math.random() < sameLie;
+                    num = pickByGroupPreference(preferUsed, forbiddenNumbers);
+                    if (num === null) {
+                        num = pickByGroupPreference(!preferUsed, forbiddenNumbers);
+                    }
+                }
+
+                if (num === null) {
+                    num = pickAnyCard(forbiddenNumbers);
+                }
+
+                if (num === null) {
+                    num = getNextCard();
+                }
+
+                if (num !== null) {
+                    placedCounts[num] = (placedCounts[num] || 0) + 1;
+                    filledCells[i][j] = num;
+                }
+            }
+
+            return getBoardData();
+        }
+
+        function calculatePoolForGenerate(width, height) {
+            const count8 = parseInt(document.getElementById('count8').value) || 0;
+            const count6 = parseInt(document.getElementById('count6').value) || 0;
+
+            const totalCells = width * height;
+            const cardsFrom8 = count8 * 8;
+            const cardsFrom6 = count6 * 6;
+            const usedCards = cardsFrom8 + cardsFrom6;
+
+            if (usedCards > totalCells) return [];
+
+            const remainingCards = totalCells - usedCards;
+            let count4 = Math.floor(remainingCards / 4);
+            const remainder = remainingCards % 4;
+
+            let count2 = 0;
+            if (remainder >= 2) {
+                count2 = 1;
+            }
+
+            currentPool = [];
+            let num = 1;
+            for (let i = 0; i < count8; i++) {
+                currentPool.push({ number: num, count: 8 });
+                num++;
+            }
+            for (let i = 0; i < count6; i++) {
+                currentPool.push({ number: num, count: 6 });
+                num++;
+            }
+            for (let i = 0; i < count4; i++) {
+                currentPool.push({ number: num, count: 4 });
+                num++;
+            }
+            for (let i = 0; i < count2; i++) {
+                currentPool.push({ number: num, count: 2 });
+                num++;
+            }
+
+            poolCards = [];
+            currentPool.forEach(poolItem => {
+                for (let i = 0; i < poolItem.count; i++) {
+                    poolCards.push(poolItem.number);
+                }
+            });
+            poolCards = shuffleArray(poolCards);
+        }
+
+        function calculateExportAverages(boardData, direction) {
+            if (!boardData || boardData.length === 0 || boardData[0].length === 0) {
+                return { adjacentBaselineAvg: 0, directionBothAvg: 0 };
+            }
+
+            const height = boardData.length;
+            const width = boardData[0].length;
+            const isRowDirection = isRowBaseDirection(direction);
+
+            const lineCount = isRowDirection ? height : width;
+            const lineSets = [];
+            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                const numberSet = new Set();
+                if (isRowDirection) {
+                    for (let j = 0; j < width; j++) {
+                        const value = boardData[lineIndex]?.[j];
+                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                    }
+                } else {
+                    for (let i = 0; i < height; i++) {
+                        const value = boardData[i]?.[lineIndex];
+                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                    }
+                }
+                lineSets.push(numberSet);
+            }
+
+            const countIntersection = (leftSet, rightSet) => {
+                let overlapCount = 0;
+                leftSet.forEach((value) => {
+                    if (rightSet.has(value)) overlapCount++;
+                });
+                return overlapCount;
+            };
+
+            const adjacentOverlapStats = [];
+            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+                let overlapTotal = 0;
+                if (lineIndex > 0) {
+                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex - 1]);
+                }
+                if (lineIndex < lineCount - 1) {
+                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex + 1]);
+                }
+                adjacentOverlapStats.push(overlapTotal);
+            }
+            const adjacentOverlapSum = adjacentOverlapStats.reduce((sum, value) => sum + value, 0);
+            const adjacentBaselineAvg = lineCount > 0 ? adjacentOverlapSum / lineCount : 0;
+
+            const mergeSetMap = new Map();
+            const lowerSetMap = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const current = boardData[i]?.[j];
+                    if (!Number.isInteger(current) || current <= 0) continue;
+                    const localDirection = getLocalBaseDirectionByCell(direction, i, j, width, height);
+                    if (localDirection === 0) continue;
+
+                    const collectSideNumbersForBoard = (sideType) => {
+                        const sideNumbers = new Set();
+                        let stepI = 0;
+                        let stepJ = 0;
+                        if (localDirection === 1) {
+                            stepI = sideType === 'top' ? 1 : -1;
+                        } else if (localDirection === 2) {
+                            stepI = sideType === 'top' ? -1 : 1;
+                        } else if (localDirection === 3) {
+                            stepJ = sideType === 'top' ? 1 : -1;
+                        } else if (localDirection === 4) {
+                            stepJ = sideType === 'top' ? -1 : 1;
+                        }
+                        let ni = i + stepI;
+                        let nj = j + stepJ;
+                        while (ni >= 0 && ni < height && nj >= 0 && nj < width) {
+                            const value = boardData[ni]?.[nj];
+                            if (Number.isInteger(value) && value > 0) sideNumbers.add(value);
+                            ni += stepI;
+                            nj += stepJ;
+                        }
+                        return sideNumbers;
+                    };
+
+                    const upperSet = collectSideNumbersForBoard('top');
+                    const lowerSet = collectSideNumbersForBoard('bottom');
+
+                    if (!mergeSetMap.has(current)) mergeSetMap.set(current, new Set());
+                    if (!lowerSetMap.has(current)) lowerSetMap.set(current, new Set());
+
+                    upperSet.forEach((value) => mergeSetMap.get(current).add(value));
+                    lowerSet.forEach((value) => lowerSetMap.get(current).add(value));
+                }
+            }
+
+            const numbers = Array.from(mergeSetMap.keys());
+            let directionBothSum = 0;
+            for (const numberValue of numbers) {
+                const upperSet = mergeSetMap.get(numberValue) || new Set();
+                const lowerSet = lowerSetMap.get(numberValue) || new Set();
+                let bothCount = 0;
+                upperSet.forEach((value) => {
+                    if (lowerSet.has(value)) bothCount++;
+                });
+                directionBothSum += bothCount;
+            }
+            const directionBothAvg = numbers.length > 0 ? directionBothSum / numbers.length : 0;
+
+            return { adjacentBaselineAvg, directionBothAvg };
+        }
+
+        function batchGenerate() {
+            const count = parseInt(document.getElementById('batchCount').value) || 10;
+            const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
+            const sameLie = getProbabilityValue('sameLie', 0.1);
+            const sameNum = getProbabilityValue('sameNum', 0.1);
+            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
+            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+
+            let result = '';
+            const width = parseInt(document.getElementById('width').value) || 8;
+            const height = parseInt(document.getElementById('height').value) || 14;
+
+            for (let i = 0; i < count; i++) {
+                const boardData = generateSingleLevel(
+                    direction,
+                    sameLie,
+                    sameNum,
+                    xianglinSame,
+                    directionBothCtrl
+                );
+                const boardStr = JSON.stringify(boardData);
+                const exportAverages = calculateExportAverages(boardData, direction);
+                result += `${i + 1}\t${boardStr}\t${direction}\t` +
+                    `${exportAverages.adjacentBaselineAvg.toFixed(2)}\t` +
+                    `${exportAverages.directionBothAvg.toFixed(2)}\n`;
+            }
+
+            const blob = new Blob([result], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `关卡批量生成_${width}x${height}_${count}个.txt`;
+            a.click();
+        }
+
+        function init() {
+            const board = document.getElementById('board');
+            if (board) {
+                board.addEventListener('click', handleBoardCellClick);
+                generateBoard();
+            } else {
+                window.addEventListener('DOMContentLoaded', () => {
+                    const readyBoard = document.getElementById('board');
+                    if (readyBoard) readyBoard.addEventListener('click', handleBoardCellClick);
+                    generateBoard();
+                    updatePlayModeButton();
+                });
+            }
+            updatePlayModeButton();
+            window.addEventListener('resize', scaleBoard);
+        }
+
+        function scaleBoard() {
+            const wrapper = document.getElementById('boardWrapper');
+            const container = document.querySelector('.board-container');
+            if (!wrapper || !container) return;
+
+            requestAnimationFrame(() => {
+                const containerWidth = container.clientWidth - 16;
+                const containerHeight = container.clientHeight - 16;
+                const boardWidth = wrapper.scrollWidth;
+                const boardHeight = wrapper.scrollHeight;
+
+                let scale = 1;
+                if (boardWidth > containerWidth && containerWidth > 0) {
+                    scale = Math.min(scale, containerWidth / boardWidth);
+                }
+                if (boardHeight > containerHeight && containerHeight > 0) {
+                    scale = Math.min(scale, containerHeight / boardHeight);
+                }
+
+                wrapper.style.transform = `scale(${scale.toFixed(3)})`;
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
