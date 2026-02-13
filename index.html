@@ -181,6 +181,42 @@
             box-shadow: 0 3px 15px rgba(56, 239, 125, 0.4);
         }
 
+        #btnSimulatePlay.simulating {
+            --simulate-progress: 0;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(56, 239, 125, 0.95) 0%,
+                    rgba(56, 239, 125, 0.95) calc(var(--simulate-progress) * 1%),
+                    rgba(255, 255, 255, 0.22) calc(var(--simulate-progress) * 1%),
+                    rgba(255, 255, 255, 0.22) 100%
+                );
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+        }
+
+        #btnSimulatePlay.simulating:hover {
+            transform: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+        }
+
+        #btnSimulatePlay:disabled {
+            cursor: wait;
+            opacity: 1;
+        }
+
+        .global-interaction-blocker {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.01);
+        }
+
+        body.simulation-locked .global-interaction-blocker {
+            display: block;
+        }
+
         .btn-generate {
             background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
             color: white;
@@ -1023,6 +1059,7 @@
             </div>
         </div>
     </div>
+    <div class="global-interaction-blocker" id="globalInteractionBlocker" aria-hidden="true"></div>
 
     <script>
         let currentPool = [];
@@ -1032,6 +1069,7 @@
         let placedCounts = {};
         let stepGenerationState = null;
         let playModeState = null;
+        let isSimulatingPlayGames = false;
         let savedConfigGroups = [];
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
@@ -2361,8 +2399,35 @@
             return isPlayBoardCleared(boardData);
         }
 
-        function simulatePlayGames() {
+        function updateSimulateButtonProgress(progressPercent, labelText) {
+            const button = document.getElementById('btnSimulatePlay');
+            if (!button) return;
+            const numericProgress = Number.isFinite(Number(progressPercent))
+                ? Number(progressPercent)
+                : 0;
+            const safeProgress = Math.max(0, Math.min(100, numericProgress));
+            button.style.setProperty('--simulate-progress', safeProgress.toFixed(2));
+            if (labelText) button.textContent = labelText;
+        }
+
+        function resetSimulateButtonState() {
+            const button = document.getElementById('btnSimulatePlay');
+            if (!button) return;
+            button.disabled = false;
+            button.classList.remove('simulating');
+            button.style.removeProperty('--simulate-progress');
+            button.textContent = '模拟100局';
+        }
+
+        function setSimulationInteractionLock(locked) {
+            const body = document.body;
+            if (!body) return;
+            body.classList.toggle('simulation-locked', Boolean(locked));
+        }
+
+        async function simulatePlayGames() {
             const GAME_COUNT = 100;
+            if (isSimulatingPlayGames) return;
             const sourceBoard = (playModeState && playModeState.active &&
                 Array.isArray(playModeState.originalBoard))
                 ? cloneBoardData(playModeState.originalBoard)
@@ -2376,21 +2441,46 @@
                 return;
             }
 
-            let winCount = 0;
-            for (let gameIndex = 0; gameIndex < GAME_COUNT; gameIndex++) {
-                if (simulateSingleGame(sourceBoard, direction)) {
-                    winCount++;
-                }
+            const simulateButton = document.getElementById('btnSimulatePlay');
+            isSimulatingPlayGames = true;
+            setSimulationInteractionLock(true);
+            if (simulateButton) {
+                simulateButton.disabled = true;
+                simulateButton.classList.add('simulating');
             }
+            updateSimulateButtonProgress(0, '模拟中 0%');
 
-            const winRate = (winCount / GAME_COUNT) * 100;
-            const resultText = `${winCount}/${GAME_COUNT}（${winRate.toFixed(2)}%）`;
-            const statsSimulation = document.getElementById('levelStatsSimulation');
-            if (statsSimulation) statsSimulation.textContent = resultText;
+            try {
+                let winCount = 0;
+                for (let gameIndex = 0; gameIndex < GAME_COUNT; gameIndex++) {
+                    if (simulateSingleGame(sourceBoard, direction)) {
+                        winCount++;
+                    }
 
-            const info = document.getElementById('info');
-            if (info) {
-                info.textContent = `模拟试玩完成：胜利 ${winCount} 局 / ${GAME_COUNT} 局，胜率 ${winRate.toFixed(2)}%`;
+                    const progressPercent = ((gameIndex + 1) / GAME_COUNT) * 100;
+                    updateSimulateButtonProgress(
+                        progressPercent,
+                        `模拟中 ${Math.round(progressPercent)}%`
+                    );
+
+                    if ((gameIndex + 1) % 2 === 0) {
+                        await waitForMs(0);
+                    }
+                }
+
+                const winRate = (winCount / GAME_COUNT) * 100;
+                const resultText = `${winCount}/${GAME_COUNT}（${winRate.toFixed(2)}%）`;
+                const statsSimulation = document.getElementById('levelStatsSimulation');
+                if (statsSimulation) statsSimulation.textContent = resultText;
+
+                const info = document.getElementById('info');
+                if (info) {
+                    info.textContent = `模拟试玩完成：胜利 ${winCount} 局 / ${GAME_COUNT} 局，胜率 ${winRate.toFixed(2)}%`;
+                }
+            } finally {
+                isSimulatingPlayGames = false;
+                setSimulationInteractionLock(false);
+                resetSimulateButtonState();
             }
         }
 
