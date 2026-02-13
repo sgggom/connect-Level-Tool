@@ -500,7 +500,7 @@
             padding: 2px;
         }
 
-        .board.play-mode .cell.filled {
+        .board.play-mode .cell.playable-card {
             cursor: pointer;
             transition: transform 0.15s ease;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
@@ -600,9 +600,132 @@
             margin-top: 10px;
         }
 
+        .editor-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .editor-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .editor-board-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .editor-board-actions button {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .editor-tools {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .editor-tool {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 6px 4px;
+            min-height: 82px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+            color: #fff;
+            font-size: 0.72em;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .editor-tool:hover {
+            background: rgba(255,255,255,0.14);
+        }
+
+        .editor-tool.selected {
+            border-color: #ffd166;
+            box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.3) inset;
+            background: rgba(255, 209, 102, 0.18);
+        }
+
+        .editor-tool-preview {
+            width: 42px;
+            height: 50px;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .editor-tool-id {
+            opacity: 0.75;
+            font-size: 0.92em;
+        }
+
+        .editor-tip {
+            margin-top: 8px;
+            font-size: 0.8em;
+            opacity: 0.85;
+            line-height: 1.35;
+        }
+
+        .card-image-attachment {
+            z-index: 4;
+            transform-origin: top center;
+        }
+
+        .card-image-attachment-fanpai {
+            transform: scale(1.3);
+        }
+
+        .card-image-attachment-iceshell {
+            transform: translateY(2px) scale(1.05);
+        }
+
+        .cell.obstacle-cell .card-image-stack {
+            width: 100%;
+            height: 100%;
+        }
+
+        .cell.obstacle-cell {
+            padding: 0;
+        }
+
+        .cell.obstacle-cell .card-image-obstacle {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: top center;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .cell.obstacle-cell .card-image-obstacle-scale130 {
+            transform: translateY(5px) scale(1.2);
+            transform-origin: top center;
+        }
+
+        .card-image-face-bomb {
+            transform: scale(0.8);
+            transform-origin: top center;
+            object-position: top center;
+        }
+
         .board-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 330px;
+            grid-template-columns: 300px minmax(0, 1fr) 330px;
             gap: 10px;
             width: 100%;
             height: 100%;
@@ -611,6 +734,15 @@
         }
 
         .board-side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: auto;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .board-editor-panel {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -670,7 +802,7 @@
             }
 
             .board-layout {
-                grid-template-columns: minmax(0, 1fr) 300px;
+                grid-template-columns: 260px minmax(0, 1fr) 280px;
             }
         }
 
@@ -706,6 +838,12 @@
             }
 
             .board-side-panel {
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .board-editor-panel {
                 height: auto;
                 max-height: none;
                 overflow: visible;
@@ -749,6 +887,10 @@
 
             .board-top-actions {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .editor-tools {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
     </style>
@@ -975,15 +1117,33 @@
 
             <div class="panel workspace-panel">
                 <div class="board-layout">
-                    <div class="board-container">
-                        <div class="board-top-tools">
-                            <div class="board-top-actions">
+                    <div class="board-editor-panel">
+                        <div class="editor-section">
+                            <div class="result-title">关卡编辑</div>
+                            <div class="editor-board-actions">
                                 <button class="btn-generate" onclick="fillBoard()">填入数字</button>
                                 <button class="btn-primary" onclick="generateBoard()">刷新棋盘</button>
                                 <button class="btn-secondary" onclick="clearBoard()">清空</button>
                                 <button class="btn-export" id="btnExportSingle"
                                     onclick="exportToClipboard()">导出当前</button>
                             </div>
+                            <div class="editor-actions">
+                                <button class="btn-primary" onclick="fillEmptyWithPlaceholder()">
+                                    空位填占位块
+                                </button>
+                                <button class="btn-secondary" onclick="clearAllBoardElements()">
+                                    清空全部元素
+                                </button>
+                            </div>
+                            <div class="editor-tools" id="editorTools"></div>
+                            <div class="editor-tip" id="editorTip">
+                                左键放置已选元素；右键删除该格全部元素。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="board-container">
+                        <div class="board-top-tools">
                             <div class="info" id="info"></div>
                         </div>
                         <div class="board-wrapper" id="boardWrapper">
@@ -1070,10 +1230,197 @@
         let stepGenerationState = null;
         let playModeState = null;
         let isSimulatingPlayGames = false;
+        let selectedEditorTool = 'placeholder';
         let savedConfigGroups = [];
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
         const COLUMN_BASE_DIRECTIONS = [0, 1, 2, 5, 7];
+        const EMPTY_CELL_ID = 0;
+        const PLACEHOLDER_CELL_ID = 499;
+        const BOMB_CELL_ID = 99;
+        const ATTACHMENT_MULTIPLIER = 1000;
+        const ATTACHMENT_FANPAI_ID = 1;
+        const ATTACHMENT_ICESHELL_ID = 5;
+        const STONE_CELL_ID = 501;
+        const WOOD_CELL_ID = 502;
+        const MAGNET_CELL_ID = 503;
+        const ICE_LEVEL_1_CELL_ID = 504;
+        const ICE_LEVEL_2_CELL_ID = 505;
+        const ICE_LEVEL_3_CELL_ID = 506;
+        const IMMOBILE_OBSTACLE_IDS = new Set([
+            STONE_CELL_ID,
+            MAGNET_CELL_ID,
+            ICE_LEVEL_1_CELL_ID,
+            ICE_LEVEL_2_CELL_ID,
+            ICE_LEVEL_3_CELL_ID
+        ]);
+        const OBSTACLE_IDS = new Set([
+            STONE_CELL_ID,
+            WOOD_CELL_ID,
+            MAGNET_CELL_ID,
+            ICE_LEVEL_1_CELL_ID,
+            ICE_LEVEL_2_CELL_ID,
+            ICE_LEVEL_3_CELL_ID
+        ]);
+        const ATTACHMENT_IDS = new Set([ATTACHMENT_FANPAI_ID, ATTACHMENT_ICESHELL_ID]);
+        const EDITOR_TOOLS = [
+            { key: 'placeholder', title: '占位块', idLabel: '499', preview: 'img/base.png' },
+            { key: 'attach-fanpai', title: '翻牌', idLabel: '1000', preview: 'img/fanpai.png' },
+            { key: 'attach-iceshell', title: '冰壳', idLabel: '5000', preview: 'img/iceshell.png' },
+            { key: 'stone', title: '石头', idLabel: '501', preview: 'img/shitou.png' },
+            { key: 'wood', title: '木块', idLabel: '502', preview: 'img/mukuai.png' },
+            { key: 'magnet', title: '磁铁', idLabel: '503', preview: 'img/citie.png' },
+            { key: 'ice1', title: '冰块1', idLabel: '504', preview: 'img/bing1.png' },
+            { key: 'ice2', title: '冰块2', idLabel: '505', preview: 'img/bing2.png' },
+            { key: 'ice3', title: '冰块3', idLabel: '506', preview: 'img/bing3.png' },
+            { key: 'bomb', title: '炸弹', idLabel: '99', preview: 'img/zhadan.png' }
+        ];
+
+        function getObstacleImagePath(baseId) {
+            const imageMap = {
+                [STONE_CELL_ID]: 'img/shitou.png',
+                [WOOD_CELL_ID]: 'img/mukuai.png',
+                [MAGNET_CELL_ID]: 'img/citie.png',
+                [ICE_LEVEL_1_CELL_ID]: 'img/bing1.png',
+                [ICE_LEVEL_2_CELL_ID]: 'img/bing2.png',
+                [ICE_LEVEL_3_CELL_ID]: 'img/bing3.png'
+            };
+            return imageMap[baseId] || '';
+        }
+
+        function getAttachmentImagePath(attachmentId) {
+            const imageMap = {
+                [ATTACHMENT_FANPAI_ID]: 'img/fanpai.png',
+                [ATTACHMENT_ICESHELL_ID]: 'img/iceshell.png'
+            };
+            return imageMap[attachmentId] || '';
+        }
+
+        function isEmptyCellId(cellId) {
+            return !Number.isInteger(cellId) || cellId <= 0;
+        }
+
+        function decodeCellId(cellId) {
+            if (isEmptyCellId(cellId)) {
+                return {
+                    rawId: EMPTY_CELL_ID,
+                    baseId: EMPTY_CELL_ID,
+                    attachmentId: null,
+                    hasAttachment: false
+                };
+            }
+
+            if (cellId >= ATTACHMENT_MULTIPLIER) {
+                const attachmentId = Math.floor(cellId / ATTACHMENT_MULTIPLIER);
+                const baseId = cellId % ATTACHMENT_MULTIPLIER;
+                if (ATTACHMENT_IDS.has(attachmentId) && baseId > 0) {
+                    return {
+                        rawId: cellId,
+                        baseId,
+                        attachmentId,
+                        hasAttachment: true
+                    };
+                }
+            }
+
+            return {
+                rawId: cellId,
+                baseId: cellId,
+                attachmentId: null,
+                hasAttachment: false
+            };
+        }
+
+        function encodeAttachedCellId(baseId, attachmentId) {
+            if (!Number.isInteger(baseId) || baseId <= 0) return EMPTY_CELL_ID;
+            if (!ATTACHMENT_IDS.has(attachmentId)) return baseId;
+            return (attachmentId * ATTACHMENT_MULTIPLIER) + baseId;
+        }
+
+        function isObstacleBaseId(baseId) {
+            return OBSTACLE_IDS.has(baseId);
+        }
+
+        function isImmobileObstacleBaseId(baseId) {
+            return IMMOBILE_OBSTACLE_IDS.has(baseId);
+        }
+
+        function isNormalBaseId(baseId) {
+            if (baseId === PLACEHOLDER_CELL_ID) return true;
+            return baseId >= 1 && baseId <= 99;
+        }
+
+        function isRemovableBaseId(baseId) {
+            return isNormalBaseId(baseId);
+        }
+
+        function getMatchableBaseId(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (!isRemovableBaseId(parsed.baseId)) return null;
+            if (parsed.hasAttachment) return null;
+            return parsed.baseId;
+        }
+
+        function isCellClickableInPlay(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (!isRemovableBaseId(parsed.baseId)) return false;
+            return !parsed.hasAttachment;
+        }
+
+        function getFillablePlaceholderMeta(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (parsed.baseId !== PLACEHOLDER_CELL_ID) return null;
+            return {
+                baseId: parsed.baseId,
+                attachmentId: parsed.hasAttachment ? parsed.attachmentId : null
+            };
+        }
+
+        function canAttachToCellId(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (isEmptyCellId(parsed.baseId)) return false;
+            if (parsed.hasAttachment) return false;
+            if (isObstacleBaseId(parsed.baseId)) return false;
+            return isRemovableBaseId(parsed.baseId);
+        }
+
+        function getCardCountBaseId(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (!isRemovableBaseId(parsed.baseId)) return null;
+            return parsed.baseId;
+        }
+
+        function validateBoardPairLegality(boardData) {
+            if (!Array.isArray(boardData)) return { valid: false, message: '棋盘数据无效' };
+            const countMap = new Map();
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const rawId of row) {
+                    const baseId = getCardCountBaseId(rawId);
+                    if (baseId === null) continue;
+                    countMap.set(baseId, (countMap.get(baseId) || 0) + 1);
+                }
+            }
+
+            const invalid = [];
+            countMap.forEach((count, baseId) => {
+                if (count % 2 !== 0) invalid.push(`${baseId}:${count}`);
+            });
+            if (invalid.length > 0) {
+                return {
+                    valid: false,
+                    message: `存在非成对花色ID（${invalid.join(', ')}）`
+                };
+            }
+            return { valid: true, message: '' };
+        }
+
+        function ensureBoardPairLegality(actionName) {
+            const legality = validateBoardPairLegality(getBoardData());
+            if (legality.valid) return true;
+            alert(`${actionName}前校验失败：${legality.message}`);
+            return false;
+        }
 
         function isRowBaseDirection(direction) {
             if (ROW_BASE_DIRECTIONS.includes(direction)) return true;
@@ -1148,6 +1495,136 @@
             });
             const radio = document.querySelector(`input[name="direction"][value="${index}"]`);
             if (radio) radio.checked = true;
+        }
+
+        function getEditorToolByKey(toolKey) {
+            return EDITOR_TOOLS.find((tool) => tool.key === toolKey) || null;
+        }
+
+        function renderEditorTools() {
+            const toolsContainer = document.getElementById('editorTools');
+            if (!toolsContainer) return;
+            toolsContainer.innerHTML = '';
+            for (const tool of EDITOR_TOOLS) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'editor-tool';
+                button.dataset.tool = tool.key;
+                button.onclick = () => selectEditorTool(tool.key);
+
+                const preview = document.createElement('img');
+                preview.className = 'editor-tool-preview';
+                preview.src = tool.preview;
+                preview.alt = tool.title;
+
+                const title = document.createElement('div');
+                title.textContent = tool.title;
+
+                const idLabel = document.createElement('div');
+                idLabel.className = 'editor-tool-id';
+                idLabel.textContent = `ID:${tool.idLabel}`;
+
+                button.appendChild(preview);
+                button.appendChild(title);
+                button.appendChild(idLabel);
+                toolsContainer.appendChild(button);
+            }
+            selectEditorTool(selectedEditorTool);
+        }
+
+        function selectEditorTool(toolKey) {
+            if (!getEditorToolByKey(toolKey)) return;
+            selectedEditorTool = toolKey;
+            document.querySelectorAll('.editor-tool').forEach((button) => {
+                button.classList.toggle('selected', button.dataset.tool === toolKey);
+            });
+            const tool = getEditorToolByKey(toolKey);
+            const editorTip = document.getElementById('editorTip');
+            if (editorTip && tool) {
+                editorTip.textContent =
+                    `已选中：${tool.title}（ID:${tool.idLabel}）。左键放置，右键删除该格全部元素。`;
+            }
+        }
+
+        function fillEmptyWithPlaceholder() {
+            if (!Array.isArray(filledCells) || filledCells.length === 0) return;
+            const width = parseInt(document.getElementById('width')?.value, 10) || 0;
+            const height = parseInt(document.getElementById('height')?.value, 10) || 0;
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const currentValue = filledCells[row]?.[col] ?? EMPTY_CELL_ID;
+                    if (!isEmptyCellId(decodeCellId(currentValue).baseId)) continue;
+                    filledCells[row][col] = PLACEHOLDER_CELL_ID;
+                    renderCellNumber(row, col, PLACEHOLDER_CELL_ID);
+                }
+            }
+            resetLevelStats();
+        }
+
+        function clearAllBoardElements() {
+            clearBoard();
+        }
+
+        function setCellIdAtPosition(row, col, cellId) {
+            if (!Array.isArray(filledCells[row])) return;
+            filledCells[row][col] = cellId;
+            renderCellNumber(row, col, cellId);
+        }
+
+        function applyEditorToolOnCell(row, col) {
+            if (playModeState && playModeState.active) return;
+            const currentValue = filledCells[row]?.[col] ?? EMPTY_CELL_ID;
+            const parsed = decodeCellId(currentValue);
+
+            switch (selectedEditorTool) {
+                case 'placeholder':
+                    setCellIdAtPosition(row, col, PLACEHOLDER_CELL_ID);
+                    return;
+                case 'bomb':
+                    setCellIdAtPosition(row, col, BOMB_CELL_ID);
+                    return;
+                case 'stone':
+                    setCellIdAtPosition(row, col, STONE_CELL_ID);
+                    return;
+                case 'wood':
+                    setCellIdAtPosition(row, col, WOOD_CELL_ID);
+                    return;
+                case 'magnet':
+                    setCellIdAtPosition(row, col, MAGNET_CELL_ID);
+                    return;
+                case 'ice1':
+                    setCellIdAtPosition(row, col, ICE_LEVEL_1_CELL_ID);
+                    return;
+                case 'ice2':
+                    setCellIdAtPosition(row, col, ICE_LEVEL_2_CELL_ID);
+                    return;
+                case 'ice3':
+                    setCellIdAtPosition(row, col, ICE_LEVEL_3_CELL_ID);
+                    return;
+                case 'attach-fanpai':
+                    if (!canAttachToCellId(currentValue)) return;
+                    setCellIdAtPosition(
+                        row,
+                        col,
+                        encodeAttachedCellId(parsed.baseId, ATTACHMENT_FANPAI_ID)
+                    );
+                    return;
+                case 'attach-iceshell':
+                    if (!canAttachToCellId(currentValue)) return;
+                    setCellIdAtPosition(
+                        row,
+                        col,
+                        encodeAttachedCellId(parsed.baseId, ATTACHMENT_ICESHELL_ID)
+                    );
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        function clearCellByRightClick(row, col) {
+            if (playModeState && playModeState.active) return;
+            setCellIdAtPosition(row, col, EMPTY_CELL_ID);
         }
 
         function getProbabilityValue(elementId, defaultValue = 0.1) {
@@ -1718,10 +2195,85 @@
             for (const row of boardData) {
                 if (!Array.isArray(row)) continue;
                 for (const value of row) {
-                    if (Number.isInteger(value) && value > 0) return false;
+                    const parsed = decodeCellId(value);
+                    if (isRemovableBaseId(parsed.baseId)) return false;
                 }
             }
             return true;
+        }
+
+        function getFourNeighbors(row, col, width, height) {
+            const result = [];
+            const offsets = [
+                [-1, 0],
+                [1, 0],
+                [0, -1],
+                [0, 1]
+            ];
+            for (const [dr, dc] of offsets) {
+                const nextRow = row + dr;
+                const nextCol = col + dc;
+                if (nextRow < 0 || nextRow >= height || nextCol < 0 || nextCol >= width) continue;
+                result.push({ row: nextRow, col: nextCol });
+            }
+            return result;
+        }
+
+        function triggerAdjacentMechanisms(boardData, tokenBoard, removedPositions) {
+            if (!Array.isArray(boardData) || !Array.isArray(removedPositions)) return;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            const targetPositions = new Map();
+
+            for (const position of removedPositions) {
+                const neighbors = getFourNeighbors(position.row, position.col, width, height);
+                for (const neighbor of neighbors) {
+                    targetPositions.set(`${neighbor.row}-${neighbor.col}`, neighbor);
+                }
+            }
+
+            targetPositions.forEach((position) => {
+                const currentId = boardData[position.row]?.[position.col] ?? EMPTY_CELL_ID;
+                const parsed = decodeCellId(currentId);
+
+                if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                    boardData[position.row][position.col] = parsed.baseId;
+                    return;
+                }
+
+                if (parsed.baseId === ICE_LEVEL_1_CELL_ID) {
+                    boardData[position.row][position.col] = EMPTY_CELL_ID;
+                    if (Array.isArray(tokenBoard)) tokenBoard[position.row][position.col] = null;
+                    return;
+                }
+                if (parsed.baseId === ICE_LEVEL_2_CELL_ID || parsed.baseId === ICE_LEVEL_3_CELL_ID) {
+                    boardData[position.row][position.col] = parsed.baseId - 1;
+                }
+            });
+        }
+
+        function removePairFromBoard(boardData, tokenBoard, pair) {
+            const removed = [
+                { row: pair.row1, col: pair.col1 },
+                { row: pair.row2, col: pair.col2 }
+            ];
+            for (const position of removed) {
+                boardData[position.row][position.col] = EMPTY_CELL_ID;
+                if (Array.isArray(tokenBoard)) tokenBoard[position.row][position.col] = null;
+            }
+            return removed;
+        }
+
+        function triggerBombEffect(boardData, tokenBoard) {
+            const EXTRA_PAIR_COUNT = 3;
+            for (let index = 0; index < EXTRA_PAIR_COUNT; index++) {
+                const allPairs = getRemovablePairsForBoard(boardData);
+                if (!allPairs || allPairs.length === 0) break;
+                const selectedPair = pickRandomPair(allPairs);
+                if (!selectedPair) break;
+                const removedPositions = removePairFromBoard(boardData, tokenBoard, selectedPair);
+                triggerAdjacentMechanisms(boardData, tokenBoard, removedPositions);
+            }
         }
 
         function compressPathPoints(pathPoints) {
@@ -2024,13 +2576,15 @@
             if (!playModeState || !playModeState.active || playModeState.isResolving) return;
             const boardData = playModeState.boardData;
             const currentValue = boardData?.[row]?.[col];
-            if (!Number.isInteger(currentValue) || currentValue <= 0) return;
+            if (!isCellClickableInPlay(currentValue)) return;
+            const currentMatchBaseId = getMatchableBaseId(currentValue);
+            if (currentMatchBaseId === null) return;
 
             const info = document.getElementById('info');
             const selected = playModeState.selected;
             if (!selected) {
                 setPlaySelection(row, col);
-                if (info) info.textContent = `试玩模式：已选中 ${currentValue}`;
+                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
                 return;
             }
 
@@ -2041,15 +2595,16 @@
             }
 
             const selectedValue = boardData?.[selected.row]?.[selected.col];
-            if (!Number.isInteger(selectedValue) || selectedValue <= 0) {
+            const selectedMatchBaseId = getMatchableBaseId(selectedValue);
+            if (selectedMatchBaseId === null) {
                 setPlaySelection(row, col);
-                if (info) info.textContent = `试玩模式：已选中 ${currentValue}`;
+                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
                 return;
             }
 
-            if (selectedValue !== currentValue) {
+            if (selectedMatchBaseId !== currentMatchBaseId) {
                 setPlaySelection(row, col);
-                if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentValue}`;
+                if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentMatchBaseId}`;
                 return;
             }
 
@@ -2097,21 +2652,26 @@
                 await waitForMs(150);
                 if (!playModeState || !playModeState.active) return;
 
-                boardData[selected.row][selected.col] = null;
-                boardData[row][col] = null;
                 const tokenBoard = playModeState.tokenBoard;
-                if (Array.isArray(tokenBoard)) {
-                    tokenBoard[selected.row][selected.col] = null;
-                    tokenBoard[row][col] = null;
+                const removedPositions = [
+                    { row: selected.row, col: selected.col },
+                    { row, col }
+                ];
+                for (const position of removedPositions) {
+                    boardData[position.row][position.col] = EMPTY_CELL_ID;
+                    if (Array.isArray(tokenBoard)) tokenBoard[position.row][position.col] = null;
                 }
+
+                triggerAdjacentMechanisms(boardData, tokenBoard, removedPositions);
+                if (selectedMatchBaseId === BOMB_CELL_ID) {
+                    triggerBombEffect(boardData, tokenBoard);
+                }
+
                 const direction = Number.isInteger(playModeState.direction)
                     ? playModeState.direction
                     : 0;
                 const tokenBeforeShift = cloneBoardData(tokenBoard);
-                applyDirectionShiftUntilStable(boardData, direction);
-                if (Array.isArray(tokenBoard)) {
-                    applyDirectionShiftUntilStable(tokenBoard, direction);
-                }
+                applyDirectionShiftUntilStable(boardData, direction, tokenBoard);
                 playModeState.selected = null;
                 syncBoardDisplayWithoutTransition(boardData);
                 const movedCells = collectShiftedCells(tokenBeforeShift, tokenBoard);
@@ -2157,6 +2717,7 @@
                 alert('请先生成关卡，再进入试玩模式。');
                 return;
             }
+            if (!ensureBoardPairLegality('试玩')) return;
 
             resetStepGenerationState();
             const sourceBoard = cloneBoardData(filledCells);
@@ -2188,12 +2749,25 @@
         }
 
         function handleBoardCellClick(event) {
-            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
             const cellElement = event.target.closest('.cell');
             if (!cellElement) return;
             const position = getCellPositionByElement(cellElement);
             if (!position) return;
-            processPlayCellSelection(position.row, position.col);
+            if (playModeState && playModeState.active) {
+                if (playModeState.isResolving) return;
+                processPlayCellSelection(position.row, position.col);
+                return;
+            }
+            applyEditorToolOnCell(position.row, position.col);
+        }
+
+        function handleBoardCellContextMenu(event) {
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+            event.preventDefault();
+            const position = getCellPositionByElement(cellElement);
+            if (!position) return;
+            clearCellByRightClick(position.row, position.col);
         }
 
         function getRemovablePairsForBoard(boardData) {
@@ -2205,10 +2779,10 @@
             const positionsByNumber = new Map();
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {
-                    const value = boardData[i]?.[j];
-                    if (!Number.isInteger(value) || value <= 0) continue;
-                    if (!positionsByNumber.has(value)) positionsByNumber.set(value, []);
-                    positionsByNumber.get(value).push({ row: i, col: j });
+                    const baseId = getMatchableBaseId(boardData[i]?.[j]);
+                    if (baseId === null) continue;
+                    if (!positionsByNumber.has(baseId)) positionsByNumber.set(baseId, []);
+                    positionsByNumber.get(baseId).push({ row: i, col: j });
                 }
             }
 
@@ -2249,13 +2823,6 @@
             return pairs[index];
         }
 
-        function compactValues(values, towardStart) {
-            const nonEmpty = values.filter((value) => Number.isInteger(value) && value > 0);
-            const emptyCount = values.length - nonEmpty.length;
-            const emptyValues = Array.from({ length: emptyCount }, () => null);
-            return towardStart ? [...nonEmpty, ...emptyValues] : [...emptyValues, ...nonEmpty];
-        }
-
         function getPartitionIndices(length, isFirstPart) {
             const indices = [];
             for (let index = 0; index < length; index++) {
@@ -2267,54 +2834,165 @@
             return indices;
         }
 
-        function applySegmentCompaction(boardData, segmentIndices, getValue, setValue, towardStart) {
+        function buildMagnetLockSet(boardData) {
+            const lockSet = new Set();
+            if (!Array.isArray(boardData) || boardData.length === 0) return lockSet;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            const magnetOffsets = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],           [0, 1],
+                [1, -1],  [1, 0],  [1, 1]
+            ];
+
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const parsed = decodeCellId(boardData[row]?.[col]);
+                    if (parsed.baseId !== MAGNET_CELL_ID) continue;
+                    for (const [dr, dc] of magnetOffsets) {
+                        const nextRow = row + dr;
+                        const nextCol = col + dc;
+                        if (nextRow < 0 || nextRow >= height || nextCol < 0 || nextCol >= width) {
+                            continue;
+                        }
+                        const neighborParsed = decodeCellId(boardData[nextRow]?.[nextCol]);
+                        if (isEmptyCellId(neighborParsed.baseId)) continue;
+                        lockSet.add(`${nextRow}-${nextCol}`);
+                    }
+                }
+            }
+            return lockSet;
+        }
+
+        function canCellMoveByRules(boardData, row, col, magnetLockSet) {
+            const parsed = decodeCellId(boardData[row]?.[col]);
+            if (isEmptyCellId(parsed.baseId)) return true;
+            if (isImmobileObstacleBaseId(parsed.baseId)) return false;
+            if (magnetLockSet.has(`${row}-${col}`)) return false;
+            return true;
+        }
+
+        function compactSegmentByRules(
+            boardData,
+            tokenBoard,
+            segmentIndices,
+            getValue,
+            setValue,
+            getCoord,
+            towardStart,
+            magnetLockSet
+        ) {
             if (!segmentIndices || segmentIndices.length === 0) return false;
             const originalValues = segmentIndices.map((index) => getValue(index));
-            const compactedValues = compactValues(originalValues, towardStart);
+            const originalTokens = tokenBoard
+                ? segmentIndices.map((index) => {
+                    const { row, col } = getCoord(index);
+                    return tokenBoard[row]?.[col] ?? null;
+                })
+                : null;
+
+            const fixedIndices = new Set();
+            for (let index = 0; index < segmentIndices.length; index++) {
+                const value = originalValues[index];
+                if (isEmptyCellId(value)) continue;
+                const { row, col } = getCoord(segmentIndices[index]);
+                if (!canCellMoveByRules(boardData, row, col, magnetLockSet)) {
+                    fixedIndices.add(index);
+                }
+            }
+
+            const resultValues = [...originalValues];
+            const resultTokens = originalTokens ? [...originalTokens] : null;
+
+            let segmentStart = 0;
+            while (segmentStart < segmentIndices.length) {
+                while (segmentStart < segmentIndices.length && fixedIndices.has(segmentStart)) {
+                    segmentStart++;
+                }
+                if (segmentStart >= segmentIndices.length) break;
+                let segmentEnd = segmentStart;
+                while (segmentEnd + 1 < segmentIndices.length && !fixedIndices.has(segmentEnd + 1)) {
+                    segmentEnd++;
+                }
+
+                const movingEntries = [];
+                for (let idx = segmentStart; idx <= segmentEnd; idx++) {
+                    const value = originalValues[idx];
+                    if (isEmptyCellId(value)) continue;
+                    movingEntries.push({
+                        value,
+                        token: resultTokens ? originalTokens[idx] : null
+                    });
+                    resultValues[idx] = EMPTY_CELL_ID;
+                    if (resultTokens) resultTokens[idx] = null;
+                }
+
+                const targetSlots = [];
+                for (let idx = segmentStart; idx <= segmentEnd; idx++) targetSlots.push(idx);
+                const orderedSlots = towardStart ? targetSlots : [...targetSlots].reverse();
+                for (let moveIndex = 0; moveIndex < movingEntries.length; moveIndex++) {
+                    const slotIndex = orderedSlots[moveIndex];
+                    const entry = movingEntries[moveIndex];
+                    resultValues[slotIndex] = entry.value;
+                    if (resultTokens) resultTokens[slotIndex] = entry.token;
+                }
+
+                segmentStart = segmentEnd + 1;
+            }
+
             let changed = false;
             for (let idx = 0; idx < segmentIndices.length; idx++) {
-                if (originalValues[idx] !== compactedValues[idx]) {
+                if (originalValues[idx] !== resultValues[idx]) {
                     changed = true;
                 }
-                setValue(segmentIndices[idx], compactedValues[idx]);
+                setValue(segmentIndices[idx], resultValues[idx], resultTokens ? resultTokens[idx] : null);
             }
             return changed;
         }
 
-        function applyDirectionShiftOnce(boardData, direction) {
+        function applyDirectionShiftOnce(boardData, direction, tokenBoard = null) {
             if (!Array.isArray(boardData) || boardData.length === 0) return false;
             const height = boardData.length;
             const width = boardData[0]?.length || 0;
             if (width === 0) return false;
 
             let changed = false;
+            const magnetLockSet = buildMagnetLockSet(boardData);
             const topRows = getPartitionIndices(height, true);
             const bottomRows = getPartitionIndices(height, false);
             const leftCols = getPartitionIndices(width, true);
             const rightCols = getPartitionIndices(width, false);
 
             const compactColumn = (colIndex, rowIndices, towardTop) => {
-                const segmentChanged = applySegmentCompaction(
+                const segmentChanged = compactSegmentByRules(
                     boardData,
+                    tokenBoard,
                     rowIndices,
                     (rowIndex) => boardData[rowIndex]?.[colIndex] ?? null,
-                    (rowIndex, value) => {
+                    (rowIndex, value, token) => {
                         boardData[rowIndex][colIndex] = value;
+                        if (Array.isArray(tokenBoard)) tokenBoard[rowIndex][colIndex] = token;
                     },
-                    towardTop
+                    (rowIndex) => ({ row: rowIndex, col: colIndex }),
+                    towardTop,
+                    magnetLockSet
                 );
                 if (segmentChanged) changed = true;
             };
 
             const compactRow = (rowIndex, colIndices, towardLeft) => {
-                const segmentChanged = applySegmentCompaction(
+                const segmentChanged = compactSegmentByRules(
                     boardData,
+                    tokenBoard,
                     colIndices,
                     (colIndex) => boardData[rowIndex]?.[colIndex] ?? null,
-                    (colIndex, value) => {
+                    (colIndex, value, token) => {
                         boardData[rowIndex][colIndex] = value;
+                        if (Array.isArray(tokenBoard)) tokenBoard[rowIndex][colIndex] = token;
                     },
-                    towardLeft
+                    (colIndex) => ({ row: rowIndex, col: colIndex }),
+                    towardLeft,
+                    magnetLockSet
                 );
                 if (segmentChanged) changed = true;
             };
@@ -2363,11 +3041,11 @@
             return changed;
         }
 
-        function applyDirectionShiftUntilStable(boardData, direction) {
+        function applyDirectionShiftUntilStable(boardData, direction, tokenBoard = null) {
             const maxIterations = (boardData.length || 0) * ((boardData[0]?.length || 0) + 1);
             let iteration = 0;
             while (iteration < maxIterations) {
-                const changed = applyDirectionShiftOnce(boardData, direction);
+                const changed = applyDirectionShiftOnce(boardData, direction, tokenBoard);
                 if (!changed) break;
                 iteration++;
             }
@@ -2390,8 +3068,13 @@
                 );
                 if (!selectedPair) return false;
 
-                boardData[selectedPair.row1][selectedPair.col1] = null;
-                boardData[selectedPair.row2][selectedPair.col2] = null;
+                const firstValue = boardData[selectedPair.row1]?.[selectedPair.col1];
+                const selectedBaseId = getMatchableBaseId(firstValue);
+                const removedPositions = removePairFromBoard(boardData, null, selectedPair);
+                triggerAdjacentMechanisms(boardData, null, removedPositions);
+                if (selectedBaseId === BOMB_CELL_ID) {
+                    triggerBombEffect(boardData, null);
+                }
                 applyDirectionShiftUntilStable(boardData, direction);
                 stepCount++;
             }
@@ -2440,6 +3123,7 @@
                 alert('请先生成关卡，再进行模拟试玩。');
                 return;
             }
+            if (!ensureBoardPairLegality('模拟')) return;
 
             const simulateButton = document.getElementById('btnSimulatePlay');
             isSimulatingPlayGames = true;
@@ -2567,7 +3251,7 @@
             for (let i = 0; i < height; i++) {
                 filledCells[i] = [];
                 for (let j = 0; j < width; j++) {
-                    filledCells[i][j] = null;
+                    filledCells[i][j] = EMPTY_CELL_ID;
                     const cell = document.createElement('div');
                     cell.className = 'cell';
                     cell.id = `cell-${i}-${j}`;
@@ -2597,7 +3281,7 @@
             for (let i = 0; i < height; i++) {
                 if (!filledCells[i]) continue;
                 for (let j = 0; j < width; j++) {
-                    filledCells[i][j] = null;
+                    filledCells[i][j] = EMPTY_CELL_ID;
                     const cell = document.getElementById(`cell-${i}-${j}`);
                     if (cell) {
                         cell.className = 'cell';
@@ -2729,18 +3413,41 @@
         function renderCellNumber(i, j, num) {
             const cell = document.getElementById(`cell-${i}-${j}`);
             if (!cell) return;
-            if (!Number.isInteger(num) || num <= 0) {
+            const parsed = decodeCellId(num);
+            if (isEmptyCellId(parsed.baseId)) {
                 cell.className = 'cell';
                 cell.innerHTML = '';
                 return;
             }
-            cell.className = 'cell filled';
+            if (isObstacleBaseId(parsed.baseId)) {
+                cell.className = 'cell filled obstacle-cell';
+                cell.innerHTML = '';
+                const obstaclePath = getObstacleImagePath(parsed.baseId);
+                if (obstaclePath) {
+                    const obstacleImage = document.createElement('img');
+                    obstacleImage.className = 'card-image-obstacle';
+                    if (
+                        parsed.baseId === STONE_CELL_ID ||
+                        parsed.baseId === WOOD_CELL_ID ||
+                        parsed.baseId === ICE_LEVEL_1_CELL_ID ||
+                        parsed.baseId === ICE_LEVEL_2_CELL_ID ||
+                        parsed.baseId === ICE_LEVEL_3_CELL_ID
+                    ) {
+                        obstacleImage.classList.add('card-image-obstacle-scale130');
+                    }
+                    obstacleImage.src = obstaclePath;
+                    obstacleImage.alt = String(parsed.baseId);
+                    cell.appendChild(obstacleImage);
+                }
+                return;
+            }
+
+            cell.className = 'cell filled playable-card';
             cell.innerHTML = '';
-            const imgNum = getImageForNumber(num);
-            cell.appendChild(createCardImageStack(imgNum, num));
+            cell.appendChild(createCardImageStack(parsed.baseId, parsed.attachmentId));
         }
 
-        function createCardImageStack(imgNum, num) {
+        function createCardImageStack(baseId, attachmentId = null) {
             const BASE_IMAGE_PATH = 'img/base.png';
             const stack = document.createElement('div');
             stack.className = 'card-image-stack';
@@ -2759,12 +3466,37 @@
 
             const faceImage = document.createElement('img');
             faceImage.className = 'card-image-face';
-            faceImage.src = `img/${imgNum}.png`;
-            faceImage.alt = num.toString();
+            if (baseId === BOMB_CELL_ID) {
+                faceImage.classList.add('card-image-face-bomb');
+                faceImage.src = 'img/zhadan.png';
+                faceImage.alt = '99';
+            } else {
+                const imgNum = getImageForNumber(baseId);
+                faceImage.src = `img/${imgNum}.png`;
+                faceImage.alt = String(baseId);
+            }
 
             stack.appendChild(baseImage);
             stack.appendChild(guideImage);
-            stack.appendChild(faceImage);
+            if (baseId !== PLACEHOLDER_CELL_ID) {
+                stack.appendChild(faceImage);
+            }
+
+            if (ATTACHMENT_IDS.has(attachmentId)) {
+                const attachmentPath = getAttachmentImagePath(attachmentId);
+                if (attachmentPath) {
+                    const attachmentImage = document.createElement('img');
+                    attachmentImage.className = 'card-image-attachment';
+                    if (attachmentId === ATTACHMENT_FANPAI_ID) {
+                        attachmentImage.classList.add('card-image-attachment-fanpai');
+                    } else if (attachmentId === ATTACHMENT_ICESHELL_ID) {
+                        attachmentImage.classList.add('card-image-attachment-iceshell');
+                    }
+                    attachmentImage.src = attachmentPath;
+                    attachmentImage.alt = String(attachmentId * ATTACHMENT_MULTIPLIER);
+                    stack.appendChild(attachmentImage);
+                }
+            }
             return stack;
         }
 
@@ -2800,50 +3532,117 @@
             }
         }
 
+        function collectPlaceholderFillOrder(fillOrder) {
+            const targets = [];
+            for (const item of fillOrder) {
+                const meta = getFillablePlaceholderMeta(filledCells[item.i]?.[item.j]);
+                if (!meta) continue;
+                targets.push({
+                    ...item,
+                    attachmentId: meta.attachmentId
+                });
+            }
+            return targets;
+        }
+
+        function validateBeforePlaceholderFill(targetOrder) {
+            if (!Array.isArray(targetOrder) || targetOrder.length === 0) {
+                alert('当前棋盘没有可填充的占位块（ID:499）。');
+                return false;
+            }
+
+            if (targetOrder.length % 2 !== 0) {
+                alert('占位块数量必须为偶数，当前无法生成成对花色。');
+                return false;
+            }
+
+            const boardData = getBoardData();
+            const countMap = new Map();
+            for (const row of boardData) {
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    if (!isRemovableBaseId(parsed.baseId)) continue;
+                    if (parsed.baseId === PLACEHOLDER_CELL_ID) continue;
+                    countMap.set(parsed.baseId, (countMap.get(parsed.baseId) || 0) + 1);
+                }
+            }
+            const invalid = [];
+            countMap.forEach((count, baseId) => {
+                if (count % 2 !== 0) invalid.push(`${baseId}:${count}`);
+            });
+            if (invalid.length > 0) {
+                alert(`填充前校验失败：存在非成对花色（${invalid.join(', ')}）`);
+                return false;
+            }
+            return true;
+        }
+
+        function buildPlaceholderFillPlan(direction) {
+            const width = parseInt(document.getElementById('width')?.value, 10) || 8;
+            const height = parseInt(document.getElementById('height')?.value, 10) || 14;
+            if (!width || !height) return null;
+
+            const fillOrder = getFillOrder(width, height, direction);
+            const targetOrder = collectPlaceholderFillOrder(fillOrder);
+            if (!validateBeforePlaceholderFill(targetOrder)) return null;
+
+            calculatePool();
+            calculatePoolForGenerate(width, height, targetOrder.length);
+            if (!Array.isArray(poolCards) || poolCards.length !== targetOrder.length) {
+                alert('数字池与占位块数量不匹配，请调整数字配置。');
+                return null;
+            }
+
+            const boardBefore = cloneBoardData(filledCells);
+            const boardAfter = cloneBoardData(filledCells);
+            const cardsToPlace = shuffleArray([...poolCards]);
+
+            for (let index = 0; index < targetOrder.length; index++) {
+                const target = targetOrder[index];
+                const cardNumber = cardsToPlace[index];
+                if (!Number.isInteger(cardNumber) || cardNumber <= 0) continue;
+                const attachmentId = target.attachmentId;
+                boardAfter[target.i][target.j] = ATTACHMENT_IDS.has(attachmentId)
+                    ? encodeAttachedCellId(cardNumber, attachmentId)
+                    : cardNumber;
+            }
+
+            const groups = buildStepGroups(targetOrder, direction);
+            return {
+                boardBefore,
+                boardAfter,
+                groups
+            };
+        }
+
         function startStepGeneration() {
             exitPlayMode({ restoreBoard: false, silent: true });
+            shuffleImages();
             const width = parseInt(document.getElementById('width').value) || 8;
             const height = parseInt(document.getElementById('height').value) || 14;
             if (!width || !height) return;
 
-            const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
-            const sameLie = getProbabilityValue('sameLie', 0.1);
-            const sameNum = getProbabilityValue('sameNum', 0.1);
-            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
-            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
-            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
-
-            generateBoard();
-            shuffleImages();
-
-            const boardData = generateSingleLevel(
-                direction,
-                sameLie,
-                sameNum,
-                xianglinSame,
-                directionBothCtrl,
-                distanceCtrl
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value || 0,
+                10
             );
+            const fillPlan = buildPlaceholderFillPlan(direction);
+            if (!fillPlan) return;
 
-            const fillOrder = getFillOrder(width, height, direction);
-            const groups = buildStepGroups(fillOrder, direction);
-
-            filledCells = [];
-            for (let i = 0; i < height; i++) {
-                filledCells[i] = [];
-                for (let j = 0; j < width; j++) {
-                    filledCells[i][j] = null;
-                    renderCellNumber(i, j, null);
-                }
-            }
+            filledCells = cloneBoardData(fillPlan.boardBefore);
+            syncBoardDisplayByData(filledCells);
 
             stepGenerationState = {
-                boardData,
-                groups,
+                boardData: fillPlan.boardAfter,
+                groups: fillPlan.groups,
                 currentStepIndex: 0,
                 direction
             };
 
+            if (fillPlan.groups.length === 0) {
+                resetStepGenerationState();
+                return;
+            }
             revealNextStepGroup();
         }
 
@@ -2863,329 +3662,20 @@
             const height = parseInt(document.getElementById('height').value) || 14;
             if (!width || !height) return;
 
-            const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
-            const sameLie = getProbabilityValue('sameLie', 0.1);
-            const sameNum = getProbabilityValue('sameNum', 0.1);
-            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
-            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
-            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value || 0,
+                10
+            );
 
             const btn = document.getElementById('btnExportSingle');
             if (btn) {
                 btn.style.background = '';
             }
 
-            calculatePool();
-            calculatePoolForGenerate(width, height);
-
-            filledCells = [];
-            for (let i = 0; i < height; i++) {
-                filledCells[i] = [];
-                for (let j = 0; j < width; j++) {
-                    filledCells[i][j] = null;
-                }
-            }
-
-            const fillOrder = getFillOrder(width, height, direction);
-
-            placedCounts = {};
-            currentPool.forEach(item => {
-                placedCounts[item.number] = 0;
-            });
-
-            for (let idx = 0; idx < fillOrder.length; idx++) {
-                const {i, j, prevI, prevJ, firstInGroup, groupCol, groupRow} = fillOrder[idx];
-                let num = null;
-                const isRowDirection = isRowBaseDirection(direction);
-
-                const hasPoolNumber = (targetNumber) => {
-                    const poolItem = currentPool.find(p => p.number === targetNumber);
-                    return !!poolItem && placedCounts[targetNumber] < poolItem.count;
-                };
-
-                const getGroupUsedNumbers = () => {
-                    const usedInGroup = new Set();
-                    if (isRowDirection) {
-                        for (let jj = 0; jj < width; jj++) {
-                            if (filledCells[i]?.[jj] !== null && filledCells[i]?.[jj] !== undefined) {
-                                usedInGroup.add(filledCells[i][jj]);
-                            }
-                        }
-                    } else {
-                        for (let ii = 0; ii < height; ii++) {
-                            if (filledCells[ii]?.[j] !== null && filledCells[ii]?.[j] !== undefined) {
-                                usedInGroup.add(filledCells[ii][j]);
-                            }
-                        }
-                    }
-                    return usedInGroup;
-                };
-
-                const pickByGroupPreference = (preferUsed, forbiddenNumbers = new Set()) => {
-                    const usedInGroup = getGroupUsedNumbers();
-                    const candidates = [];
-                    const allowedCandidates = [];
-                    for (const poolItem of currentPool) {
-                        const canUse = placedCounts[poolItem.number] < poolItem.count;
-                        if (!canUse) continue;
-                        const inGroup = usedInGroup.has(poolItem.number);
-                        if ((preferUsed && inGroup) || (!preferUsed && !inGroup)) {
-                            candidates.push(poolItem.number);
-                            if (!forbiddenNumbers.has(poolItem.number)) {
-                                allowedCandidates.push(poolItem.number);
-                            }
-                        }
-                    }
-                    if (candidates.length === 0) return null;
-                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
-                    const picked = chooseCandidateByControl(source);
-                    if (picked === null) return null;
-                    return picked;
-                };
-
-                const getAdjacentSamePositionCandidateNumbers = () => {
-                    const adjacentCandidates = [];
-                    if (isRowDirection) {
-                        const upNum = i > 0 ? filledCells[i - 1]?.[j] : null;
-                        const downNum = i < height - 1 ? filledCells[i + 1]?.[j] : null;
-                        if (upNum !== null && upNum !== undefined) {
-                            adjacentCandidates.push(upNum);
-                        }
-                        if (downNum !== null && downNum !== undefined) {
-                            adjacentCandidates.push(downNum);
-                        }
-                    } else {
-                        const leftNum = j > 0 ? filledCells[i]?.[j - 1] : null;
-                        const rightNum = j < width - 1 ? filledCells[i]?.[j + 1] : null;
-                        if (leftNum !== null && leftNum !== undefined) {
-                            adjacentCandidates.push(leftNum);
-                        }
-                        if (rightNum !== null && rightNum !== undefined) {
-                            adjacentCandidates.push(rightNum);
-                        }
-                    }
-                    return adjacentCandidates;
-                };
-
-                const getAdjacentLineCandidateSet = () => {
-                    const adjacentSet = new Set();
-                    if (isRowDirection) {
-                        const adjacentRows = [];
-                        if (i > 0) adjacentRows.push(i - 1);
-                        if (i < height - 1) adjacentRows.push(i + 1);
-                        for (const rowIndex of adjacentRows) {
-                            for (let colIndex = 0; colIndex < width; colIndex++) {
-                                const value = filledCells[rowIndex]?.[colIndex];
-                                if (value !== null && value !== undefined) {
-                                    adjacentSet.add(value);
-                                }
-                            }
-                        }
-                    } else {
-                        const adjacentCols = [];
-                        if (j > 0) adjacentCols.push(j - 1);
-                        if (j < width - 1) adjacentCols.push(j + 1);
-                        for (const colIndex of adjacentCols) {
-                            for (let rowIndex = 0; rowIndex < height; rowIndex++) {
-                                const value = filledCells[rowIndex]?.[colIndex];
-                                if (value !== null && value !== undefined) {
-                                    adjacentSet.add(value);
-                                }
-                            }
-                        }
-                    }
-                    return adjacentSet;
-                };
-
-                const getAroundNeighborCandidateSet = () => {
-                    const aroundSet = new Set();
-                    for (let di = -1; di <= 1; di++) {
-                        for (let dj = -1; dj <= 1; dj++) {
-                            if (di === 0 && dj === 0) continue;
-                            const ni = i + di;
-                            const nj = j + dj;
-                            if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
-                            const value = filledCells[ni]?.[nj];
-                            if (value !== null && value !== undefined) {
-                                aroundSet.add(value);
-                            }
-                        }
-                    }
-                    return aroundSet;
-                };
-
-                const getDirectionBothCandidateSet = () => {
-                    const localDirection = getLocalBaseDirectionByCell(direction, i, j, width, height);
-                    const upperSet = collectDirectionalSideNumbers(
-                        i,
-                        j,
-                        width,
-                        height,
-                        localDirection,
-                        'top'
-                    );
-                    const lowerSet = collectDirectionalSideNumbers(
-                        i,
-                        j,
-                        width,
-                        height,
-                        localDirection,
-                        'bottom'
-                    );
-                    const bothSet = new Set();
-                    upperSet.forEach((value) => {
-                        if (lowerSet.has(value)) bothSet.add(value);
-                    });
-                    return bothSet;
-                };
-
-                const chooseCandidateByControl = (candidateNumbers) => {
-                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
-                    const directionBothSet = getDirectionBothCandidateSet();
-
-                    let bestScore = -Infinity;
-                    let bestCandidates = [];
-                    for (const candidate of candidateNumbers) {
-                        const inDirectionBoth = directionBothSet.has(candidate);
-                        const directionScore = inDirectionBoth ? directionBothCtrl : (1 - directionBothCtrl);
-                        const score = directionScore;
-                        if (score > bestScore) {
-                            bestScore = score;
-                            bestCandidates = [candidate];
-                        } else if (score === bestScore) {
-                            bestCandidates.push(candidate);
-                        }
-                    }
-                    if (bestCandidates.length === 0) return null;
-                    return bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
-                };
-
-                const pickByCandidateNumbers = (candidateNumbers, forbiddenNumbers = new Set()) => {
-                    if (!candidateNumbers || candidateNumbers.length === 0) return null;
-                    const uniqueCandidates = [];
-                    const seen = new Set();
-                    for (const candidate of candidateNumbers) {
-                        if (seen.has(candidate)) continue;
-                        seen.add(candidate);
-                        if (!hasPoolNumber(candidate)) continue;
-                        uniqueCandidates.push(candidate);
-                    }
-                    if (uniqueCandidates.length === 0) return null;
-                    const allowedCandidates = uniqueCandidates.filter(
-                        candidate => !forbiddenNumbers.has(candidate)
-                    );
-                    if (allowedCandidates.length === 0) return null;
-                    const source = allowedCandidates;
-                    const picked = chooseCandidateByControl(source);
-                    if (picked === null) return null;
-                    return picked;
-                };
-
-                const pickAnyCard = (forbiddenNumbers = new Set()) => {
-                    const candidates = [];
-                    const allowedCandidates = [];
-                    for (const poolItem of currentPool) {
-                        const canUse = placedCounts[poolItem.number] < poolItem.count;
-                        if (!canUse) continue;
-                        candidates.push(poolItem.number);
-                        if (!forbiddenNumbers.has(poolItem.number)) {
-                            allowedCandidates.push(poolItem.number);
-                        }
-                    }
-                    if (candidates.length === 0) return null;
-                    const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
-                    const picked = chooseCandidateByControl(source);
-                    if (picked === null) return null;
-                    return picked;
-                };
-
-                const adjacentSamePositionNumbers = getAdjacentSamePositionCandidateNumbers();
-                const adjacentLineNumbers = Array.from(getAdjacentLineCandidateSet());
-                const aroundNeighborNumbers = Array.from(getAroundNeighborCandidateSet());
-                const forbiddenNumbers = new Set();
-                const aroundNeighborNumberSet = new Set(aroundNeighborNumbers);
-
-                const tryAdjacentLineSet = Math.random() < sameNum;
-                if (!tryAdjacentLineSet) {
-                    adjacentLineNumbers.forEach(value => forbiddenNumbers.add(value));
-                }
-
-                const trySamePosition = Math.random() < xianglinSame;
-                if (trySamePosition) {
-                    num = pickByCandidateNumbers(adjacentSamePositionNumbers, forbiddenNumbers);
-                } else {
-                    adjacentSamePositionNumbers.forEach(value => forbiddenNumbers.add(value));
-                }
-
-                if (num === null) {
-                    if (tryAdjacentLineSet) {
-                        num = pickByCandidateNumbers(adjacentLineNumbers, forbiddenNumbers);
-                    }
-                }
-
-                if (num === null) {
-                    const preferUsed = Math.random() < sameLie;
-                    num = pickByGroupPreference(preferUsed, forbiddenNumbers);
-                    if (num === null) {
-                        num = pickByGroupPreference(!preferUsed, forbiddenNumbers);
-                    }
-                }
-
-                if (num === null) {
-                    num = pickAnyCard(forbiddenNumbers);
-                }
-
-                if (num === null) {
-                    num = getNextCard();
-                }
-
-                if (num !== null) {
-                    if (aroundNeighborNumberSet.has(num) && Math.random() >= distanceCtrl) {
-                        const replaceForbiddenNumbers = new Set(forbiddenNumbers);
-                        aroundNeighborNumberSet.forEach(value => replaceForbiddenNumbers.add(value));
-                        const preferUsedForReplace = Math.random() < sameLie;
-                        let replacement = pickByGroupPreference(
-                            preferUsedForReplace,
-                            replaceForbiddenNumbers
-                        );
-                        if (replacement === null) {
-                            replacement = pickByGroupPreference(
-                                !preferUsedForReplace,
-                                replaceForbiddenNumbers
-                            );
-                        }
-                        if (replacement === null && tryAdjacentLineSet) {
-                            replacement = pickByCandidateNumbers(
-                                adjacentLineNumbers,
-                                replaceForbiddenNumbers
-                            );
-                        }
-                        if (replacement === null) {
-                            replacement = pickAnyCard(replaceForbiddenNumbers);
-                        }
-                        if (replacement !== null) {
-                            num = replacement;
-                        }
-                    }
-
-                    const reservedCard = getSpecificCard(num);
-                    if (reservedCard === null) {
-                        num = getNextCard();
-                    }
-                }
-
-                if (num !== null) {
-                    placedCounts[num] = (placedCounts[num] || 0) + 1;
-                    filledCells[i][j] = num;
-                    const cell = document.getElementById(`cell-${i}-${j}`);
-                    if (cell) {
-                        cell.className = 'cell filled';
-                        cell.innerHTML = '';
-                        const imgNum = getImageForNumber(num);
-                        cell.appendChild(createCardImageStack(imgNum, num));
-                    }
-                }
-            }
+            const fillPlan = buildPlaceholderFillPlan(direction);
+            if (!fillPlan) return;
+            filledCells = cloneBoardData(fillPlan.boardAfter);
+            syncBoardDisplayByData(filledCells);
             updateLevelStats(direction);
             setTimeout(scaleBoard, 100);
         }
@@ -3219,9 +3709,9 @@
             const numberCountMap = new Map();
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {
-                    const value = filledCells[i]?.[j];
-                    if (!Number.isInteger(value) || value <= 0) continue;
-                    numberCountMap.set(value, (numberCountMap.get(value) || 0) + 1);
+                    const baseId = getCardCountBaseId(filledCells[i]?.[j]);
+                    if (baseId === null) continue;
+                    numberCountMap.set(baseId, (numberCountMap.get(baseId) || 0) + 1);
                 }
             }
 
@@ -3244,8 +3734,8 @@
             const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {
-                    const startValue = filledCells[i]?.[j];
-                    if (!Number.isInteger(startValue) || startValue <= 0 || visited[i][j]) continue;
+                    const startValue = getCardCountBaseId(filledCells[i]?.[j]);
+                    if (startValue === null || visited[i][j]) continue;
 
                     let componentSize = 0;
                     const stack = [[i, j]];
@@ -3259,7 +3749,7 @@
                             const nj = cj + dj;
                             if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
                             if (visited[ni][nj]) continue;
-                            if (filledCells[ni]?.[nj] !== startValue) continue;
+                            if (getCardCountBaseId(filledCells[ni]?.[nj]) !== startValue) continue;
                             visited[ni][nj] = true;
                             stack.push([ni, nj]);
                         }
@@ -3275,13 +3765,13 @@
                 const numberSet = new Set();
                 if (isRowDirection) {
                     for (let j = 0; j < width; j++) {
-                        const value = filledCells[lineIndex]?.[j];
-                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                        const baseId = getCardCountBaseId(filledCells[lineIndex]?.[j]);
+                        if (baseId !== null) numberSet.add(baseId);
                     }
                 } else {
                     for (let i = 0; i < height; i++) {
-                        const value = filledCells[i]?.[lineIndex];
-                        if (Number.isInteger(value) && value > 0) numberSet.add(value);
+                        const baseId = getCardCountBaseId(filledCells[i]?.[lineIndex]);
+                        if (baseId !== null) numberSet.add(baseId);
                     }
                 }
                 lineSets.push(numberSet);
@@ -3357,10 +3847,8 @@
                 let ni = rowIndex + stepI;
                 let nj = colIndex + stepJ;
                 while (ni >= 0 && ni < height && nj >= 0 && nj < width) {
-                    const value = filledCells[ni]?.[nj];
-                    if (Number.isInteger(value) && value > 0) {
-                        sideNumbers.add(value);
-                    }
+                    const baseId = getCardCountBaseId(filledCells[ni]?.[nj]);
+                    if (baseId !== null) sideNumbers.add(baseId);
                     ni += stepI;
                     nj += stepJ;
                 }
@@ -3371,8 +3859,8 @@
             const lowerSetMap = new Map();
             for (let i = 0; i < height; i++) {
                 for (let j = 0; j < width; j++) {
-                    const current = filledCells[i]?.[j];
-                    if (!Number.isInteger(current) || current <= 0) continue;
+                    const current = getCardCountBaseId(filledCells[i]?.[j]);
+                    if (current === null) continue;
                     const localDirection = getLocalBaseDirection(i, j);
                     if (localDirection === 0) continue;
 
@@ -4014,16 +4502,22 @@
             return getBoardData();
         }
 
-        function calculatePoolForGenerate(width, height) {
+        function calculatePoolForGenerate(width, height, totalCellCount = null) {
             const count8 = parseInt(document.getElementById('count8').value) || 0;
             const count6 = parseInt(document.getElementById('count6').value) || 0;
 
-            const totalCells = width * height;
+            const totalCells = Number.isInteger(totalCellCount) && totalCellCount > 0
+                ? totalCellCount
+                : (width * height);
             const cardsFrom8 = count8 * 8;
             const cardsFrom6 = count6 * 6;
             const usedCards = cardsFrom8 + cardsFrom6;
 
-            if (usedCards > totalCells) return [];
+            if (usedCards > totalCells) {
+                currentPool = [];
+                poolCards = [];
+                return [];
+            }
 
             const remainingCards = totalCells - usedCards;
             let count4 = Math.floor(remainingCards / 4);
@@ -4209,15 +4703,21 @@
 
         function init() {
             loadConfigGroupsFromStorage();
+            renderEditorTools();
             const board = document.getElementById('board');
             if (board) {
                 board.addEventListener('click', handleBoardCellClick);
+                board.addEventListener('contextmenu', handleBoardCellContextMenu);
                 generateBoard();
             } else {
                 window.addEventListener('DOMContentLoaded', () => {
                     loadConfigGroupsFromStorage();
+                    renderEditorTools();
                     const readyBoard = document.getElementById('board');
-                    if (readyBoard) readyBoard.addEventListener('click', handleBoardCellClick);
+                    if (readyBoard) {
+                        readyBoard.addEventListener('click', handleBoardCellClick);
+                        readyBoard.addEventListener('contextmenu', handleBoardCellContextMenu);
+                    }
                     generateBoard();
                     updatePlayModeButton();
                 });
