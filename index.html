@@ -267,6 +267,15 @@
             font-size: 0.85em;
         }
 
+        .direction-icon {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+            object-position: center;
+            pointer-events: none;
+            user-select: none;
+        }
+
         .direction-grid.compact .direction-item {
             padding: 6px 0;
         }
@@ -274,6 +283,11 @@
         .direction-grid.compact .direction-name {
             font-size: 0.8em;
             font-weight: 700;
+        }
+
+        .direction-grid.compact .direction-icon {
+            width: 24px;
+            height: 24px;
         }
 
         .probability-grid {
@@ -822,6 +836,20 @@
             opacity: 0.85;
             font-size: 0.8em;
             word-break: break-word;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .saved-level-direction-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            object-position: center;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.24);
+            padding: 1px;
         }
 
         .saved-level-item-icons {
@@ -1161,39 +1189,39 @@
                     <div class="direction-grid compact">
                         <div class="direction-item selected" onclick="selectDirection(0)" title="无规则">
                             <input type="radio" name="direction" value="0" checked>
-                            <div class="direction-name">0</div>
+                            <img class="direction-icon" src="img/ruleIcon_0.png" alt="0">
                         </div>
                         <div class="direction-item" onclick="selectDirection(1)" title="向上">
                             <input type="radio" name="direction" value="1">
-                            <div class="direction-name">1</div>
+                            <img class="direction-icon" src="img/ruleIcon_1.png" alt="1">
                         </div>
                         <div class="direction-item" onclick="selectDirection(2)" title="向下">
                             <input type="radio" name="direction" value="2">
-                            <div class="direction-name">2</div>
+                            <img class="direction-icon" src="img/ruleIcon_2.png" alt="2">
                         </div>
                         <div class="direction-item" onclick="selectDirection(3)" title="向左">
                             <input type="radio" name="direction" value="3">
-                            <div class="direction-name">3</div>
+                            <img class="direction-icon" src="img/ruleIcon_3.png" alt="3">
                         </div>
                         <div class="direction-item" onclick="selectDirection(4)" title="向右">
                             <input type="radio" name="direction" value="4">
-                            <div class="direction-name">4</div>
+                            <img class="direction-icon" src="img/ruleIcon_4.png" alt="4">
                         </div>
                         <div class="direction-item" onclick="selectDirection(5)" title="上下向内">
                             <input type="radio" name="direction" value="5">
-                            <div class="direction-name">5</div>
+                            <img class="direction-icon" src="img/ruleIcon_5.png" alt="5">
                         </div>
                         <div class="direction-item" onclick="selectDirection(6)" title="左右向内">
                             <input type="radio" name="direction" value="6">
-                            <div class="direction-name">6</div>
+                            <img class="direction-icon" src="img/ruleIcon_6.png" alt="6">
                         </div>
                         <div class="direction-item" onclick="selectDirection(7)" title="上下向外">
                             <input type="radio" name="direction" value="7">
-                            <div class="direction-name">7</div>
+                            <img class="direction-icon" src="img/ruleIcon_7.png" alt="7">
                         </div>
                         <div class="direction-item" onclick="selectDirection(8)" title="左右向外">
                             <input type="radio" name="direction" value="8">
-                            <div class="direction-name">8</div>
+                            <img class="direction-icon" src="img/ruleIcon_8.png" alt="8">
                         </div>
                     </div>
                 </div>
@@ -1885,6 +1913,13 @@
                 8: '左右向外'
             };
             return directionTitles[directionId] || '无规则';
+        }
+
+        function getDirectionIconPath(directionId) {
+            const safeId = Number.isFinite(Number(directionId))
+                ? Math.max(0, Math.min(8, Math.round(Number(directionId))))
+                : 0;
+            return `img/ruleIcon_${safeId}.png`;
         }
 
         function getCurrentConfigSnapshot() {
@@ -6229,7 +6264,15 @@ function runBatch(games, baseBoardData, direction) {
                 idLine.textContent = `#${item.id}`;
                 const metaLine = document.createElement('div');
                 metaLine.className = 'saved-level-item-meta';
-                metaLine.textContent = `${colCount}×${rowCount} | 方向 ${item.direction}`;
+                const metaText = document.createElement('span');
+                metaText.textContent = `${colCount}×${rowCount}`;
+                const directionIcon = document.createElement('img');
+                directionIcon.className = 'saved-level-direction-icon';
+                directionIcon.src = getDirectionIconPath(item.direction);
+                directionIcon.alt = String(item.direction);
+                directionIcon.title = getDirectionTitleById(item.direction);
+                metaLine.appendChild(metaText);
+                metaLine.appendChild(directionIcon);
                 leftInfo.appendChild(idLine);
                 leftInfo.appendChild(metaLine);
                 mainRow.appendChild(leftInfo);
