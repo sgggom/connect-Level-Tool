@@ -436,6 +436,13 @@
             margin-bottom: 8px;
         }
 
+        .board-status-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .board-top-actions {
             width: 100%;
             display: grid;
@@ -602,13 +609,25 @@
 
         .info {
             text-align: left;
-            margin-top: 2px;
+            margin-top: 0;
             font-size: 1.08em;
             font-weight: 700;
             letter-spacing: 0.2px;
             opacity: 0.98;
             color: #e7f0ff;
             transition: color 0.15s ease;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-play-retry {
+            display: none;
+            flex: 0 0 auto;
+            padding: 6px 10px;
+            font-size: 0.82em;
+            border-radius: 7px;
+            background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+            color: #fff;
         }
 
         .info.info-default {
@@ -1525,7 +1544,7 @@
                         <div class="editor-section">
                             <div class="result-title">关卡编辑</div>
                             <div class="editor-board-actions">
-                                <button class="btn-generate hotkey-button" data-shortcut="Q"
+                                <button class="btn-generate hotkey-button" data-shortcut="R"
                                     onclick="fillBoard()">生成</button>
                                 <button class="btn-primary hotkey-button" data-shortcut="N"
                                     onclick="refreshBoardWithPlaceholder()">刷新棋盘</button>
@@ -1594,7 +1613,15 @@
 
                     <div class="board-container">
                         <div class="board-top-tools">
-                            <div class="info" id="info"></div>
+                            <div class="board-status-row">
+                                <div class="info" id="info"></div>
+                                <button
+                                    type="button"
+                                    id="btnPlayRetry"
+                                    class="btn-play-retry"
+                                    onclick="restartPlayMode()"
+                                >重玩</button>
+                            </div>
                         </div>
                         <div class="board-wrapper" id="boardWrapper">
                             <div class="board" id="board"></div>
@@ -2583,6 +2610,54 @@
             playButton.textContent = (playModeState && playModeState.active) ? '退出试玩' : '试玩模式';
         }
 
+        function updatePlayRetryButton(visible = false) {
+            const retryButton = document.getElementById('btnPlayRetry');
+            if (!retryButton) return;
+            retryButton.style.display = visible ? 'inline-flex' : 'none';
+            retryButton.disabled = !visible;
+        }
+
+        function markPlayModeFailed() {
+            if (!playModeState || !playModeState.active) return;
+            clearPlaySelectionVisual();
+            clearPlayLinkPath();
+            playModeState.failed = true;
+            playModeState.isResolving = false;
+            setInfoText('试玩模式：失败（无可消除配对）');
+            updatePlayRetryButton(true);
+        }
+
+        function checkAndHandlePlayFailure(boardData) {
+            if (!playModeState || !playModeState.active) return false;
+            const sourceBoard = Array.isArray(boardData) ? boardData : playModeState.boardData;
+            if (!Array.isArray(sourceBoard)) return false;
+            if (isPlayBoardCleared(sourceBoard)) return false;
+            if (hasAnyRemovablePairForBoard(sourceBoard)) return false;
+            markPlayModeFailed();
+            return true;
+        }
+
+        function restartPlayMode() {
+            if (!playModeState || !playModeState.active) {
+                enterPlayMode();
+                return;
+            }
+            if (!Array.isArray(playModeState.originalBoard)) return;
+            const board = document.getElementById('board');
+            if (board) board.classList.remove('play-shifting');
+            clearPlaySelectionVisual();
+            clearPlayLinkPath();
+            playModeState.boardData = cloneBoardData(playModeState.originalBoard);
+            playModeState.tokenBoard = createTokenBoardFromBoard(playModeState.originalBoard);
+            playModeState.selected = null;
+            playModeState.isResolving = false;
+            playModeState.failed = false;
+            playModeState.clearedPairs = 0;
+            syncBoardDisplayWithoutTransition(playModeState.boardData);
+            updatePlayRetryButton(false);
+            setInfoText('试玩模式：已重玩，请继续选择可消除牌');
+        }
+
         function clearPlaySelectionVisual() {
             if (!playModeState || !playModeState.selected) return;
             const { row, col } = playModeState.selected;
@@ -3124,6 +3199,7 @@
 
         async function processPlayCellSelection(row, col) {
             if (!playModeState || !playModeState.active || playModeState.isResolving) return;
+            if (playModeState.failed) return;
             const boardData = playModeState.boardData;
             const currentValue = boardData?.[row]?.[col];
             if (!isCellClickableInPlay(currentValue)) return;
@@ -3229,9 +3305,15 @@
                 playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
 
                 if (isPlayBoardCleared(boardData)) {
+                    updatePlayRetryButton(false);
                     if (info) info.textContent = `试玩模式：已清空棋盘，共消除 ${playModeState.clearedPairs} 对`;
                 } else {
-                    if (info) info.textContent = `试玩模式：已消除 ${playModeState.clearedPairs} 对`;
+                    const failed = checkAndHandlePlayFailure(boardData);
+                    if (!failed && info) {
+                        const remainingPairs = countRemainingPairCountByBoard(boardData);
+                        info.textContent =
+                            `试玩模式：已消除 ${playModeState.clearedPairs} 对，剩余 ${remainingPairs} 对`;
+                    }
                 }
             } finally {
                 if (playModeState && playModeState.active) {
@@ -3252,6 +3334,7 @@
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-mode');
             clearPlayLinkPath();
+            updatePlayRetryButton(false);
 
             playModeState = null;
             updatePlayModeButton();
@@ -3278,6 +3361,7 @@
                 tokenBoard: createTokenBoardFromBoard(sourceBoard),
                 selected: null,
                 isResolving: false,
+                failed: false,
                 clearedPairs: 0,
                 direction: parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0)
             };
@@ -3285,9 +3369,11 @@
             const board = document.getElementById('board');
             if (board) board.classList.add('play-mode');
 
+            updatePlayRetryButton(false);
             updatePlayModeButton();
             const info = document.getElementById('info');
             if (info) info.textContent = '试玩模式：点击两张相同且可连通的牌进行消除';
+            checkAndHandlePlayFailure(playModeState.boardData);
         }
 
         function togglePlayMode() {
@@ -3599,6 +3685,63 @@
                 }
             });
             return pairs;
+        }
+
+        function hasAnyRemovablePairForBoard(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return false;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return false;
+            const searchContext = createLianliankanSearchContext(boardData);
+            if (!searchContext) return false;
+
+            const positionsByNumber = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const baseId = getMatchableBaseId(boardData[i]?.[j]);
+                    if (baseId === null) continue;
+                    if (!positionsByNumber.has(baseId)) positionsByNumber.set(baseId, []);
+                    positionsByNumber.get(baseId).push({ row: i, col: j });
+                }
+            }
+
+            for (const positions of positionsByNumber.values()) {
+                if (!positions || positions.length < 2) continue;
+                for (let left = 0; left < positions.length - 1; left++) {
+                    for (let right = left + 1; right < positions.length; right++) {
+                        const first = positions[left];
+                        const second = positions[right];
+                        if (canConnectByLianliankanWithContext(
+                            searchContext,
+                            first.row,
+                            first.col,
+                            second.row,
+                            second.col
+                        )) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function countRemainingPairCountByBoard(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+            const countMap = new Map();
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const cellId of row) {
+                    const baseId = getMatchableBaseId(cellId);
+                    if (baseId === null) continue;
+                    countMap.set(baseId, (countMap.get(baseId) || 0) + 1);
+                }
+            }
+            let totalPairs = 0;
+            countMap.forEach((count) => {
+                totalPairs += Math.floor((Number(count) || 0) / 2);
+            });
+            return totalPairs;
         }
 
         function pickRandomRemovablePairForBoard(boardData, preferAdjacent = false) {
@@ -6372,6 +6515,15 @@ function runBatch(games, baseBoardData, direction) {
             return maxId + 1;
         }
 
+        function renumberSavedLevelIdsByOrder() {
+            if (!Array.isArray(savedLevels)) return;
+            for (let index = 0; index < savedLevels.length; index++) {
+                const item = savedLevels[index];
+                if (!item || typeof item !== 'object') continue;
+                item.id = index + 1;
+            }
+        }
+
         function getSavedLevelSpecialIconPath(specialKey) {
             if (specialKey === `attachment-${ATTACHMENT_FANPAI_ID}`) {
                 return getAttachmentImagePath(ATTACHMENT_FANPAI_ID);
@@ -6852,13 +7004,17 @@ function runBatch(games, baseBoardData, direction) {
         function deleteSavedLevelByIndex(index) {
             if (index < 0 || index >= savedLevels.length) return;
             const removed = savedLevels.splice(index, 1);
+            const removedId = Number(removed?.[0]?.id);
             if (editingSavedLevelIndex === index) {
                 resetSavedLevelEditState();
             } else if (editingSavedLevelIndex > index) {
                 editingSavedLevelIndex -= 1;
             }
+            renumberSavedLevelIdsByOrder();
             renderSavedLevelList();
-            if (removed[0]) setInfoText(`已删除关卡 #${removed[0].id}`);
+            if (Number.isFinite(removedId)) {
+                setInfoText(`已删除关卡 #${removedId}，其后关卡序号已顺延`);
+            }
         }
 
         function moveSavedLevelToOrder(index, targetOrder) {
@@ -6878,6 +7034,7 @@ function runBatch(games, baseBoardData, direction) {
                 editingSavedLevelIndex += 1;
                 if (editingSavedLevelSnapshot) editingSavedLevelSnapshot.index = editingSavedLevelIndex;
             }
+            renumberSavedLevelIdsByOrder();
             renderSavedLevelList();
         }
 
@@ -8198,7 +8355,7 @@ function runBatch(games, baseBoardData, direction) {
                 return;
             }
 
-            if (key === 'q') {
+            if (key === 'r') {
                 event.preventDefault();
                 fillBoard();
                 return;
