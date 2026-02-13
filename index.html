@@ -418,10 +418,30 @@
             padding: 8px;
             border-radius: 10px;
             backdrop-filter: blur(10px);
+            position: relative;
         }
 
         .board.play-mode {
             backdrop-filter: none;
+        }
+
+        .play-link-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 30;
+            overflow: visible;
+        }
+
+        .play-link-path {
+            fill: none;
+            stroke: #ffd54f;
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 4px rgba(255, 213, 79, 0.7));
         }
 
         .cell {
@@ -459,7 +479,7 @@
 
         .board.play-mode .cell.play-clearing {
             transform: translateY(-30px) scale(0);
-            transition: transform 0.1s ease;
+            transition: transform 0.15s ease;
         }
 
         .board.play-mode.play-shifting {
@@ -1666,6 +1686,199 @@
             return true;
         }
 
+        function compressPathPoints(pathPoints) {
+            if (!Array.isArray(pathPoints) || pathPoints.length <= 2) return pathPoints || [];
+            const compressed = [pathPoints[0]];
+            for (let index = 1; index < pathPoints.length - 1; index++) {
+                const prev = compressed[compressed.length - 1];
+                const current = pathPoints[index];
+                const next = pathPoints[index + 1];
+                const sameRow = prev.row === current.row && current.row === next.row;
+                const sameCol = prev.col === current.col && current.col === next.col;
+                if (!sameRow && !sameCol) compressed.push(current);
+            }
+            compressed.push(pathPoints[pathPoints.length - 1]);
+            return compressed;
+        }
+
+        function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return null;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return null;
+            if (startRow === targetRow && startCol === targetCol) return null;
+
+            const extHeight = height + 2;
+            const extWidth = width + 2;
+            const grid = Array.from({ length: extHeight }, () => Array(extWidth).fill(0));
+
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const value = boardData[row]?.[col];
+                    if (Number.isInteger(value) && value > 0) grid[row + 1][col + 1] = value;
+                }
+            }
+
+            const startExtRow = startRow + 1;
+            const startExtCol = startCol + 1;
+            const targetExtRow = targetRow + 1;
+            const targetExtCol = targetCol + 1;
+            if (grid[startExtRow][startExtCol] === 0 || grid[targetExtRow][targetExtCol] === 0) {
+                return null;
+            }
+
+            const directions = [
+                [-1, 0],
+                [1, 0],
+                [0, -1],
+                [0, 1]
+            ];
+            const visited = Array.from(
+                { length: extHeight },
+                () => Array.from({ length: extWidth }, () => Array(4).fill(Infinity))
+            );
+
+            grid[startExtRow][startExtCol] = 0;
+            const queue = [];
+            let queueIndex = 0;
+            const startPoint = { row: startExtRow, col: startExtCol };
+
+            for (let dir = 0; dir < 4; dir++) {
+                const [dr, dc] = directions[dir];
+                let nextRow = startExtRow + dr;
+                let nextCol = startExtCol + dc;
+                while (
+                    nextRow >= 0 &&
+                    nextRow < extHeight &&
+                    nextCol >= 0 &&
+                    nextCol < extWidth
+                ) {
+                    if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                        return compressPathPoints([
+                            startPoint,
+                            { row: nextRow, col: nextCol }
+                        ]);
+                    }
+                    if (grid[nextRow][nextCol] !== 0) break;
+                    if (visited[nextRow][nextCol][dir] > 0) {
+                        visited[nextRow][nextCol][dir] = 0;
+                        queue.push({
+                            row: nextRow,
+                            col: nextCol,
+                            dir,
+                            turns: 0,
+                            path: [startPoint, { row: nextRow, col: nextCol }]
+                        });
+                    }
+                    nextRow += dr;
+                    nextCol += dc;
+                }
+            }
+
+            while (queueIndex < queue.length) {
+                const current = queue[queueIndex];
+                queueIndex++;
+
+                for (let nextDir = 0; nextDir < 4; nextDir++) {
+                    const nextTurns = current.turns + (nextDir === current.dir ? 0 : 1);
+                    if (nextTurns > 2) continue;
+
+                    const [dr, dc] = directions[nextDir];
+                    let nextRow = current.row + dr;
+                    let nextCol = current.col + dc;
+
+                    while (
+                        nextRow >= 0 &&
+                        nextRow < extHeight &&
+                        nextCol >= 0 &&
+                        nextCol < extWidth
+                    ) {
+                        if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                            const targetPath = [...current.path, { row: nextRow, col: nextCol }];
+                            return compressPathPoints(targetPath);
+                        }
+                        if (grid[nextRow][nextCol] !== 0) break;
+                        if (visited[nextRow][nextCol][nextDir] > nextTurns) {
+                            visited[nextRow][nextCol][nextDir] = nextTurns;
+                            queue.push({
+                                row: nextRow,
+                                col: nextCol,
+                                dir: nextDir,
+                                turns: nextTurns,
+                                path: [...current.path, { row: nextRow, col: nextCol }]
+                            });
+                        }
+                        nextRow += dr;
+                        nextCol += dc;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function getOrCreatePlayLinkOverlay(boardElement) {
+            if (!boardElement) return null;
+            let overlay = boardElement.querySelector('.play-link-overlay');
+            if (overlay) return overlay;
+            overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            overlay.setAttribute('class', 'play-link-overlay');
+            overlay.setAttribute('aria-hidden', 'true');
+            boardElement.appendChild(overlay);
+            return overlay;
+        }
+
+        function convertExtPathToBoardPixels(extPath, width, height) {
+            if (!Array.isArray(extPath) || extPath.length === 0) return [];
+            const board = document.getElementById('board');
+            const firstCell = document.getElementById('cell-0-0');
+            if (!board || !firstCell) return [];
+
+            const boardRect = board.getBoundingClientRect();
+            const firstRect = firstCell.getBoundingClientRect();
+            const originX = firstRect.left - boardRect.left + (firstRect.width / 2);
+            const originY = firstRect.top - boardRect.top + (firstRect.height / 2);
+            const { stepX, stepY } = getCellStepDistance();
+            const safeWidth = Math.max(1, width);
+            const safeHeight = Math.max(1, height);
+            const LINK_VERTICAL_OFFSET = -5;
+
+            return extPath.map((point) => {
+                const gridCol = Math.max(-1, Math.min(safeWidth, point.col - 1));
+                const gridRow = Math.max(-1, Math.min(safeHeight, point.row - 1));
+                return {
+                    x: originX + (gridCol * stepX),
+                    y: originY + (gridRow * stepY) + LINK_VERTICAL_OFFSET
+                };
+            });
+        }
+
+        function renderPlayLinkPath(extPath, width, height) {
+            const board = document.getElementById('board');
+            if (!board || !Array.isArray(extPath) || extPath.length < 2) return;
+
+            const overlay = getOrCreatePlayLinkOverlay(board);
+            if (!overlay) return;
+            overlay.innerHTML = '';
+            const boardRect = board.getBoundingClientRect();
+            overlay.setAttribute('viewBox', `0 0 ${boardRect.width} ${boardRect.height}`);
+
+            const pixelPoints = convertExtPathToBoardPixels(extPath, width, height);
+            if (pixelPoints.length < 2) return;
+
+            const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            polyline.setAttribute('class', 'play-link-path');
+            polyline.setAttribute('points', pixelPoints.map((pt) => `${pt.x},${pt.y}`).join(' '));
+            overlay.appendChild(polyline);
+        }
+
+        function clearPlayLinkPath() {
+            const board = document.getElementById('board');
+            if (!board) return;
+            const overlay = board.querySelector('.play-link-overlay');
+            if (overlay) overlay.innerHTML = '';
+        }
+
         function canConnectByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
             if (!Array.isArray(boardData) || boardData.length === 0) return false;
             const height = boardData.length;
@@ -1816,6 +2029,16 @@
                 return;
             }
 
+            const width = boardData[0]?.length || 0;
+            const height = boardData.length;
+            const linkPath = findConnectionPathByLianliankan(
+                boardData,
+                selected.row,
+                selected.col,
+                row,
+                col
+            );
+
             playModeState.isResolving = true;
             const firstCell = document.getElementById(`cell-${selected.row}-${selected.col}`);
             const secondCell = document.getElementById(`cell-${row}-${col}`);
@@ -1823,13 +2046,17 @@
             if (secondCell) secondCell.classList.add('play-selected');
 
             try {
-                await waitForMs(100);
+                if (linkPath && linkPath.length >= 2) {
+                    renderPlayLinkPath(linkPath, width, height);
+                }
+                await waitForMs(150);
                 if (!playModeState || !playModeState.active) return;
 
+                clearPlayLinkPath();
                 if (firstCell) firstCell.classList.add('play-clearing');
                 if (secondCell) secondCell.classList.add('play-clearing');
 
-                await waitForMs(100);
+                await waitForMs(150);
                 if (!playModeState || !playModeState.active) return;
 
                 boardData[selected.row][selected.col] = null;
@@ -1876,6 +2103,7 @@
 
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-mode');
+            clearPlayLinkPath();
 
             playModeState = null;
             updatePlayModeButton();
