@@ -1845,6 +1845,7 @@
         function getRegenerateTargetMeta(cellId) {
             const parsed = decodeCellId(cellId);
             if (!isRemovableBaseId(parsed.baseId)) return null;
+            if (parsed.baseId === BOMB_CELL_ID) return null;
             return {
                 baseId: parsed.baseId,
                 attachmentId: parsed.hasAttachment ? parsed.attachmentId : null
@@ -3312,7 +3313,7 @@
                     if (!failed && info) {
                         const remainingPairs = countRemainingPairCountByBoard(boardData);
                         info.textContent =
-                            `试玩模式：已消除 ${playModeState.clearedPairs} 对，剩余 ${remainingPairs} 对`;
+                            `试玩模式：已消除 ${playModeState.clearedPairs} 对，当前可配对 ${remainingPairs} 对`;
                     }
                 }
             } finally {
@@ -3728,20 +3729,7 @@
 
         function countRemainingPairCountByBoard(boardData) {
             if (!Array.isArray(boardData) || boardData.length === 0) return 0;
-            const countMap = new Map();
-            for (const row of boardData) {
-                if (!Array.isArray(row)) continue;
-                for (const cellId of row) {
-                    const baseId = getMatchableBaseId(cellId);
-                    if (baseId === null) continue;
-                    countMap.set(baseId, (countMap.get(baseId) || 0) + 1);
-                }
-            }
-            let totalPairs = 0;
-            countMap.forEach((count) => {
-                totalPairs += Math.floor((Number(count) || 0) / 2);
-            });
-            return totalPairs;
+            return getRemovablePairsForBoard(boardData).length;
         }
 
         function pickRandomRemovablePairForBoard(boardData, preferAdjacent = false) {
@@ -7893,6 +7881,30 @@ function runBatch(games, baseBoardData, direction) {
             return targetCount;
         }
 
+        function countInitialAdjacentMatchPairs(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width <= 0) return 0;
+            let pairCount = 0;
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const currentBaseId = getCardCountBaseId(boardData[row]?.[col]);
+                    if (currentBaseId === null) continue;
+                    if (currentBaseId === PLACEHOLDER_CELL_ID) continue;
+                    if (col + 1 < width) {
+                        const rightBaseId = getCardCountBaseId(boardData[row]?.[col + 1]);
+                        if (rightBaseId === currentBaseId) pairCount++;
+                    }
+                    if (row + 1 < height) {
+                        const downBaseId = getCardCountBaseId(boardData[row + 1]?.[col]);
+                        if (downBaseId === currentBaseId) pairCount++;
+                    }
+                }
+            }
+            return pairCount;
+        }
+
         function buildCount8And6Candidates(fillableCellCount, count8Range, count6Range) {
             const min8 = Number.isFinite(Number(count8Range?.[0])) ? Number(count8Range[0]) : 0;
             const max8 = Number.isFinite(Number(count8Range?.[1])) ? Number(count8Range[1]) : min8;
@@ -7940,6 +7952,7 @@ function runBatch(games, baseBoardData, direction) {
             const variable4Raw = getCampaignConfigValue(rawItem, ['Variable_4', 'variable4']);
             const variable5Raw = getCampaignConfigValue(rawItem, ['Variable_5', 'variable5']);
             const shenglvRaw = getCampaignConfigValue(rawItem, ['shenglv', 'winrate']);
+            const matchNumRaw = getCampaignConfigValue(rawItem, ['match_num', 'matchnum', 'matchNum']);
 
             const count8Range = normalizeIntegerRange(count8Raw, [0, 0], 0, 200);
             const count6Range = normalizeIntegerRange(count6Raw, [0, 0], 0, 200);
@@ -7949,6 +7962,15 @@ function runBatch(games, baseBoardData, direction) {
             const directionBothRange = normalizeFloatRange(variable4Raw, [0.5, 0.5], 0, 1);
             const distanceRange = normalizeFloatRange(variable5Raw, [0.1, 0.1], 0, 1);
             const winRateRange = normalizeFloatRange(shenglvRaw, [0, 100], 0, 100);
+            const maxAdjacentPairCount =
+                (boardTemplate.length * Math.max(0, (boardTemplate[0]?.length || 0) - 1)) +
+                ((boardTemplate.length - 1) * (boardTemplate[0]?.length || 0));
+            const matchNumRange = normalizeIntegerRange(
+                matchNumRaw,
+                [0, maxAdjacentPairCount],
+                0,
+                maxAdjacentPairCount
+            );
 
             return {
                 valid: true,
@@ -7962,7 +7984,8 @@ function runBatch(games, baseBoardData, direction) {
                 xianglinSameRange,
                 directionBothRange,
                 distanceRange,
-                winRateRange
+                winRateRange,
+                matchNumRange
             };
         }
 
@@ -8062,6 +8085,14 @@ function runBatch(games, baseBoardData, direction) {
 
                         const legality = validateBoardPairLegality(generateResult.boardData);
                         if (!legality.valid) continue;
+                        const adjacentMatchCount =
+                            countInitialAdjacentMatchPairs(generateResult.boardData);
+                        if (
+                            adjacentMatchCount < parsedLevel.matchNumRange[0] ||
+                            adjacentMatchCount > parsedLevel.matchNumRange[1]
+                        ) {
+                            continue;
+                        }
 
                         if (runButton) {
                             runButton.textContent =
