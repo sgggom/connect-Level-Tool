@@ -607,13 +607,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .editor-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
         .editor-board-actions {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -691,7 +684,7 @@
         }
 
         .card-image-attachment-iceshell {
-            transform: translateY(2px) scale(1.05);
+            transform: translateY(2px) scale(1.2);
         }
 
         .cell.obstacle-cell .card-image-stack {
@@ -755,6 +748,216 @@
         .board-layout .stats-section {
             margin-top: 0;
             width: auto;
+        }
+
+        .saved-levels-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 100%;
+        }
+
+        .saved-level-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .saved-level-actions button {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .saved-level-list {
+            flex: 1;
+            min-height: 280px;
+            max-height: calc(100vh - 280px);
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
+        }
+
+        .saved-level-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            line-height: 1.3;
+            min-height: 31px;
+        }
+
+        .saved-level-item:hover {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .saved-level-item-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .saved-level-item-left {
+            min-width: 0;
+        }
+
+        .saved-level-item-id {
+            font-weight: 700;
+            color: #ffd166;
+            font-size: 0.88em;
+        }
+
+        .saved-level-item-meta {
+            margin-top: 2px;
+            opacity: 0.85;
+            font-size: 0.8em;
+            word-break: break-word;
+        }
+
+        .saved-level-item-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+            align-content: center;
+            max-width: 140px;
+            min-height: 0;
+        }
+
+        .saved-level-item-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.12);
+            padding: 2px;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .saved-level-item-icons-empty {
+            text-align: right;
+            opacity: 0.7;
+            font-size: 0.78em;
+            white-space: nowrap;
+        }
+
+        .saved-level-empty {
+            opacity: 0.75;
+            font-size: 0.85em;
+            line-height: 1.4;
+            padding: 10px 8px;
+        }
+
+        .saved-level-context-menu {
+            position: fixed;
+            z-index: 10020;
+            display: none;
+            min-width: 120px;
+            background: rgba(17, 24, 39, 0.96);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        }
+
+        .saved-level-context-menu.visible {
+            display: block;
+        }
+
+        .saved-level-context-menu button {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            color: #fff;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .saved-level-context-menu button:hover {
+            background: rgba(255,255,255,0.16);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .saved-level-preview {
+            position: fixed;
+            z-index: 10010;
+            display: none;
+            min-width: 180px;
+            max-width: 320px;
+            background: rgba(17, 24, 39, 0.97);
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.38);
+            pointer-events: none;
+        }
+
+        .saved-level-preview.visible {
+            display: block;
+        }
+
+        .saved-level-preview-header {
+            font-size: 0.78em;
+            opacity: 0.9;
+            margin-bottom: 6px;
+            color: #d9e6ff;
+        }
+
+        .saved-level-preview-board {
+            display: grid;
+            gap: 1px;
+            background: rgba(255,255,255,0.08);
+            padding: 2px;
+            border-radius: 6px;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .saved-level-preview-cell {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.18);
+            overflow: hidden;
+        }
+
+        .saved-level-preview-cell.is-empty {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .saved-level-preview-cell img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .saved-level-preview-attachment {
+            width: 60% !important;
+            height: 60% !important;
+            right: 0;
+            left: auto !important;
+            top: 0;
+            bottom: auto !important;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.25);
         }
 
         .stats-line {
@@ -851,6 +1054,10 @@
 
             .board-container {
                 height: 72vh;
+            }
+
+            .saved-level-list {
+                max-height: 320px;
             }
         }
 
@@ -1108,8 +1315,17 @@
                             <label>生成数量：</label>
                             <input type="number" id="batchCount" min="1" max="100" value="10">
                         </div>
-                        <button class="btn-export" onclick="batchGenerate()">导出批量</button>
+                        <button class="btn-export" id="btnBatchGenerate" onclick="batchGenerate()">导出批量</button>
+                        <button class="btn-primary" id="btnBatchRunCampaign"
+                            onclick="triggerBatchRunCampaignImport()">跑关导出</button>
                     </div>
+                    <input
+                        type="file"
+                        id="batchRunCampaignFileInput"
+                        accept=".json,application/json"
+                        onchange="handleBatchRunCampaignFileChange(event)"
+                        style="display: none;"
+                    >
                 </div>
 
                 <div class="error-msg" id="errorMsg" style="display: none;"></div>
@@ -1121,37 +1337,37 @@
                         <div class="editor-section">
                             <div class="result-title">关卡编辑</div>
                             <div class="editor-board-actions">
-                                <button class="btn-generate" onclick="fillBoard()">填入数字</button>
-                                <button class="btn-primary" onclick="generateBoard()">刷新棋盘</button>
+                                <button class="btn-generate" onclick="fillBoard()">生成</button>
+                                <button class="btn-primary" onclick="refreshBoardWithPlaceholder()">刷新棋盘</button>
                                 <button class="btn-secondary" onclick="clearBoard()">清空</button>
+                                <button class="btn-primary" onclick="importBoardFromClipboard()">读取阵型</button>
+                                <button class="btn-secondary" onclick="saveCurrentLevelToList()">保存本关</button>
                                 <button class="btn-export" id="btnExportSingle"
                                     onclick="exportToClipboard()">导出当前</button>
-                            </div>
-                            <div class="editor-actions">
-                                <button class="btn-primary" onclick="fillEmptyWithPlaceholder()">
-                                    空位填占位块
-                                </button>
-                                <button class="btn-secondary" onclick="clearAllBoardElements()">
-                                    清空全部元素
-                                </button>
                             </div>
                             <div class="editor-tools" id="editorTools"></div>
                             <div class="editor-tip" id="editorTip">
                                 左键放置已选元素；右键删除该格全部元素。
                             </div>
                         </div>
-                    </div>
 
-                    <div class="board-container">
-                        <div class="board-top-tools">
-                            <div class="info" id="info"></div>
+                        <div class="stats-section">
+                            <div class="result-title">每关统计</div>
+                            <div class="stats-actions">
+                                <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
+                                <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
+                                    style="margin-top: 8px;">试玩模式</button>
+                                <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
+                                    style="margin-top: 8px;">模拟100局</button>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stats-item">
+                                    <div class="stats-item-title">模拟100局胜率</div>
+                                    <div class="stats-line" id="levelStatsSimulation">-</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="board-wrapper" id="boardWrapper">
-                            <div class="board" id="board"></div>
-                        </div>
-                    </div>
 
-                    <div class="board-side-panel">
                         <div class="result-section">
                             <div class="result-title">配置结果</div>
                             <div class="result-grid">
@@ -1181,38 +1397,32 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="stats-section">
-                            <div class="result-title">每关统计</div>
-                            <div class="stats-actions">
-                                <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
-                                <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
-                                    style="margin-top: 8px;">试玩模式</button>
-                                <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
-                                    style="margin-top: 8px;">模拟100局</button>
+                    <div class="board-container">
+                        <div class="board-top-tools">
+                            <div class="info" id="info"></div>
+                        </div>
+                        <div class="board-wrapper" id="boardWrapper">
+                            <div class="board" id="board"></div>
+                        </div>
+                    </div>
+
+                    <div class="board-side-panel">
+                        <div class="saved-levels-section">
+                            <div class="result-title">关卡列表</div>
+                            <div class="saved-level-actions">
+                                <button class="btn-primary" onclick="triggerImportSavedLevels()">读取</button>
+                                <button class="btn-export" onclick="exportSavedLevels()">导出</button>
                             </div>
-                            <div class="stats-grid">
-                                <div class="stats-item">
-                                    <div class="stats-item-title">数字池分布</div>
-                                    <div class="stats-line" id="levelStatsTypes">-</div>
-                                </div>
-                                <div class="stats-item">
-                                    <div class="stats-item-title">相邻数字对数</div>
-                                    <div class="stats-line" id="levelStatsPairs">-</div>
-                                </div>
-                                <div class="stats-item">
-                                    <div class="stats-item-title">相邻基准线相同数字数量</div>
-                                    <div class="stats-line" id="levelStatsAdjacent">-</div>
-                                </div>
-                                <div class="stats-item">
-                                    <div class="stats-item-title">方向上下重叠统计（数字:数量）</div>
-                                    <div class="stats-line" id="levelStatsDirectionBoth">-</div>
-                                </div>
-                                <div class="stats-item">
-                                    <div class="stats-item-title">模拟100局胜率</div>
-                                    <div class="stats-line" id="levelStatsSimulation">-</div>
-                                </div>
-                            </div>
+                            <div class="saved-level-list" id="savedLevelList"></div>
+                            <input
+                                type="file"
+                                id="savedLevelFileInput"
+                                accept=".txt,.json,text/plain,application/json"
+                                onchange="handleSavedLevelFileChange(event)"
+                                style="display: none;"
+                            >
                         </div>
                     </div>
                 </div>
@@ -1220,6 +1430,12 @@
         </div>
     </div>
     <div class="global-interaction-blocker" id="globalInteractionBlocker" aria-hidden="true"></div>
+    <div class="saved-level-context-menu" id="savedLevelContextMenu">
+        <button type="button" onclick="handleSavedLevelContextAction('read')">读取</button>
+        <button type="button" onclick="handleSavedLevelContextAction('reorder')">输入序号</button>
+        <button type="button" onclick="handleSavedLevelContextAction('delete')">删除</button>
+    </div>
+    <div class="saved-level-preview" id="savedLevelPreview"></div>
 
     <script>
         let currentPool = [];
@@ -1230,6 +1446,11 @@
         let stepGenerationState = null;
         let playModeState = null;
         let isSimulatingPlayGames = false;
+        let isBatchGenerating = false;
+        let isBatchCampaignRunning = false;
+        let savedLevels = [];
+        let savedLevelContextIndex = -1;
+        let simulationWorkerScriptUrl = null;
         let selectedEditorTool = 'placeholder';
         let savedConfigGroups = [];
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
@@ -1263,6 +1484,12 @@
             ICE_LEVEL_3_CELL_ID
         ]);
         const ATTACHMENT_IDS = new Set([ATTACHMENT_FANPAI_ID, ATTACHMENT_ICESHELL_ID]);
+        const LLK_DIRECTION_STEPS = [
+            [-1, 0],
+            [1, 0],
+            [0, -1],
+            [0, 1]
+        ];
         const EDITOR_TOOLS = [
             { key: 'placeholder', title: '占位块', idLabel: '499', preview: 'img/base.png' },
             { key: 'attach-fanpai', title: '翻牌', idLabel: '1000', preview: 'img/fanpai.png' },
@@ -1370,6 +1597,15 @@
         function getFillablePlaceholderMeta(cellId) {
             const parsed = decodeCellId(cellId);
             if (parsed.baseId !== PLACEHOLDER_CELL_ID) return null;
+            return {
+                baseId: parsed.baseId,
+                attachmentId: parsed.hasAttachment ? parsed.attachmentId : null
+            };
+        }
+
+        function getRegenerateTargetMeta(cellId) {
+            const parsed = decodeCellId(cellId);
+            if (!isRemovableBaseId(parsed.baseId)) return null;
             return {
                 baseId: parsed.baseId,
                 attachmentId: parsed.hasAttachment ? parsed.attachmentId : null
@@ -1561,8 +1797,9 @@
             resetLevelStats();
         }
 
-        function clearAllBoardElements() {
-            clearBoard();
+        function refreshBoardWithPlaceholder() {
+            generateBoard();
+            fillEmptyWithPlaceholder();
         }
 
         function setCellIdAtPosition(row, col, cellId) {
@@ -2267,9 +2504,7 @@
         function triggerBombEffect(boardData, tokenBoard) {
             const EXTRA_PAIR_COUNT = 3;
             for (let index = 0; index < EXTRA_PAIR_COUNT; index++) {
-                const allPairs = getRemovablePairsForBoard(boardData);
-                if (!allPairs || allPairs.length === 0) break;
-                const selectedPair = pickRandomPair(allPairs);
+                const selectedPair = pickRandomRemovablePairForBoard(boardData, false);
                 if (!selectedPair) break;
                 const removedPositions = removePairFromBoard(boardData, tokenBoard, selectedPair);
                 triggerAdjacentMechanisms(boardData, tokenBoard, removedPositions);
@@ -2770,11 +3005,172 @@
             clearCellByRightClick(position.row, position.col);
         }
 
+        function createLianliankanSearchContext(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return null;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return null;
+
+            const extHeight = height + 2;
+            const extWidth = width + 2;
+            const cellCount = extHeight * extWidth;
+            const stateCount = cellCount * 4;
+            const blocked = new Uint8Array(cellCount);
+
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const value = boardData[row][col];
+                    if (Number.isInteger(value) && value > 0) {
+                        blocked[(row + 1) * extWidth + (col + 1)] = 1;
+                    }
+                }
+            }
+
+            return {
+                width,
+                height,
+                extWidth,
+                extHeight,
+                blocked,
+                visitStamp: new Uint16Array(stateCount),
+                visitTurns: new Uint8Array(stateCount),
+                stamp: 1,
+                queueRow: new Int16Array(stateCount * 4),
+                queueCol: new Int16Array(stateCount * 4),
+                queueDir: new Uint8Array(stateCount * 4),
+                queueTurns: new Uint8Array(stateCount * 4)
+            };
+        }
+
+        function beginLianliankanSearch(searchContext) {
+            if (!searchContext) return;
+            searchContext.stamp++;
+            if (searchContext.stamp >= 65535) {
+                searchContext.visitStamp.fill(0);
+                searchContext.stamp = 1;
+            }
+        }
+
+        function markLianliankanVisited(searchContext, row, col, dir, turns) {
+            const stateIndex = (((row * searchContext.extWidth) + col) << 2) + dir;
+            const visitedStamp = searchContext.visitStamp[stateIndex];
+            if (visitedStamp === searchContext.stamp &&
+                searchContext.visitTurns[stateIndex] <= turns) {
+                return false;
+            }
+            searchContext.visitStamp[stateIndex] = searchContext.stamp;
+            searchContext.visitTurns[stateIndex] = turns;
+            return true;
+        }
+
+        function canConnectByLianliankanWithContext(
+            searchContext,
+            startRow,
+            startCol,
+            targetRow,
+            targetCol
+        ) {
+            if (!searchContext) return false;
+            if (startRow === targetRow && startCol === targetCol) return false;
+
+            const extWidth = searchContext.extWidth;
+            const extHeight = searchContext.extHeight;
+            const startExtRow = startRow + 1;
+            const startExtCol = startCol + 1;
+            const targetExtRow = targetRow + 1;
+            const targetExtCol = targetCol + 1;
+            const startCellIndex = (startExtRow * extWidth) + startExtCol;
+            const targetCellIndex = (targetExtRow * extWidth) + targetExtCol;
+
+            if (searchContext.blocked[startCellIndex] === 0 ||
+                searchContext.blocked[targetCellIndex] === 0) {
+                return false;
+            }
+
+            beginLianliankanSearch(searchContext);
+            searchContext.blocked[startCellIndex] = 0;
+
+            let queueHead = 0;
+            let queueTail = 0;
+
+            for (let dir = 0; dir < 4; dir++) {
+                const [dr, dc] = LLK_DIRECTION_STEPS[dir];
+                let nextRow = startExtRow + dr;
+                let nextCol = startExtCol + dc;
+                while (
+                    nextRow >= 0 &&
+                    nextRow < extHeight &&
+                    nextCol >= 0 &&
+                    nextCol < extWidth
+                ) {
+                    if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                        searchContext.blocked[startCellIndex] = 1;
+                        return true;
+                    }
+                    const nextIndex = (nextRow * extWidth) + nextCol;
+                    if (searchContext.blocked[nextIndex] !== 0) break;
+                    if (markLianliankanVisited(searchContext, nextRow, nextCol, dir, 0)) {
+                        searchContext.queueRow[queueTail] = nextRow;
+                        searchContext.queueCol[queueTail] = nextCol;
+                        searchContext.queueDir[queueTail] = dir;
+                        searchContext.queueTurns[queueTail] = 0;
+                        queueTail++;
+                    }
+                    nextRow += dr;
+                    nextCol += dc;
+                }
+            }
+
+            while (queueHead < queueTail) {
+                const currentRow = searchContext.queueRow[queueHead];
+                const currentCol = searchContext.queueCol[queueHead];
+                const currentDir = searchContext.queueDir[queueHead];
+                const currentTurns = searchContext.queueTurns[queueHead];
+                queueHead++;
+
+                for (let nextDir = 0; nextDir < 4; nextDir++) {
+                    const nextTurns = currentTurns + (nextDir === currentDir ? 0 : 1);
+                    if (nextTurns > 2) continue;
+
+                    const [dr, dc] = LLK_DIRECTION_STEPS[nextDir];
+                    let nextRow = currentRow + dr;
+                    let nextCol = currentCol + dc;
+
+                    while (
+                        nextRow >= 0 &&
+                        nextRow < extHeight &&
+                        nextCol >= 0 &&
+                        nextCol < extWidth
+                    ) {
+                        if (nextRow === targetExtRow && nextCol === targetExtCol) {
+                            searchContext.blocked[startCellIndex] = 1;
+                            return true;
+                        }
+                        const nextIndex = (nextRow * extWidth) + nextCol;
+                        if (searchContext.blocked[nextIndex] !== 0) break;
+                        if (markLianliankanVisited(searchContext, nextRow, nextCol, nextDir, nextTurns)) {
+                            searchContext.queueRow[queueTail] = nextRow;
+                            searchContext.queueCol[queueTail] = nextCol;
+                            searchContext.queueDir[queueTail] = nextDir;
+                            searchContext.queueTurns[queueTail] = nextTurns;
+                            queueTail++;
+                        }
+                        nextRow += dr;
+                        nextCol += dc;
+                    }
+                }
+            }
+
+            searchContext.blocked[startCellIndex] = 1;
+            return false;
+        }
+
         function getRemovablePairsForBoard(boardData) {
             if (!Array.isArray(boardData) || boardData.length === 0) return [];
             const height = boardData.length;
             const width = boardData[0]?.length || 0;
             if (width === 0) return [];
+            const searchContext = createLianliankanSearchContext(boardData);
 
             const positionsByNumber = new Map();
             for (let i = 0; i < height; i++) {
@@ -2793,8 +3189,8 @@
                     for (let right = left + 1; right < positions.length; right++) {
                         const first = positions[left];
                         const second = positions[right];
-                        if (!canConnectByLianliankan(
-                            boardData,
+                        if (!canConnectByLianliankanWithContext(
+                            searchContext,
                             first.row,
                             first.col,
                             second.row,
@@ -2815,6 +3211,73 @@
                 }
             });
             return pairs;
+        }
+
+        function pickRandomRemovablePairForBoard(boardData, preferAdjacent = false) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return null;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            if (width === 0) return null;
+            const searchContext = createLianliankanSearchContext(boardData);
+            if (!searchContext) return null;
+
+            const positionsByNumber = new Map();
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const baseId = getMatchableBaseId(boardData[i]?.[j]);
+                    if (baseId === null) continue;
+                    if (!positionsByNumber.has(baseId)) positionsByNumber.set(baseId, []);
+                    positionsByNumber.get(baseId).push({ row: i, col: j });
+                }
+            }
+
+            let allCount = 0;
+            let adjacentCount = 0;
+            let sampledAllPair = null;
+            let sampledAdjacentPair = null;
+
+            positionsByNumber.forEach((positions) => {
+                if (!positions || positions.length < 2) return;
+                for (let left = 0; left < positions.length - 1; left++) {
+                    for (let right = left + 1; right < positions.length; right++) {
+                        const first = positions[left];
+                        const second = positions[right];
+                        if (!canConnectByLianliankanWithContext(
+                            searchContext,
+                            first.row,
+                            first.col,
+                            second.row,
+                            second.col
+                        )) {
+                            continue;
+                        }
+
+                        const pair = {
+                            row1: first.row,
+                            col1: first.col,
+                            row2: second.row,
+                            col2: second.col
+                        };
+
+                        allCount++;
+                        if (Math.floor(Math.random() * allCount) === 0) {
+                            sampledAllPair = pair;
+                        }
+
+                        const isAdjacent = Math.abs(first.row - second.row) +
+                            Math.abs(first.col - second.col) === 1;
+                        if (!isAdjacent) continue;
+
+                        adjacentCount++;
+                        if (Math.floor(Math.random() * adjacentCount) === 0) {
+                            sampledAdjacentPair = pair;
+                        }
+                    }
+                }
+            });
+
+            if (preferAdjacent && adjacentCount > 0) return sampledAdjacentPair;
+            return sampledAllPair;
         }
 
         function pickRandomPair(pairs) {
@@ -2857,18 +3320,18 @@
                         }
                         const neighborParsed = decodeCellId(boardData[nextRow]?.[nextCol]);
                         if (isEmptyCellId(neighborParsed.baseId)) continue;
-                        lockSet.add(`${nextRow}-${nextCol}`);
+                        lockSet.add((nextRow * width) + nextCol);
                     }
                 }
             }
             return lockSet;
         }
 
-        function canCellMoveByRules(boardData, row, col, magnetLockSet) {
+        function canCellMoveByRules(boardData, row, col, magnetLockSet, width) {
             const parsed = decodeCellId(boardData[row]?.[col]);
             if (isEmptyCellId(parsed.baseId)) return true;
             if (isImmobileObstacleBaseId(parsed.baseId)) return false;
-            if (magnetLockSet.has(`${row}-${col}`)) return false;
+            if (magnetLockSet.has((row * width) + col)) return false;
             return true;
         }
 
@@ -2883,6 +3346,7 @@
             magnetLockSet
         ) {
             if (!segmentIndices || segmentIndices.length === 0) return false;
+            const boardWidth = boardData[0]?.length || 0;
             const originalValues = segmentIndices.map((index) => getValue(index));
             const originalTokens = tokenBoard
                 ? segmentIndices.map((index) => {
@@ -2896,7 +3360,7 @@
                 const value = originalValues[index];
                 if (isEmptyCellId(value)) continue;
                 const { row, col } = getCoord(segmentIndices[index]);
-                if (!canCellMoveByRules(boardData, row, col, magnetLockSet)) {
+                if (!canCellMoveByRules(boardData, row, col, magnetLockSet, boardWidth)) {
                     fixedIndices.add(index);
                 }
             }
@@ -3058,15 +3522,9 @@
             const maxSteps = boardData.length * (boardData[0]?.length || 0);
             let stepCount = 0;
 
-            while (!isPlayBoardCleared(boardData) && stepCount <= maxSteps) {
-                const allPairs = getRemovablePairsForBoard(boardData);
-                if (allPairs.length === 0) return false;
-
-                const adjacentPairs = allPairs.filter(pair => pair.adjacent);
-                const selectedPair = pickRandomPair(
-                    adjacentPairs.length > 0 ? adjacentPairs : allPairs
-                );
-                if (!selectedPair) return false;
+            while (stepCount <= maxSteps) {
+                const selectedPair = pickRandomRemovablePairForBoard(boardData, true);
+                if (!selectedPair) return isPlayBoardCleared(boardData);
 
                 const firstValue = boardData[selectedPair.row1]?.[selectedPair.col1];
                 const selectedBaseId = getMatchableBaseId(firstValue);
@@ -3079,7 +3537,7 @@
                 stepCount++;
             }
 
-            return isPlayBoardCleared(boardData);
+            return false;
         }
 
         function updateSimulateButtonProgress(progressPercent, labelText) {
@@ -3102,6 +3560,725 @@
             button.textContent = '模拟100局';
         }
 
+        function getSimulationWorkerScriptSource() {
+            return `
+self.onmessage = function(event) {
+  const payload = event && event.data ? event.data : {};
+  if (payload.type !== 'run') return;
+  const games = Number.isInteger(payload.games) ? payload.games : 0;
+  const boardData = Array.isArray(payload.boardData) ? payload.boardData : [];
+  const direction = Number.isInteger(payload.direction) ? payload.direction : 0;
+  runBatch(games, boardData, direction);
+};
+
+const EMPTY_CELL_ID = 0;
+const PLACEHOLDER_CELL_ID = 499;
+const BOMB_CELL_ID = 99;
+const ATTACHMENT_MULTIPLIER = 1000;
+const ATTACHMENT_IDS = new Set([1, 5]);
+const STONE_CELL_ID = 501;
+const MAGNET_CELL_ID = 503;
+const ICE_LEVEL_1_CELL_ID = 504;
+const ICE_LEVEL_2_CELL_ID = 505;
+const ICE_LEVEL_3_CELL_ID = 506;
+const IMMOBILE_OBSTACLE_IDS = new Set([
+  STONE_CELL_ID,
+  MAGNET_CELL_ID,
+  ICE_LEVEL_1_CELL_ID,
+  ICE_LEVEL_2_CELL_ID,
+  ICE_LEVEL_3_CELL_ID
+]);
+const LLK_DIRECTION_STEPS = [
+  [-1, 0],
+  [1, 0],
+  [0, -1],
+  [0, 1]
+];
+
+function cloneBoardData(boardData) {
+  if (!Array.isArray(boardData)) return [];
+  return boardData.map((row) => Array.isArray(row) ? row.slice() : []);
+}
+
+function hasFilledCells(boardData) {
+  if (!Array.isArray(boardData)) return false;
+  for (const row of boardData) {
+    if (!Array.isArray(row)) continue;
+    for (const value of row) {
+      if (Number.isInteger(value) && value > 0) return true;
+    }
+  }
+  return false;
+}
+
+function isEmptyCellId(cellId) {
+  return !Number.isInteger(cellId) || cellId <= 0;
+}
+
+function decodeCellId(cellId) {
+  if (isEmptyCellId(cellId)) {
+    return { baseId: EMPTY_CELL_ID, attachmentId: null, hasAttachment: false };
+  }
+  if (cellId >= ATTACHMENT_MULTIPLIER) {
+    const attachmentId = Math.floor(cellId / ATTACHMENT_MULTIPLIER);
+    const baseId = cellId % ATTACHMENT_MULTIPLIER;
+    if (ATTACHMENT_IDS.has(attachmentId) && baseId > 0) {
+      return { baseId, attachmentId, hasAttachment: true };
+    }
+  }
+  return { baseId: cellId, attachmentId: null, hasAttachment: false };
+}
+
+function isNormalBaseId(baseId) {
+  if (baseId === PLACEHOLDER_CELL_ID) return true;
+  return baseId >= 1 && baseId <= 99;
+}
+
+function isRemovableBaseId(baseId) {
+  return isNormalBaseId(baseId);
+}
+
+function isImmobileObstacleBaseId(baseId) {
+  return IMMOBILE_OBSTACLE_IDS.has(baseId);
+}
+
+function getMatchableBaseId(cellId) {
+  const parsed = decodeCellId(cellId);
+  if (!isRemovableBaseId(parsed.baseId)) return null;
+  if (parsed.hasAttachment) return null;
+  return parsed.baseId;
+}
+
+function isPlayBoardCleared(boardData) {
+  if (!Array.isArray(boardData)) return true;
+  for (const row of boardData) {
+    if (!Array.isArray(row)) continue;
+    for (const value of row) {
+      const parsed = decodeCellId(value);
+      if (isRemovableBaseId(parsed.baseId)) return false;
+    }
+  }
+  return true;
+}
+
+function getFourNeighbors(row, col, width, height) {
+  const result = [];
+  const offsets = [[-1,0],[1,0],[0,-1],[0,1]];
+  for (const [dr, dc] of offsets) {
+    const nextRow = row + dr;
+    const nextCol = col + dc;
+    if (nextRow < 0 || nextRow >= height || nextCol < 0 || nextCol >= width) continue;
+    result.push({ row: nextRow, col: nextCol });
+  }
+  return result;
+}
+
+function triggerAdjacentMechanisms(boardData, removedPositions) {
+  if (!Array.isArray(boardData) || !Array.isArray(removedPositions)) return;
+  const height = boardData.length;
+  const width = boardData[0] ? boardData[0].length : 0;
+  const targetPositions = new Map();
+
+  for (const position of removedPositions) {
+    const neighbors = getFourNeighbors(position.row, position.col, width, height);
+    for (const neighbor of neighbors) {
+      targetPositions.set(neighbor.row + '-' + neighbor.col, neighbor);
+    }
+  }
+
+  targetPositions.forEach((position) => {
+    const currentId = boardData[position.row][position.col];
+    const parsed = decodeCellId(currentId);
+
+    if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+      boardData[position.row][position.col] = parsed.baseId;
+      return;
+    }
+
+    if (parsed.baseId === ICE_LEVEL_1_CELL_ID) {
+      boardData[position.row][position.col] = EMPTY_CELL_ID;
+      return;
+    }
+    if (parsed.baseId === ICE_LEVEL_2_CELL_ID || parsed.baseId === ICE_LEVEL_3_CELL_ID) {
+      boardData[position.row][position.col] = parsed.baseId - 1;
+    }
+  });
+}
+
+function removePairFromBoard(boardData, pair) {
+  const removed = [
+    { row: pair.row1, col: pair.col1 },
+    { row: pair.row2, col: pair.col2 }
+  ];
+  for (const position of removed) {
+    boardData[position.row][position.col] = EMPTY_CELL_ID;
+  }
+  return removed;
+}
+
+function createLianliankanSearchContext(boardData) {
+  if (!Array.isArray(boardData) || boardData.length === 0) return null;
+  const height = boardData.length;
+  const width = boardData[0] ? boardData[0].length : 0;
+  if (width === 0) return null;
+
+  const extHeight = height + 2;
+  const extWidth = width + 2;
+  const cellCount = extHeight * extWidth;
+  const stateCount = cellCount * 4;
+  const blocked = new Uint8Array(cellCount);
+
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      const value = boardData[row][col];
+      if (Number.isInteger(value) && value > 0) {
+        blocked[(row + 1) * extWidth + (col + 1)] = 1;
+      }
+    }
+  }
+
+  return {
+    extWidth,
+    extHeight,
+    blocked,
+    visitStamp: new Uint16Array(stateCount),
+    visitTurns: new Uint8Array(stateCount),
+    stamp: 1,
+    queueRow: new Int16Array(stateCount * 4),
+    queueCol: new Int16Array(stateCount * 4),
+    queueDir: new Uint8Array(stateCount * 4),
+    queueTurns: new Uint8Array(stateCount * 4)
+  };
+}
+
+function beginLianliankanSearch(searchContext) {
+  searchContext.stamp++;
+  if (searchContext.stamp >= 65535) {
+    searchContext.visitStamp.fill(0);
+    searchContext.stamp = 1;
+  }
+}
+
+function markLianliankanVisited(searchContext, row, col, dir, turns) {
+  const stateIndex = (((row * searchContext.extWidth) + col) << 2) + dir;
+  const visitedStamp = searchContext.visitStamp[stateIndex];
+  if (visitedStamp === searchContext.stamp &&
+      searchContext.visitTurns[stateIndex] <= turns) {
+    return false;
+  }
+  searchContext.visitStamp[stateIndex] = searchContext.stamp;
+  searchContext.visitTurns[stateIndex] = turns;
+  return true;
+}
+
+function canConnectByLianliankanWithContext(searchContext, startRow, startCol, targetRow, targetCol) {
+  if (!searchContext) return false;
+  if (startRow === targetRow && startCol === targetCol) return false;
+
+  const extWidth = searchContext.extWidth;
+  const extHeight = searchContext.extHeight;
+  const startExtRow = startRow + 1;
+  const startExtCol = startCol + 1;
+  const targetExtRow = targetRow + 1;
+  const targetExtCol = targetCol + 1;
+  const startCellIndex = (startExtRow * extWidth) + startExtCol;
+  const targetCellIndex = (targetExtRow * extWidth) + targetExtCol;
+
+  if (searchContext.blocked[startCellIndex] === 0 || searchContext.blocked[targetCellIndex] === 0) {
+    return false;
+  }
+
+  beginLianliankanSearch(searchContext);
+  searchContext.blocked[startCellIndex] = 0;
+
+  let queueHead = 0;
+  let queueTail = 0;
+
+  for (let dir = 0; dir < 4; dir++) {
+    const step = LLK_DIRECTION_STEPS[dir];
+    let nextRow = startExtRow + step[0];
+    let nextCol = startExtCol + step[1];
+    while (nextRow >= 0 && nextRow < extHeight && nextCol >= 0 && nextCol < extWidth) {
+      if (nextRow === targetExtRow && nextCol === targetExtCol) {
+        searchContext.blocked[startCellIndex] = 1;
+        return true;
+      }
+      const nextIndex = (nextRow * extWidth) + nextCol;
+      if (searchContext.blocked[nextIndex] !== 0) break;
+      if (markLianliankanVisited(searchContext, nextRow, nextCol, dir, 0)) {
+        searchContext.queueRow[queueTail] = nextRow;
+        searchContext.queueCol[queueTail] = nextCol;
+        searchContext.queueDir[queueTail] = dir;
+        searchContext.queueTurns[queueTail] = 0;
+        queueTail++;
+      }
+      nextRow += step[0];
+      nextCol += step[1];
+    }
+  }
+
+  while (queueHead < queueTail) {
+    const currentRow = searchContext.queueRow[queueHead];
+    const currentCol = searchContext.queueCol[queueHead];
+    const currentDir = searchContext.queueDir[queueHead];
+    const currentTurns = searchContext.queueTurns[queueHead];
+    queueHead++;
+
+    for (let nextDir = 0; nextDir < 4; nextDir++) {
+      const nextTurns = currentTurns + (nextDir === currentDir ? 0 : 1);
+      if (nextTurns > 2) continue;
+
+      const step = LLK_DIRECTION_STEPS[nextDir];
+      let nextRow = currentRow + step[0];
+      let nextCol = currentCol + step[1];
+      while (nextRow >= 0 && nextRow < extHeight && nextCol >= 0 && nextCol < extWidth) {
+        if (nextRow === targetExtRow && nextCol === targetExtCol) {
+          searchContext.blocked[startCellIndex] = 1;
+          return true;
+        }
+        const nextIndex = (nextRow * extWidth) + nextCol;
+        if (searchContext.blocked[nextIndex] !== 0) break;
+        if (markLianliankanVisited(searchContext, nextRow, nextCol, nextDir, nextTurns)) {
+          searchContext.queueRow[queueTail] = nextRow;
+          searchContext.queueCol[queueTail] = nextCol;
+          searchContext.queueDir[queueTail] = nextDir;
+          searchContext.queueTurns[queueTail] = nextTurns;
+          queueTail++;
+        }
+        nextRow += step[0];
+        nextCol += step[1];
+      }
+    }
+  }
+
+  searchContext.blocked[startCellIndex] = 1;
+  return false;
+}
+
+function pickRandomRemovablePairForBoard(boardData, preferAdjacent) {
+  if (!Array.isArray(boardData) || boardData.length === 0) return null;
+  const height = boardData.length;
+  const width = boardData[0] ? boardData[0].length : 0;
+  if (width === 0) return null;
+  const searchContext = createLianliankanSearchContext(boardData);
+  if (!searchContext) return null;
+
+  const positionsByNumber = new Map();
+  for (let i = 0; i < height; i++) {
+    for (let j = 0; j < width; j++) {
+      const baseId = getMatchableBaseId(boardData[i][j]);
+      if (baseId === null) continue;
+      if (!positionsByNumber.has(baseId)) positionsByNumber.set(baseId, []);
+      positionsByNumber.get(baseId).push({ row: i, col: j });
+    }
+  }
+
+  let allCount = 0;
+  let adjacentCount = 0;
+  let sampledAllPair = null;
+  let sampledAdjacentPair = null;
+
+  positionsByNumber.forEach((positions) => {
+    if (!positions || positions.length < 2) return;
+    for (let left = 0; left < positions.length - 1; left++) {
+      for (let right = left + 1; right < positions.length; right++) {
+        const first = positions[left];
+        const second = positions[right];
+        if (!canConnectByLianliankanWithContext(
+          searchContext,
+          first.row,
+          first.col,
+          second.row,
+          second.col
+        )) {
+          continue;
+        }
+
+        const pair = { row1: first.row, col1: first.col, row2: second.row, col2: second.col };
+        allCount++;
+        if (Math.floor(Math.random() * allCount) === 0) sampledAllPair = pair;
+
+        const isAdjacent = Math.abs(first.row - second.row) + Math.abs(first.col - second.col) === 1;
+        if (!isAdjacent) continue;
+        adjacentCount++;
+        if (Math.floor(Math.random() * adjacentCount) === 0) sampledAdjacentPair = pair;
+      }
+    }
+  });
+
+  if (preferAdjacent && adjacentCount > 0) return sampledAdjacentPair;
+  return sampledAllPair;
+}
+
+function triggerBombEffect(boardData) {
+  const EXTRA_PAIR_COUNT = 3;
+  for (let index = 0; index < EXTRA_PAIR_COUNT; index++) {
+    const selectedPair = pickRandomRemovablePairForBoard(boardData, false);
+    if (!selectedPair) break;
+    const removedPositions = removePairFromBoard(boardData, selectedPair);
+    triggerAdjacentMechanisms(boardData, removedPositions);
+  }
+}
+
+function getPartitionIndices(length, isFirstPart) {
+  const indices = [];
+  for (let index = 0; index < length; index++) {
+    const inFirstPart = index < (length / 2);
+    if ((isFirstPart && inFirstPart) || (!isFirstPart && !inFirstPart)) {
+      indices.push(index);
+    }
+  }
+  return indices;
+}
+
+function buildMagnetLockSet(boardData) {
+  const lockSet = new Set();
+  if (!Array.isArray(boardData) || boardData.length === 0) return lockSet;
+  const height = boardData.length;
+  const width = boardData[0] ? boardData[0].length : 0;
+  const magnetOffsets = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [0, -1],           [0, 1],
+    [1, -1],  [1, 0],  [1, 1]
+  ];
+
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      const parsed = decodeCellId(boardData[row][col]);
+      if (parsed.baseId !== MAGNET_CELL_ID) continue;
+      for (const [dr, dc] of magnetOffsets) {
+        const nextRow = row + dr;
+        const nextCol = col + dc;
+        if (nextRow < 0 || nextRow >= height || nextCol < 0 || nextCol >= width) continue;
+        const neighborParsed = decodeCellId(boardData[nextRow][nextCol]);
+        if (isEmptyCellId(neighborParsed.baseId)) continue;
+        lockSet.add((nextRow * width) + nextCol);
+      }
+    }
+  }
+  return lockSet;
+}
+
+function canCellMoveByRules(boardData, row, col, magnetLockSet, width) {
+  const parsed = decodeCellId(boardData[row][col]);
+  if (isEmptyCellId(parsed.baseId)) return true;
+  if (isImmobileObstacleBaseId(parsed.baseId)) return false;
+  if (magnetLockSet.has((row * width) + col)) return false;
+  return true;
+}
+
+function compactSegmentByRules(
+  boardData,
+  segmentIndices,
+  getValue,
+  setValue,
+  getCoord,
+  towardStart,
+  magnetLockSet
+) {
+  if (!segmentIndices || segmentIndices.length === 0) return false;
+  const boardWidth = boardData[0] ? boardData[0].length : 0;
+  const originalValues = segmentIndices.map((index) => getValue(index));
+
+  const fixedIndices = new Set();
+  for (let index = 0; index < segmentIndices.length; index++) {
+    const value = originalValues[index];
+    if (isEmptyCellId(value)) continue;
+    const coord = getCoord(segmentIndices[index]);
+    if (!canCellMoveByRules(boardData, coord.row, coord.col, magnetLockSet, boardWidth)) {
+      fixedIndices.add(index);
+    }
+  }
+
+  const resultValues = originalValues.slice();
+
+  let segmentStart = 0;
+  while (segmentStart < segmentIndices.length) {
+    while (segmentStart < segmentIndices.length && fixedIndices.has(segmentStart)) segmentStart++;
+    if (segmentStart >= segmentIndices.length) break;
+    let segmentEnd = segmentStart;
+    while (segmentEnd + 1 < segmentIndices.length && !fixedIndices.has(segmentEnd + 1)) segmentEnd++;
+
+    const movingEntries = [];
+    for (let idx = segmentStart; idx <= segmentEnd; idx++) {
+      const value = originalValues[idx];
+      if (isEmptyCellId(value)) continue;
+      movingEntries.push(value);
+      resultValues[idx] = EMPTY_CELL_ID;
+    }
+
+    const targetSlots = [];
+    for (let idx = segmentStart; idx <= segmentEnd; idx++) targetSlots.push(idx);
+    const orderedSlots = towardStart ? targetSlots : targetSlots.slice().reverse();
+    for (let moveIndex = 0; moveIndex < movingEntries.length; moveIndex++) {
+      const slotIndex = orderedSlots[moveIndex];
+      resultValues[slotIndex] = movingEntries[moveIndex];
+    }
+
+    segmentStart = segmentEnd + 1;
+  }
+
+  let changed = false;
+  for (let idx = 0; idx < segmentIndices.length; idx++) {
+    if (originalValues[idx] !== resultValues[idx]) changed = true;
+    setValue(segmentIndices[idx], resultValues[idx]);
+  }
+  return changed;
+}
+
+function applyDirectionShiftOnce(boardData, direction) {
+  if (!Array.isArray(boardData) || boardData.length === 0) return false;
+  const height = boardData.length;
+  const width = boardData[0] ? boardData[0].length : 0;
+  if (width === 0) return false;
+
+  let changed = false;
+  const magnetLockSet = buildMagnetLockSet(boardData);
+  const topRows = getPartitionIndices(height, true);
+  const bottomRows = getPartitionIndices(height, false);
+  const leftCols = getPartitionIndices(width, true);
+  const rightCols = getPartitionIndices(width, false);
+
+  const compactColumn = (colIndex, rowIndices, towardTop) => {
+    const segmentChanged = compactSegmentByRules(
+      boardData,
+      rowIndices,
+      (rowIndex) => boardData[rowIndex][colIndex],
+      (rowIndex, value) => { boardData[rowIndex][colIndex] = value; },
+      (rowIndex) => ({ row: rowIndex, col: colIndex }),
+      towardTop,
+      magnetLockSet
+    );
+    if (segmentChanged) changed = true;
+  };
+
+  const compactRow = (rowIndex, colIndices, towardLeft) => {
+    const segmentChanged = compactSegmentByRules(
+      boardData,
+      colIndices,
+      (colIndex) => boardData[rowIndex][colIndex],
+      (colIndex, value) => { boardData[rowIndex][colIndex] = value; },
+      (colIndex) => ({ row: rowIndex, col: colIndex }),
+      towardLeft,
+      magnetLockSet
+    );
+    if (segmentChanged) changed = true;
+  };
+
+  switch (direction) {
+    case 1:
+      for (let col = 0; col < width; col++) compactColumn(col, topRows.concat(bottomRows), true);
+      break;
+    case 2:
+      for (let col = 0; col < width; col++) compactColumn(col, topRows.concat(bottomRows), false);
+      break;
+    case 3:
+      for (let row = 0; row < height; row++) compactRow(row, leftCols.concat(rightCols), true);
+      break;
+    case 4:
+      for (let row = 0; row < height; row++) compactRow(row, leftCols.concat(rightCols), false);
+      break;
+    case 5:
+      for (let col = 0; col < width; col++) {
+        compactColumn(col, topRows, false);
+        compactColumn(col, bottomRows, true);
+      }
+      break;
+    case 6:
+      for (let row = 0; row < height; row++) {
+        compactRow(row, leftCols, false);
+        compactRow(row, rightCols, true);
+      }
+      break;
+    case 7:
+      for (let col = 0; col < width; col++) {
+        compactColumn(col, topRows, true);
+        compactColumn(col, bottomRows, false);
+      }
+      break;
+    case 8:
+      for (let row = 0; row < height; row++) {
+        compactRow(row, leftCols, true);
+        compactRow(row, rightCols, false);
+      }
+      break;
+    default:
+      break;
+  }
+
+  return changed;
+}
+
+function applyDirectionShiftUntilStable(boardData, direction) {
+  const maxIterations = (boardData.length || 0) * ((boardData[0] ? boardData[0].length : 0) + 1);
+  let iteration = 0;
+  while (iteration < maxIterations) {
+    const changed = applyDirectionShiftOnce(boardData, direction);
+    if (!changed) break;
+    iteration++;
+  }
+}
+
+function simulateSingleGame(baseBoardData, direction) {
+  const boardData = cloneBoardData(baseBoardData);
+  if (!hasFilledCells(boardData)) return false;
+
+  const maxSteps = boardData.length * ((boardData[0] ? boardData[0].length : 0));
+  let stepCount = 0;
+
+  while (stepCount <= maxSteps) {
+    const selectedPair = pickRandomRemovablePairForBoard(boardData, true);
+    if (!selectedPair) return isPlayBoardCleared(boardData);
+
+    const firstValue = boardData[selectedPair.row1][selectedPair.col1];
+    const selectedBaseId = getMatchableBaseId(firstValue);
+    const removedPositions = removePairFromBoard(boardData, selectedPair);
+    triggerAdjacentMechanisms(boardData, removedPositions);
+    if (selectedBaseId === BOMB_CELL_ID) {
+      triggerBombEffect(boardData);
+    }
+    applyDirectionShiftUntilStable(boardData, direction);
+    stepCount++;
+  }
+
+  return false;
+}
+
+function runBatch(games, baseBoardData, direction) {
+  let partialCompleted = 0;
+  let partialWins = 0;
+
+  for (let gameIndex = 0; gameIndex < games; gameIndex++) {
+    if (simulateSingleGame(baseBoardData, direction)) partialWins++;
+    partialCompleted++;
+
+    if (partialCompleted >= 5) {
+      postMessage({ type: 'progress', completed: partialCompleted, wins: partialWins });
+      partialCompleted = 0;
+      partialWins = 0;
+    }
+  }
+
+  if (partialCompleted > 0) {
+    postMessage({ type: 'progress', completed: partialCompleted, wins: partialWins });
+  }
+  postMessage({ type: 'done' });
+}
+`;
+        }
+
+        function getSimulationWorkerScriptUrl() {
+            if (simulationWorkerScriptUrl) return simulationWorkerScriptUrl;
+            const source = getSimulationWorkerScriptSource();
+            const blob = new Blob([source], { type: 'text/javascript' });
+            simulationWorkerScriptUrl = URL.createObjectURL(blob);
+            return simulationWorkerScriptUrl;
+        }
+
+        async function runSimulationsInWorkers(
+            sourceBoard,
+            direction,
+            gameCount,
+            onProgress,
+            shouldStop
+        ) {
+            if (typeof Worker === 'undefined' || typeof Blob === 'undefined' || typeof URL === 'undefined') {
+                return null;
+            }
+
+            const hardwareThreads = Math.max(1, parseInt(String(navigator.hardwareConcurrency || 1), 10));
+            const workerCount = Math.max(1, Math.min(gameCount, Math.min(8, hardwareThreads - 1)));
+            if (workerCount <= 1) return null;
+
+            const baseChunk = Math.floor(gameCount / workerCount);
+            const remainder = gameCount % workerCount;
+            const chunkSizes = [];
+            for (let index = 0; index < workerCount; index++) {
+                chunkSizes.push(baseChunk + (index < remainder ? 1 : 0));
+            }
+            const actualChunks = chunkSizes.filter(size => size > 0);
+            if (actualChunks.length <= 1) return null;
+
+            const workerScriptUrl = getSimulationWorkerScriptUrl();
+            const workerList = [];
+
+            return new Promise((resolve, reject) => {
+                let completedGames = 0;
+                let winCount = 0;
+                let finishedWorkers = 0;
+                let settled = false;
+
+                const cleanupWorkers = () => {
+                    for (const worker of workerList) {
+                        try {
+                            worker.terminate();
+                        } catch (_) {}
+                    }
+                };
+
+                const fail = (error) => {
+                    if (settled) return;
+                    settled = true;
+                    cleanupWorkers();
+                    reject(error);
+                };
+
+                for (const games of actualChunks) {
+                    const worker = new Worker(workerScriptUrl);
+                    workerList.push(worker);
+
+                    worker.onmessage = (event) => {
+                        if (settled) return;
+                        const data = event?.data || {};
+                        if (data.type === 'progress') {
+                            const done = Number.isFinite(Number(data.completed))
+                                ? Number(data.completed)
+                                : 0;
+                            const wins = Number.isFinite(Number(data.wins))
+                                ? Number(data.wins)
+                                : 0;
+                            completedGames += done;
+                            winCount += wins;
+                            if (typeof onProgress === 'function') {
+                                onProgress(completedGames, gameCount, winCount);
+                            }
+                            if (
+                                typeof shouldStop === 'function' &&
+                                shouldStop(completedGames, gameCount, winCount)
+                            ) {
+                                settled = true;
+                                cleanupWorkers();
+                                resolve({
+                                    winCount,
+                                    completedGames,
+                                    stoppedEarly: true
+                                });
+                            }
+                            return;
+                        }
+                        if (data.type === 'done') {
+                            finishedWorkers++;
+                            if (finishedWorkers < actualChunks.length) return;
+                            settled = true;
+                            cleanupWorkers();
+                            resolve({ winCount, completedGames, stoppedEarly: false });
+                        }
+                    };
+
+                    worker.onerror = (error) => {
+                        fail(error instanceof Error ? error : new Error('Worker runtime error'));
+                    };
+
+                    worker.postMessage({
+                        type: 'run',
+                        games,
+                        boardData: sourceBoard,
+                        direction
+                    });
+                }
+            });
+        }
+
         function setSimulationInteractionLock(locked) {
             const body = document.body;
             if (!body) return;
@@ -3111,6 +4288,8 @@
         async function simulatePlayGames() {
             const GAME_COUNT = 100;
             if (isSimulatingPlayGames) return;
+            if (isBatchGenerating) return;
+            if (isBatchCampaignRunning) return;
             const sourceBoard = (playModeState && playModeState.active &&
                 Array.isArray(playModeState.originalBoard))
                 ? cloneBoardData(playModeState.originalBoard)
@@ -3136,19 +4315,48 @@
 
             try {
                 let winCount = 0;
-                for (let gameIndex = 0; gameIndex < GAME_COUNT; gameIndex++) {
-                    if (simulateSingleGame(sourceBoard, direction)) {
-                        winCount++;
-                    }
+                let completedGames = 0;
+                let usedWorkers = false;
 
-                    const progressPercent = ((gameIndex + 1) / GAME_COUNT) * 100;
-                    updateSimulateButtonProgress(
-                        progressPercent,
-                        `模拟中 ${Math.round(progressPercent)}%`
+                try {
+                    const workerResult = await runSimulationsInWorkers(
+                        sourceBoard,
+                        direction,
+                        GAME_COUNT,
+                        (completed, total, currentWins) => {
+                            completedGames = completed;
+                            winCount = currentWins;
+                            const progressPercent = (completed / total) * 100;
+                            updateSimulateButtonProgress(
+                                progressPercent,
+                                `模拟中 ${Math.round(progressPercent)}%`
+                            );
+                        }
                     );
+                    if (workerResult && Number.isFinite(workerResult.winCount)) {
+                        usedWorkers = true;
+                        winCount = workerResult.winCount;
+                        completedGames = workerResult.completedGames || GAME_COUNT;
+                    }
+                } catch (error) {
+                    console.error('Worker simulate failed, fallback to single thread:', error);
+                }
 
-                    if ((gameIndex + 1) % 2 === 0) {
-                        await waitForMs(0);
+                if (!usedWorkers) {
+                    for (let gameIndex = 0; gameIndex < GAME_COUNT; gameIndex++) {
+                        if (simulateSingleGame(sourceBoard, direction)) {
+                            winCount++;
+                        }
+                        completedGames = gameIndex + 1;
+                        const progressPercent = (completedGames / GAME_COUNT) * 100;
+                        updateSimulateButtonProgress(
+                            progressPercent,
+                            `模拟中 ${Math.round(progressPercent)}%`
+                        );
+
+                        if (completedGames % 5 === 0) {
+                            await waitForMs(0);
+                        }
                     }
                 }
 
@@ -3166,6 +4374,142 @@
                 setSimulationInteractionLock(false);
                 resetSimulateButtonState();
             }
+        }
+
+        function normalizeWinRateRangeForSimulation(rawRange, gameCount) {
+            if (!Array.isArray(rawRange) || rawRange.length < 2) return null;
+            let minRate = Number(rawRange[0]);
+            let maxRate = Number(rawRange[1]);
+            if (!Number.isFinite(minRate) || !Number.isFinite(maxRate)) return null;
+            if (minRate > maxRate) {
+                const temp = minRate;
+                minRate = maxRate;
+                maxRate = temp;
+            }
+            minRate = Math.max(0, Math.min(100, minRate));
+            maxRate = Math.max(0, Math.min(100, maxRate));
+            const minWins = Math.ceil((minRate / 100) * gameCount - 1e-9);
+            const maxWins = Math.floor((maxRate / 100) * gameCount + 1e-9);
+            return { minRate, maxRate, minWins, maxWins };
+        }
+
+        function isTargetWinRateRangeUnreachable(
+            winCount,
+            completedGames,
+            gameCount,
+            targetWinRange
+        ) {
+            if (!targetWinRange) return false;
+            const remainingGames = Math.max(0, gameCount - completedGames);
+            const minPossibleWins = winCount;
+            const maxPossibleWins = winCount + remainingGames;
+            if (maxPossibleWins < targetWinRange.minWins) return true;
+            if (minPossibleWins > targetWinRange.maxWins) return true;
+            return false;
+        }
+
+        async function simulateBoardWinRate(
+            sourceBoard,
+            direction,
+            gameCount = 100,
+            onProgress = null,
+            options = {}
+        ) {
+            const targetWinRange = normalizeWinRateRangeForSimulation(
+                options?.winRateRange,
+                gameCount
+            );
+            const enableUnreachableEarlyStop = Boolean(options?.enableUnreachableEarlyStop);
+            let winCount = 0;
+            let completedGames = 0;
+            let usedWorkers = false;
+            let stoppedEarly = false;
+            let unreachable = false;
+            if (targetWinRange && targetWinRange.minWins > targetWinRange.maxWins) {
+                return {
+                    winCount: 0,
+                    completedGames: 0,
+                    gameCount,
+                    winRate: 0,
+                    stoppedEarly: true,
+                    unreachable: true
+                };
+            }
+            try {
+                const workerResult = await runSimulationsInWorkers(
+                    sourceBoard,
+                    direction,
+                    gameCount,
+                    (completed, total, currentWins) => {
+                        completedGames = completed;
+                        winCount = currentWins;
+                        if (typeof onProgress === 'function') {
+                            onProgress(completed, total, currentWins);
+                        }
+                    },
+                    (completed, total, currentWins) => {
+                        if (!enableUnreachableEarlyStop || !targetWinRange) return false;
+                        return isTargetWinRateRangeUnreachable(
+                            currentWins,
+                            completed,
+                            total,
+                            targetWinRange
+                        );
+                    }
+                );
+                if (workerResult && Number.isFinite(workerResult.winCount)) {
+                    usedWorkers = true;
+                    winCount = workerResult.winCount;
+                    completedGames = workerResult.completedGames || gameCount;
+                    stoppedEarly = Boolean(workerResult.stoppedEarly);
+                    unreachable = stoppedEarly &&
+                        isTargetWinRateRangeUnreachable(
+                            winCount,
+                            completedGames,
+                            gameCount,
+                            targetWinRange
+                        );
+                }
+            } catch (error) {
+                console.error('Worker simulate failed, fallback to single thread:', error);
+            }
+
+            if (!usedWorkers) {
+                for (let gameIndex = 0; gameIndex < gameCount; gameIndex++) {
+                    if (simulateSingleGame(sourceBoard, direction)) {
+                        winCount++;
+                    }
+                    completedGames = gameIndex + 1;
+                    if (typeof onProgress === 'function') {
+                        onProgress(completedGames, gameCount, winCount);
+                    }
+                    if (enableUnreachableEarlyStop && targetWinRange) {
+                        unreachable = isTargetWinRateRangeUnreachable(
+                            winCount,
+                            completedGames,
+                            gameCount,
+                            targetWinRange
+                        );
+                        if (unreachable) {
+                            stoppedEarly = true;
+                            break;
+                        }
+                    }
+                    if (completedGames % 5 === 0) {
+                        await waitForMs(0);
+                    }
+                }
+            }
+
+            const winRate = gameCount > 0 ? (winCount / gameCount) * 100 : 0;
+            return {
+                winCount,
+                completedGames,
+                gameCount,
+                winRate,
+                stoppedEarly,
+                unreachable
+            };
         }
 
         function calculatePool() {
@@ -3219,6 +4563,47 @@
             if (result2) result2.textContent = count2;
             if (resultTotalTypes) resultTotalTypes.textContent = totalTypes;
             if (resultTotalCards) resultTotalCards.textContent = totalCards;
+        }
+
+        function updateResultSummaryByBoard(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return;
+
+            const countMap = new Map();
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const cellId of row) {
+                    const baseId = getCardCountBaseId(cellId);
+                    if (baseId === null) continue;
+                    countMap.set(baseId, (countMap.get(baseId) || 0) + 1);
+                }
+            }
+
+            const countByCopies = (copies) => {
+                let total = 0;
+                countMap.forEach((count) => {
+                    if (count === copies) total++;
+                });
+                return total;
+            };
+
+            let totalCards = 0;
+            countMap.forEach((count) => {
+                totalCards += count;
+            });
+
+            const result8 = document.getElementById('result8');
+            const result6 = document.getElementById('result6');
+            const result4 = document.getElementById('result4');
+            const result2 = document.getElementById('result2');
+            const resultTotalTypes = document.getElementById('resultTotalTypes');
+            const resultTotalCards = document.getElementById('resultTotalCards');
+
+            if (result8) result8.textContent = String(countByCopies(8));
+            if (result6) result6.textContent = String(countByCopies(6));
+            if (result4) result4.textContent = String(countByCopies(4));
+            if (result2) result2.textContent = String(countByCopies(2));
+            if (resultTotalTypes) resultTotalTypes.textContent = String(countMap.size);
+            if (resultTotalCards) resultTotalCards.textContent = String(totalCards);
         }
 
         function generateBoard() {
@@ -3615,6 +5000,515 @@
             };
         }
 
+        function collectRegenerateFillOrder(fillOrder, sourceBoard = filledCells) {
+            const targets = [];
+            for (const item of fillOrder) {
+                const meta = getRegenerateTargetMeta(sourceBoard[item.i]?.[item.j]);
+                if (!meta) continue;
+                targets.push({
+                    ...item,
+                    attachmentId: meta.attachmentId
+                });
+            }
+            return targets;
+        }
+
+        function validateBeforeRegenerateFill(targetOrder) {
+            if (!Array.isArray(targetOrder) || targetOrder.length === 0) {
+                alert('当前棋盘没有可重新生成的数字或占位块。');
+                return false;
+            }
+
+            if (targetOrder.length % 2 !== 0) {
+                alert('可生成格子数量必须为偶数，当前无法生成成对花色。');
+                return false;
+            }
+            return true;
+        }
+
+        function generateNumbersForTargetOrder(
+            targetOrder,
+            width,
+            height,
+            direction,
+            sameLie,
+            sameNum,
+            xianglinSame,
+            directionBothCtrl,
+            distanceCtrl
+        ) {
+            const workingBoard = Array.from({ length: height }, () => Array(width).fill(null));
+            placedCounts = {};
+            currentPool.forEach((item) => {
+                placedCounts[item.number] = 0;
+            });
+
+            const isRowDirection = isRowBaseDirection(direction);
+
+            const hasPoolNumber = (targetNumber) => {
+                const poolItem = currentPool.find(p => p.number === targetNumber);
+                return !!poolItem && placedCounts[targetNumber] < poolItem.count;
+            };
+
+            const getGroupUsedNumbers = (rowIndex, colIndex) => {
+                const usedInGroup = new Set();
+                if (isRowDirection) {
+                    for (let col = 0; col < width; col++) {
+                        const value = workingBoard[rowIndex]?.[col];
+                        if (value !== null && value !== undefined) usedInGroup.add(value);
+                    }
+                } else {
+                    for (let row = 0; row < height; row++) {
+                        const value = workingBoard[row]?.[colIndex];
+                        if (value !== null && value !== undefined) usedInGroup.add(value);
+                    }
+                }
+                return usedInGroup;
+            };
+
+            const collectDirectionalSideNumbersForWorkingBoard = (
+                rowIndex,
+                colIndex,
+                localDirection,
+                sideType
+            ) => {
+                const sideNumbers = new Set();
+                if (localDirection === 0) return sideNumbers;
+
+                let stepI = 0;
+                let stepJ = 0;
+                if (localDirection === 1) {
+                    stepI = sideType === 'top' ? 1 : -1;
+                } else if (localDirection === 2) {
+                    stepI = sideType === 'top' ? -1 : 1;
+                } else if (localDirection === 3) {
+                    stepJ = sideType === 'top' ? 1 : -1;
+                } else if (localDirection === 4) {
+                    stepJ = sideType === 'top' ? -1 : 1;
+                }
+
+                let nextRow = rowIndex + stepI;
+                let nextCol = colIndex + stepJ;
+                while (nextRow >= 0 && nextRow < height && nextCol >= 0 && nextCol < width) {
+                    const value = workingBoard[nextRow]?.[nextCol];
+                    if (value !== null && value !== undefined) sideNumbers.add(value);
+                    nextRow += stepI;
+                    nextCol += stepJ;
+                }
+                return sideNumbers;
+            };
+
+            const chooseCandidateByControl = (rowIndex, colIndex, candidateNumbers) => {
+                if (!candidateNumbers || candidateNumbers.length === 0) return null;
+
+                const localDirection = getLocalBaseDirectionByCell(
+                    direction,
+                    rowIndex,
+                    colIndex,
+                    width,
+                    height
+                );
+                const upperSet = collectDirectionalSideNumbersForWorkingBoard(
+                    rowIndex,
+                    colIndex,
+                    localDirection,
+                    'top'
+                );
+                const lowerSet = collectDirectionalSideNumbersForWorkingBoard(
+                    rowIndex,
+                    colIndex,
+                    localDirection,
+                    'bottom'
+                );
+                const directionBothSet = new Set();
+                upperSet.forEach((value) => {
+                    if (lowerSet.has(value)) directionBothSet.add(value);
+                });
+
+                let bestScore = -Infinity;
+                let bestCandidates = [];
+                for (const candidate of candidateNumbers) {
+                    const inDirectionBoth = directionBothSet.has(candidate);
+                    const directionScore = inDirectionBoth
+                        ? directionBothCtrl
+                        : (1 - directionBothCtrl);
+                    if (directionScore > bestScore) {
+                        bestScore = directionScore;
+                        bestCandidates = [candidate];
+                    } else if (directionScore === bestScore) {
+                        bestCandidates.push(candidate);
+                    }
+                }
+                if (bestCandidates.length === 0) return null;
+                return bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+            };
+
+            const pickByCandidateNumbers = (rowIndex, colIndex, candidateNumbers, forbiddenNumbers = new Set()) => {
+                if (!candidateNumbers || candidateNumbers.length === 0) return null;
+                const uniqueCandidates = [];
+                const seen = new Set();
+                for (const candidate of candidateNumbers) {
+                    if (seen.has(candidate)) continue;
+                    seen.add(candidate);
+                    if (!hasPoolNumber(candidate)) continue;
+                    uniqueCandidates.push(candidate);
+                }
+                if (uniqueCandidates.length === 0) return null;
+                const allowedCandidates = uniqueCandidates.filter(
+                    candidate => !forbiddenNumbers.has(candidate)
+                );
+                if (allowedCandidates.length === 0) return null;
+                return chooseCandidateByControl(rowIndex, colIndex, allowedCandidates);
+            };
+
+            const pickByGroupPreference = (rowIndex, colIndex, preferUsed, forbiddenNumbers = new Set()) => {
+                const usedInGroup = getGroupUsedNumbers(rowIndex, colIndex);
+                const candidates = [];
+                const allowedCandidates = [];
+                for (const poolItem of currentPool) {
+                    const canUse = placedCounts[poolItem.number] < poolItem.count;
+                    if (!canUse) continue;
+                    const inGroup = usedInGroup.has(poolItem.number);
+                    if ((preferUsed && inGroup) || (!preferUsed && !inGroup)) {
+                        candidates.push(poolItem.number);
+                        if (!forbiddenNumbers.has(poolItem.number)) {
+                            allowedCandidates.push(poolItem.number);
+                        }
+                    }
+                }
+                if (candidates.length === 0) return null;
+                const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                return chooseCandidateByControl(rowIndex, colIndex, source);
+            };
+
+            const pickAnyCard = (rowIndex, colIndex, forbiddenNumbers = new Set()) => {
+                const candidates = [];
+                const allowedCandidates = [];
+                for (const poolItem of currentPool) {
+                    const canUse = placedCounts[poolItem.number] < poolItem.count;
+                    if (!canUse) continue;
+                    candidates.push(poolItem.number);
+                    if (!forbiddenNumbers.has(poolItem.number)) {
+                        allowedCandidates.push(poolItem.number);
+                    }
+                }
+                if (candidates.length === 0) return null;
+                const source = allowedCandidates.length > 0 ? allowedCandidates : candidates;
+                return chooseCandidateByControl(rowIndex, colIndex, source);
+            };
+
+            for (let index = 0; index < targetOrder.length; index++) {
+                const { i, j } = targetOrder[index];
+                let num = null;
+
+                const adjacentSamePositionNumbers = [];
+                if (isRowDirection) {
+                    const upNum = i > 0 ? workingBoard[i - 1]?.[j] : null;
+                    const downNum = i < height - 1 ? workingBoard[i + 1]?.[j] : null;
+                    if (upNum !== null && upNum !== undefined) adjacentSamePositionNumbers.push(upNum);
+                    if (downNum !== null && downNum !== undefined) adjacentSamePositionNumbers.push(downNum);
+                } else {
+                    const leftNum = j > 0 ? workingBoard[i]?.[j - 1] : null;
+                    const rightNum = j < width - 1 ? workingBoard[i]?.[j + 1] : null;
+                    if (leftNum !== null && leftNum !== undefined) adjacentSamePositionNumbers.push(leftNum);
+                    if (rightNum !== null && rightNum !== undefined) adjacentSamePositionNumbers.push(rightNum);
+                }
+
+                const adjacentLineSet = new Set();
+                if (isRowDirection) {
+                    if (i > 0) {
+                        for (let col = 0; col < width; col++) {
+                            const value = workingBoard[i - 1]?.[col];
+                            if (value !== null && value !== undefined) adjacentLineSet.add(value);
+                        }
+                    }
+                    if (i < height - 1) {
+                        for (let col = 0; col < width; col++) {
+                            const value = workingBoard[i + 1]?.[col];
+                            if (value !== null && value !== undefined) adjacentLineSet.add(value);
+                        }
+                    }
+                } else {
+                    if (j > 0) {
+                        for (let row = 0; row < height; row++) {
+                            const value = workingBoard[row]?.[j - 1];
+                            if (value !== null && value !== undefined) adjacentLineSet.add(value);
+                        }
+                    }
+                    if (j < width - 1) {
+                        for (let row = 0; row < height; row++) {
+                            const value = workingBoard[row]?.[j + 1];
+                            if (value !== null && value !== undefined) adjacentLineSet.add(value);
+                        }
+                    }
+                }
+                const adjacentLineNumbers = Array.from(adjacentLineSet);
+
+                const aroundNeighborSet = new Set();
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        if (di === 0 && dj === 0) continue;
+                        const ni = i + di;
+                        const nj = j + dj;
+                        if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
+                        const value = workingBoard[ni]?.[nj];
+                        if (value !== null && value !== undefined) aroundNeighborSet.add(value);
+                    }
+                }
+                const aroundNeighborNumbers = Array.from(aroundNeighborSet);
+
+                const forbiddenNumbers = new Set();
+                const tryAdjacentLineSet = Math.random() < sameNum;
+                if (!tryAdjacentLineSet) {
+                    adjacentLineNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                const trySamePosition = Math.random() < xianglinSame;
+                if (trySamePosition) {
+                    num = pickByCandidateNumbers(i, j, adjacentSamePositionNumbers, forbiddenNumbers);
+                } else {
+                    adjacentSamePositionNumbers.forEach(value => forbiddenNumbers.add(value));
+                }
+
+                if (num === null && tryAdjacentLineSet) {
+                    num = pickByCandidateNumbers(i, j, adjacentLineNumbers, forbiddenNumbers);
+                }
+
+                if (num === null) {
+                    const preferUsed = Math.random() < sameLie;
+                    num = pickByGroupPreference(i, j, preferUsed, forbiddenNumbers);
+                    if (num === null) {
+                        num = pickByGroupPreference(i, j, !preferUsed, forbiddenNumbers);
+                    }
+                }
+
+                if (num === null) {
+                    num = pickAnyCard(i, j, forbiddenNumbers);
+                }
+
+                if (num === null) {
+                    num = getNextCard();
+                }
+
+                if (num !== null) {
+                    if (aroundNeighborSet.has(num) && Math.random() >= distanceCtrl) {
+                        const replaceForbidden = new Set(forbiddenNumbers);
+                        aroundNeighborNumbers.forEach(value => replaceForbidden.add(value));
+                        const preferUsedForReplace = Math.random() < sameLie;
+                        let replacement = pickByGroupPreference(
+                            i,
+                            j,
+                            preferUsedForReplace,
+                            replaceForbidden
+                        );
+                        if (replacement === null) {
+                            replacement = pickByGroupPreference(
+                                i,
+                                j,
+                                !preferUsedForReplace,
+                                replaceForbidden
+                            );
+                        }
+                        if (replacement === null && tryAdjacentLineSet) {
+                            replacement = pickByCandidateNumbers(
+                                i,
+                                j,
+                                adjacentLineNumbers,
+                                replaceForbidden
+                            );
+                        }
+                        if (replacement === null) {
+                            replacement = pickAnyCard(i, j, replaceForbidden);
+                        }
+                        if (replacement !== null) num = replacement;
+                    }
+
+                    const reservedCard = getSpecificCard(num);
+                    if (reservedCard === null) {
+                        num = getNextCard();
+                    }
+                }
+
+                if (num !== null) {
+                    placedCounts[num] = (placedCounts[num] || 0) + 1;
+                    workingBoard[i][j] = num;
+                }
+            }
+
+            return workingBoard;
+        }
+
+        function buildRegenerateFillPlan(direction) {
+            const width = parseInt(document.getElementById('width')?.value, 10) || 8;
+            const height = parseInt(document.getElementById('height')?.value, 10) || 14;
+            if (!width || !height) return null;
+
+            const fillOrder = getFillOrder(width, height, direction);
+            const targetOrder = collectRegenerateFillOrder(fillOrder);
+            if (!validateBeforeRegenerateFill(targetOrder)) return null;
+
+            calculatePool();
+            calculatePoolForGenerate(width, height, targetOrder.length);
+            if (!Array.isArray(poolCards) || poolCards.length !== targetOrder.length) {
+                alert('数字池与可生成格子数量不匹配，请调整数字配置。');
+                return null;
+            }
+            const sameLie = getProbabilityValue('sameLie', 0.1);
+            const sameNum = getProbabilityValue('sameNum', 0.1);
+            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
+            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
+            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
+
+            const boardBefore = cloneBoardData(filledCells);
+            const boardAfter = cloneBoardData(filledCells);
+            const generatedBoard = generateNumbersForTargetOrder(
+                targetOrder,
+                width,
+                height,
+                direction,
+                sameLie,
+                sameNum,
+                xianglinSame,
+                directionBothCtrl,
+                distanceCtrl
+            );
+
+            for (let index = 0; index < targetOrder.length; index++) {
+                const target = targetOrder[index];
+                const cardNumber = generatedBoard[target.i]?.[target.j];
+                if (!Number.isInteger(cardNumber) || cardNumber <= 0) continue;
+                const attachmentId = target.attachmentId;
+                boardAfter[target.i][target.j] = ATTACHMENT_IDS.has(attachmentId)
+                    ? encodeAttachedCellId(cardNumber, attachmentId)
+                    : cardNumber;
+            }
+
+            const groups = buildStepGroups(targetOrder, direction);
+            return {
+                boardBefore,
+                boardAfter,
+                groups
+            };
+        }
+
+        function buildRegenerateFillPlanForBoard(sourceBoard, options = {}) {
+            if (!Array.isArray(sourceBoard) || sourceBoard.length === 0) {
+                return { success: false, message: '棋盘数据为空。' };
+            }
+            const height = sourceBoard.length;
+            const width = sourceBoard[0]?.length || 0;
+            if (width <= 0) {
+                return { success: false, message: '棋盘宽度无效。' };
+            }
+            const isRectBoard = sourceBoard.every((row) => Array.isArray(row) && row.length === width);
+            if (!isRectBoard) {
+                return { success: false, message: '棋盘数据必须是规则二维数组。' };
+            }
+
+            const direction = Number.isFinite(Number(options.direction))
+                ? Math.round(Number(options.direction))
+                : 0;
+            const safeDirection = Math.max(0, Math.min(8, direction));
+
+            const fillOrder = getFillOrder(width, height, safeDirection);
+            const targetOrder = collectRegenerateFillOrder(fillOrder, sourceBoard);
+            if (!Array.isArray(targetOrder) || targetOrder.length === 0) {
+                return { success: false, message: '当前棋盘没有可重新生成的数字或占位块。' };
+            }
+            if (targetOrder.length % 2 !== 0) {
+                return { success: false, message: '可生成格子数量必须为偶数。' };
+            }
+
+            const sameLie = Math.max(
+                0,
+                Math.min(
+                    1,
+                    Number.isFinite(Number(options.sameLie)) ? Number(options.sameLie) : 0.1
+                )
+            );
+            const sameNum = Math.max(
+                0,
+                Math.min(
+                    1,
+                    Number.isFinite(Number(options.sameNum)) ? Number(options.sameNum) : 0.1
+                )
+            );
+            const xianglinSame = Math.max(
+                0,
+                Math.min(
+                    1,
+                    Number.isFinite(Number(options.xianglinSame))
+                        ? Number(options.xianglinSame)
+                        : 0.1
+                )
+            );
+            const directionBothCtrl = Math.max(
+                0,
+                Math.min(
+                    1,
+                    Number.isFinite(Number(options.directionBothCtrl))
+                        ? Number(options.directionBothCtrl)
+                        : 0.5
+                )
+            );
+            const distanceCtrl = Math.max(
+                0,
+                Math.min(
+                    1,
+                    Number.isFinite(Number(options.distanceCtrl))
+                        ? Number(options.distanceCtrl)
+                        : 0.1
+                )
+            );
+            const count8Override = Number.isFinite(Number(options.count8))
+                ? Math.max(0, Math.floor(Number(options.count8)))
+                : null;
+            const count6Override = Number.isFinite(Number(options.count6))
+                ? Math.max(0, Math.floor(Number(options.count6)))
+                : null;
+
+            calculatePoolForGenerate(
+                width,
+                height,
+                targetOrder.length,
+                count8Override,
+                count6Override
+            );
+            if (!Array.isArray(poolCards) || poolCards.length !== targetOrder.length) {
+                return { success: false, message: '数字池与可生成格子数量不匹配。' };
+            }
+
+            const boardAfter = cloneBoardData(sourceBoard);
+            const generatedBoard = generateNumbersForTargetOrder(
+                targetOrder,
+                width,
+                height,
+                safeDirection,
+                sameLie,
+                sameNum,
+                xianglinSame,
+                directionBothCtrl,
+                distanceCtrl
+            );
+
+            for (let index = 0; index < targetOrder.length; index++) {
+                const target = targetOrder[index];
+                const cardNumber = generatedBoard[target.i]?.[target.j];
+                if (!Number.isInteger(cardNumber) || cardNumber <= 0) continue;
+                const attachmentId = target.attachmentId;
+                boardAfter[target.i][target.j] = ATTACHMENT_IDS.has(attachmentId)
+                    ? encodeAttachedCellId(cardNumber, attachmentId)
+                    : cardNumber;
+            }
+
+            return {
+                success: true,
+                boardData: boardAfter,
+                direction: safeDirection,
+                generatedCellCount: targetOrder.length
+            };
+        }
+
         function startStepGeneration() {
             exitPlayMode({ restoreBoard: false, silent: true });
             shuffleImages();
@@ -3672,253 +5566,24 @@
                 btn.style.background = '';
             }
 
-            const fillPlan = buildPlaceholderFillPlan(direction);
+            const fillPlan = buildRegenerateFillPlan(direction);
             if (!fillPlan) return;
             filledCells = cloneBoardData(fillPlan.boardAfter);
             syncBoardDisplayByData(filledCells);
+            updateResultSummaryByBoard(filledCells);
             updateLevelStats(direction);
             setTimeout(scaleBoard, 100);
         }
 
         function resetLevelStats() {
-            const statsTypes = document.getElementById('levelStatsTypes');
-            const statsPairs = document.getElementById('levelStatsPairs');
-            const statsAdjacent = document.getElementById('levelStatsAdjacent');
-            const statsDirectionBoth = document.getElementById('levelStatsDirectionBoth');
             const statsSimulation = document.getElementById('levelStatsSimulation');
-            if (statsTypes) statsTypes.textContent = '-';
-            if (statsPairs) statsPairs.textContent = '-';
-            if (statsAdjacent) statsAdjacent.textContent = '-';
-            if (statsDirectionBoth) statsDirectionBoth.textContent = '-';
             if (statsSimulation) statsSimulation.textContent = '-';
         }
 
         function updateLevelStats(direction) {
-            if (!filledCells || filledCells.length === 0) {
-                resetLevelStats();
-                return;
-            }
-
-            const width = parseInt(document.getElementById('width').value) || 0;
-            const height = parseInt(document.getElementById('height').value) || 0;
-            if (width <= 0 || height <= 0) {
-                resetLevelStats();
-                return;
-            }
-
-            const numberCountMap = new Map();
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    const baseId = getCardCountBaseId(filledCells[i]?.[j]);
-                    if (baseId === null) continue;
-                    numberCountMap.set(baseId, (numberCountMap.get(baseId) || 0) + 1);
-                }
-            }
-
-            const countByCopies = (copies) => {
-                let total = 0;
-                numberCountMap.forEach((count) => {
-                    if (count === copies) total++;
-                });
-                return total;
-            };
-
-            const usedTypeCount = numberCountMap.size;
-            const kinds8 = countByCopies(8);
-            const kinds6 = countByCopies(6);
-            const kinds4 = countByCopies(4);
-            const kinds2 = countByCopies(2);
-
-            let adjacentPairCount = 0;
-            const visited = Array.from({ length: height }, () => Array(width).fill(false));
-            const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    const startValue = getCardCountBaseId(filledCells[i]?.[j]);
-                    if (startValue === null || visited[i][j]) continue;
-
-                    let componentSize = 0;
-                    const stack = [[i, j]];
-                    visited[i][j] = true;
-
-                    while (stack.length > 0) {
-                        const [ci, cj] = stack.pop();
-                        componentSize++;
-                        for (const [di, dj] of directions) {
-                            const ni = ci + di;
-                            const nj = cj + dj;
-                            if (ni < 0 || ni >= height || nj < 0 || nj >= width) continue;
-                            if (visited[ni][nj]) continue;
-                            if (getCardCountBaseId(filledCells[ni]?.[nj]) !== startValue) continue;
-                            visited[ni][nj] = true;
-                            stack.push([ni, nj]);
-                        }
-                    }
-                    adjacentPairCount += Math.floor(componentSize / 2);
-                }
-            }
-
-            const isRowDirection = isRowBaseDirection(direction);
-            const lineCount = isRowDirection ? height : width;
-            const lineSets = [];
-            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
-                const numberSet = new Set();
-                if (isRowDirection) {
-                    for (let j = 0; j < width; j++) {
-                        const baseId = getCardCountBaseId(filledCells[lineIndex]?.[j]);
-                        if (baseId !== null) numberSet.add(baseId);
-                    }
-                } else {
-                    for (let i = 0; i < height; i++) {
-                        const baseId = getCardCountBaseId(filledCells[i]?.[lineIndex]);
-                        if (baseId !== null) numberSet.add(baseId);
-                    }
-                }
-                lineSets.push(numberSet);
-            }
-
-            const countIntersection = (leftSet, rightSet) => {
-                let overlapCount = 0;
-                leftSet.forEach((value) => {
-                    if (rightSet.has(value)) overlapCount++;
-                });
-                return overlapCount;
-            };
-
-            const adjacentOverlapStats = [];
-            for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
-                let overlapTotal = 0;
-                if (lineIndex > 0) {
-                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex - 1]);
-                }
-                if (lineIndex < lineCount - 1) {
-                    overlapTotal += countIntersection(lineSets[lineIndex], lineSets[lineIndex + 1]);
-                }
-                adjacentOverlapStats.push(overlapTotal);
-            }
-            const adjacentOverlapSum = adjacentOverlapStats.reduce((sum, value) => sum + value, 0);
-            const adjacentOverlapAvg = lineCount > 0 ? adjacentOverlapSum / lineCount : 0;
-
-            const lineLabel = isRowDirection ? '行' : '列';
-            const formatRows = (entries, chunkSize = 4) => {
-                if (!entries || entries.length === 0) return '-';
-                const lines = [];
-                for (let i = 0; i < entries.length; i += chunkSize) {
-                    lines.push(entries.slice(i, i + chunkSize).join('  |  '));
-                }
-                return lines.join('\n');
-            };
-
-            const getLocalBaseDirection = (rowIndex, colIndex) => {
-                switch (direction) {
-                    case 1: return 1;
-                    case 2: return 2;
-                    case 3: return 3;
-                    case 4: return 4;
-                    case 5:
-                        return rowIndex < height / 2 ? 2 : 1;
-                    case 6:
-                        return colIndex < width / 2 ? 4 : 3;
-                    case 7:
-                        return rowIndex < height / 2 ? 1 : 2;
-                    case 8:
-                        return colIndex < width / 2 ? 3 : 4;
-                    default:
-                        return 0;
-                }
-            };
-
-            const collectSideNumbers = (rowIndex, colIndex, localDirection, sideType) => {
-                const sideNumbers = new Set();
-                if (localDirection === 0) return sideNumbers;
-
-                let stepI = 0;
-                let stepJ = 0;
-                if (localDirection === 1) {
-                    stepI = sideType === 'top' ? 1 : -1;
-                } else if (localDirection === 2) {
-                    stepI = sideType === 'top' ? -1 : 1;
-                } else if (localDirection === 3) {
-                    stepJ = sideType === 'top' ? 1 : -1;
-                } else if (localDirection === 4) {
-                    stepJ = sideType === 'top' ? -1 : 1;
-                }
-
-                let ni = rowIndex + stepI;
-                let nj = colIndex + stepJ;
-                while (ni >= 0 && ni < height && nj >= 0 && nj < width) {
-                    const baseId = getCardCountBaseId(filledCells[ni]?.[nj]);
-                    if (baseId !== null) sideNumbers.add(baseId);
-                    ni += stepI;
-                    nj += stepJ;
-                }
-                return sideNumbers;
-            };
-
-            const mergeSetMap = new Map();
-            const lowerSetMap = new Map();
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    const current = getCardCountBaseId(filledCells[i]?.[j]);
-                    if (current === null) continue;
-                    const localDirection = getLocalBaseDirection(i, j);
-                    if (localDirection === 0) continue;
-
-                    const upperSet = collectSideNumbers(i, j, localDirection, 'top');
-                    const lowerSet = collectSideNumbers(i, j, localDirection, 'bottom');
-
-                    if (!mergeSetMap.has(current)) mergeSetMap.set(current, new Set());
-                    if (!lowerSetMap.has(current)) lowerSetMap.set(current, new Set());
-
-                    upperSet.forEach((value) => mergeSetMap.get(current).add(value));
-                    lowerSet.forEach((value) => lowerSetMap.get(current).add(value));
-                }
-            }
-
-            const directionBothStats = [];
-            const sortedNumbers = Array.from(numberCountMap.keys()).sort((a, b) => a - b);
-            for (const numberValue of sortedNumbers) {
-                const upperSet = mergeSetMap.get(numberValue) || new Set();
-                const lowerSet = lowerSetMap.get(numberValue) || new Set();
-                let bothCount = 0;
-                upperSet.forEach((value) => {
-                    if (lowerSet.has(value)) bothCount++;
-                });
-                directionBothStats.push(`${numberValue}:${bothCount}`);
-            }
-            const directionBothValues = directionBothStats.map((entry) => {
-                const parts = entry.split(':');
-                return parseInt(parts[1], 10) || 0;
-            });
-            const directionBothSum = directionBothValues.reduce((sum, value) => sum + value, 0);
-            const directionBothAvg = directionBothValues.length > 0
-                ? directionBothSum / directionBothValues.length
-                : 0;
-
-            const statsTypes = document.getElementById('levelStatsTypes');
-            const statsPairs = document.getElementById('levelStatsPairs');
-            const statsAdjacent = document.getElementById('levelStatsAdjacent');
-            const statsDirectionBoth = document.getElementById('levelStatsDirectionBoth');
-            if (statsTypes) {
-                statsTypes.textContent =
-                    `使用:${usedTypeCount}  |  8张:${kinds8}  |  6张:${kinds6}\n` +
-                    `4张:${kinds4}  |  2张:${kinds2}`;
-            }
-            if (statsPairs) statsPairs.textContent = `${adjacentPairCount}`;
-            if (statsAdjacent) {
-                statsAdjacent.textContent =
-                    `${formatRows(adjacentOverlapStats.map((value, index) => `${lineLabel}${index + 1}:${value}`), 3)}\n` +
-                    `合计:${adjacentOverlapSum}  |  平均:${adjacentOverlapAvg.toFixed(2)}`;
-            }
-            if (statsDirectionBoth) {
-                if (direction === 0) {
-                    statsDirectionBoth.textContent = '方向0不统计';
-                } else {
-                    statsDirectionBoth.textContent =
-                        `${formatRows(directionBothStats, 4)}\n` +
-                        `合计:${directionBothSum}  |  平均:${directionBothAvg.toFixed(2)}`;
-                }
-            }
+            void direction;
+            const statsSimulation = document.getElementById('levelStatsSimulation');
+            if (statsSimulation) statsSimulation.textContent = '-';
         }
 
         function shuffleArray(array) {
@@ -4166,6 +5831,686 @@
             }).catch(() => {
                 alert('复制失败，请手动复制');
             });
+        }
+
+        function normalizeImportedBoardMatrix(rawBoardData) {
+            if (!Array.isArray(rawBoardData) || rawBoardData.length === 0) return null;
+            if (!Array.isArray(rawBoardData[0]) || rawBoardData[0].length === 0) return null;
+            const width = rawBoardData[0].length;
+            const normalized = [];
+            for (const row of rawBoardData) {
+                if (!Array.isArray(row) || row.length !== width) return null;
+                const normalizedRow = row.map((value) => {
+                    const numericValue = Number(value);
+                    if (!Number.isFinite(numericValue)) return EMPTY_CELL_ID;
+                    return Math.trunc(numericValue);
+                });
+                normalized.push(normalizedRow);
+            }
+            return normalized;
+        }
+
+        function extractBoardFromParsedClipboardData(parsedData) {
+            if (Array.isArray(parsedData)) {
+                if (parsedData.length > 0 && Array.isArray(parsedData[0])) {
+                    return parsedData;
+                }
+                if (parsedData.length > 0 && parsedData[0] && typeof parsedData[0] === 'object') {
+                    const firstItem = parsedData[0];
+                    if (Array.isArray(firstItem.zhenxing)) return firstItem.zhenxing;
+                    if (Array.isArray(firstItem.board)) return firstItem.board;
+                }
+            }
+            if (parsedData && typeof parsedData === 'object') {
+                if (Array.isArray(parsedData.zhenxing)) return parsedData.zhenxing;
+                if (Array.isArray(parsedData.board)) return parsedData.board;
+                if (Array.isArray(parsedData.levels) && parsedData.levels.length > 0) {
+                    const firstLevel = parsedData.levels[0];
+                    if (firstLevel && Array.isArray(firstLevel.zhenxing)) return firstLevel.zhenxing;
+                    if (firstLevel && Array.isArray(firstLevel.board)) return firstLevel.board;
+                }
+            }
+            return null;
+        }
+
+        function parseBoardFromClipboardText(clipboardText) {
+            if (typeof clipboardText !== 'string') return null;
+            const text = clipboardText.trim();
+            if (!text) return null;
+
+            const tryParseJson = (jsonText) => {
+                try {
+                    const parsed = JSON.parse(jsonText);
+                    return extractBoardFromParsedClipboardData(parsed);
+                } catch (_) {
+                    return null;
+                }
+            };
+
+            const directParsed = tryParseJson(text);
+            if (directParsed) return directParsed;
+
+            const tabSegments = text.split('\t');
+            for (const segment of tabSegments) {
+                const candidate = tryParseJson(segment.trim());
+                if (candidate) return candidate;
+            }
+
+            const arrayStart = text.indexOf('[[');
+            const arrayEnd = text.lastIndexOf(']]');
+            if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
+                const candidateText = text.slice(arrayStart, arrayEnd + 2);
+                const candidate = tryParseJson(candidateText);
+                if (candidate) return candidate;
+            }
+            return null;
+        }
+
+        async function importBoardFromClipboard() {
+            if (isSimulatingPlayGames || isBatchCampaignRunning || isBatchGenerating) {
+                alert('当前有任务进行中，请稍后再试。');
+                return;
+            }
+            if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
+                alert('当前环境不支持读取剪贴板。');
+                return;
+            }
+
+            let clipboardText = '';
+            try {
+                clipboardText = await navigator.clipboard.readText();
+            } catch (error) {
+                console.error('Failed to read clipboard:', error);
+                alert('读取剪贴板失败，请检查浏览器权限。');
+                return;
+            }
+
+            const parsedBoard = parseBoardFromClipboardText(clipboardText);
+            const boardData = normalizeImportedBoardMatrix(parsedBoard);
+            if (!boardData) {
+                alert('剪贴板中未找到有效阵型数据。');
+                return;
+            }
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value || 0,
+                10
+            );
+            const loaded = loadBoardDataIntoEditor(boardData, direction);
+            if (!loaded) return;
+
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已读取阵型：${boardData[0].length}×${boardData.length}`;
+        }
+
+        function loadBoardDataIntoEditor(boardData, direction = 0) {
+            const normalizedBoard = normalizeImportedBoardMatrix(boardData);
+            if (!normalizedBoard) {
+                alert('阵型数据无效。');
+                return false;
+            }
+            const height = normalizedBoard.length;
+            const width = normalizedBoard[0].length;
+            if (width < 6 || width > 10 || height < 6 || height > 14) {
+                alert('读取失败：阵型尺寸超出范围（宽度 6-10，高度 6-14）。');
+                return false;
+            }
+
+            const safeDirection = Number.isFinite(Number(direction))
+                ? Math.max(0, Math.min(8, Math.round(Number(direction))))
+                : 0;
+            selectDirection(safeDirection);
+            setSliderControlValue('width', 'widthValue', width, 0);
+            setSliderControlValue('height', 'heightValue', height, 0);
+            calculatePool();
+            generateBoard();
+
+            filledCells = cloneBoardData(normalizedBoard);
+            syncBoardDisplayByData(filledCells);
+            updateResultSummaryByBoard(filledCells);
+            updateLevelStats(safeDirection);
+            setTimeout(scaleBoard, 100);
+            return true;
+        }
+
+        function getNextSavedLevelId() {
+            if (!Array.isArray(savedLevels) || savedLevels.length === 0) return 1;
+            let maxId = 0;
+            for (const item of savedLevels) {
+                const itemId = Number(item?.id);
+                if (Number.isFinite(itemId) && itemId > maxId) {
+                    maxId = Math.floor(itemId);
+                }
+            }
+            return maxId + 1;
+        }
+
+        function getSavedLevelSpecialIconPath(specialKey) {
+            if (specialKey === `attachment-${ATTACHMENT_FANPAI_ID}`) {
+                return getAttachmentImagePath(ATTACHMENT_FANPAI_ID);
+            }
+            if (specialKey === `attachment-${ATTACHMENT_ICESHELL_ID}`) {
+                return getAttachmentImagePath(ATTACHMENT_ICESHELL_ID);
+            }
+            if (String(specialKey).startsWith('obstacle-')) {
+                const obstacleId = parseInt(String(specialKey).slice(9), 10);
+                if (Number.isFinite(obstacleId)) return getObstacleImagePath(obstacleId);
+            }
+            return '';
+        }
+
+        function getSavedLevelSpecialTitle(specialKey) {
+            const titleMap = {
+                [`attachment-${ATTACHMENT_FANPAI_ID}`]: '翻牌附着',
+                [`attachment-${ATTACHMENT_ICESHELL_ID}`]: '冰壳附着',
+                [`obstacle-${STONE_CELL_ID}`]: '石头',
+                [`obstacle-${WOOD_CELL_ID}`]: '木块',
+                [`obstacle-${MAGNET_CELL_ID}`]: '磁铁',
+                [`obstacle-${ICE_LEVEL_1_CELL_ID}`]: '冰块1',
+                [`obstacle-${ICE_LEVEL_2_CELL_ID}`]: '冰块2',
+                [`obstacle-${ICE_LEVEL_3_CELL_ID}`]: '冰块3'
+            };
+            return titleMap[specialKey] || `ID:${specialKey}`;
+        }
+
+        function collectSavedLevelSpecialBaseIds(boardData) {
+            const usedKeys = new Set();
+            if (!Array.isArray(boardData)) return [];
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    if (isObstacleBaseId(parsed.baseId)) {
+                        usedKeys.add(`obstacle-${parsed.baseId}`);
+                    }
+                    if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                        usedKeys.add(`attachment-${parsed.attachmentId}`);
+                    }
+                }
+            }
+            const preferredOrder = [
+                `attachment-${ATTACHMENT_FANPAI_ID}`,
+                `attachment-${ATTACHMENT_ICESHELL_ID}`,
+                `obstacle-${STONE_CELL_ID}`,
+                `obstacle-${WOOD_CELL_ID}`,
+                `obstacle-${MAGNET_CELL_ID}`,
+                `obstacle-${ICE_LEVEL_1_CELL_ID}`,
+                `obstacle-${ICE_LEVEL_2_CELL_ID}`,
+                `obstacle-${ICE_LEVEL_3_CELL_ID}`
+            ];
+            const ordered = preferredOrder.filter((key) => usedKeys.has(key));
+            usedKeys.forEach((key) => {
+                if (!ordered.includes(key)) ordered.push(key);
+            });
+            return ordered;
+        }
+
+        function normalizeBoardForSavedLevel(boardData) {
+            const normalizedBoard = normalizeImportedBoardMatrix(boardData);
+            if (!normalizedBoard) return null;
+            return normalizedBoard.map((row) => row.map((rawId) => {
+                const parsed = decodeCellId(rawId);
+                if (isEmptyCellId(parsed.baseId)) return EMPTY_CELL_ID;
+                if (isObstacleBaseId(parsed.baseId)) return parsed.baseId;
+
+                // 保存阵型时，花色牌统一保存为占位块；附着关系保留
+                if (parsed.baseId >= 1 && parsed.baseId <= 98) {
+                    if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                        return encodeAttachedCellId(PLACEHOLDER_CELL_ID, parsed.attachmentId);
+                    }
+                    return PLACEHOLDER_CELL_ID;
+                }
+
+                // 炸弹等特殊可消块保持原样
+                if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                    return encodeAttachedCellId(parsed.baseId, parsed.attachmentId);
+                }
+                return parsed.baseId;
+            }));
+        }
+
+        function getSavedLevelPreviewImagePath(baseId) {
+            if (baseId === PLACEHOLDER_CELL_ID) return 'img/base.png';
+            if (isObstacleBaseId(baseId)) return getObstacleImagePath(baseId);
+            if (baseId === BOMB_CELL_ID) return 'img/zhadan.png';
+            if (baseId >= 1 && baseId <= 98) {
+                const imageIndex = ((baseId - 1) % 34) + 1;
+                return `img/${imageIndex}.png`;
+            }
+            return '';
+        }
+
+        function getBoardCellAspectRatioForPreview() {
+            const fallbackWidth = 150;
+            const fallbackHeight = 162;
+            const firstCell = document.getElementById('cell-0-0');
+            if (!firstCell) {
+                return {
+                    width: fallbackWidth,
+                    height: fallbackHeight,
+                    ratio: fallbackHeight / fallbackWidth
+                };
+            }
+            const rect = firstCell.getBoundingClientRect();
+            const width = rect.width > 0 ? rect.width : fallbackWidth;
+            const height = rect.height > 0 ? rect.height : fallbackHeight;
+            return {
+                width,
+                height,
+                ratio: height / width
+            };
+        }
+
+        function moveSavedLevelPreview(clientX, clientY) {
+            const preview = document.getElementById('savedLevelPreview');
+            if (!preview || !preview.classList.contains('visible')) return;
+            const offset = 14;
+            const viewportWidth = window.innerWidth || 0;
+            const viewportHeight = window.innerHeight || 0;
+            const previewWidth = preview.offsetWidth || 220;
+            const previewHeight = preview.offsetHeight || 140;
+            const left = Math.min(
+                Math.max(0, clientX + offset),
+                Math.max(0, viewportWidth - previewWidth - 8)
+            );
+            const top = Math.min(
+                Math.max(0, clientY + offset),
+                Math.max(0, viewportHeight - previewHeight - 8)
+            );
+            preview.style.left = `${left}px`;
+            preview.style.top = `${top}px`;
+        }
+
+        function hideSavedLevelPreview() {
+            const preview = document.getElementById('savedLevelPreview');
+            if (!preview) return;
+            preview.classList.remove('visible');
+            preview.innerHTML = '';
+        }
+
+        function showSavedLevelPreview(index, clientX, clientY) {
+            const preview = document.getElementById('savedLevelPreview');
+            const savedItem = savedLevels[index];
+            if (!preview || !savedItem || !Array.isArray(savedItem.boardData)) return;
+
+            const rowCount = savedItem.boardData.length;
+            const colCount = savedItem.boardData[0]?.length || 0;
+            if (!rowCount || !colCount) return;
+
+            preview.innerHTML = '';
+            const header = document.createElement('div');
+            header.className = 'saved-level-preview-header';
+            header.textContent = `#${savedItem.id}  ${colCount}×${rowCount}  方向 ${savedItem.direction}`;
+            preview.appendChild(header);
+
+            const board = document.createElement('div');
+            board.className = 'saved-level-preview-board';
+            const safeColCount = Math.max(1, colCount);
+            const safeRowCount = Math.max(1, rowCount);
+            const maxPreviewBoardWidth = 260;
+            const maxPreviewBoardHeight = 220;
+            const boardCellSize = getBoardCellAspectRatioForPreview();
+            const ratio = boardCellSize.ratio > 0 ? boardCellSize.ratio : (162 / 150);
+            const widthByCols = Math.floor((maxPreviewBoardWidth / safeColCount) - 1);
+            const widthByRows = Math.floor((maxPreviewBoardHeight / safeRowCount) / ratio);
+            const cellWidth = Math.max(10, Math.min(18, Math.min(widthByCols, widthByRows)));
+            const cellHeight = Math.max(10, Math.round(cellWidth * ratio));
+            board.style.gridTemplateColumns = `repeat(${safeColCount}, ${cellWidth}px)`;
+
+            for (const row of savedItem.boardData) {
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    const cell = document.createElement('div');
+                    cell.className = 'saved-level-preview-cell';
+                    cell.style.width = `${cellWidth}px`;
+                    cell.style.height = `${cellHeight}px`;
+                    if (isEmptyCellId(parsed.baseId)) {
+                        cell.classList.add('is-empty');
+                        board.appendChild(cell);
+                        continue;
+                    }
+
+                    const imagePath = getSavedLevelPreviewImagePath(parsed.baseId);
+                    if (imagePath) {
+                        const image = document.createElement('img');
+                        image.src = imagePath;
+                        image.alt = '';
+                        cell.appendChild(image);
+                    }
+
+                    if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                        const attachmentPath = getAttachmentImagePath(parsed.attachmentId);
+                        if (attachmentPath) {
+                            const attachment = document.createElement('img');
+                            attachment.src = attachmentPath;
+                            attachment.alt = '';
+                            attachment.className = 'saved-level-preview-attachment';
+                            cell.appendChild(attachment);
+                        }
+                    }
+                    board.appendChild(cell);
+                }
+            }
+
+            preview.appendChild(board);
+            preview.classList.add('visible');
+            moveSavedLevelPreview(clientX, clientY);
+        }
+
+        function renderSavedLevelList() {
+            closeSavedLevelContextMenu();
+            hideSavedLevelPreview();
+            const listContainer = document.getElementById('savedLevelList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            if (!Array.isArray(savedLevels) || savedLevels.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'saved-level-empty';
+                empty.textContent = '暂无保存关卡。点击“保存本关”可加入列表。';
+                listContainer.appendChild(empty);
+                return;
+            }
+
+            savedLevels.forEach((item, index) => {
+                const rowCount = item?.boardData?.length || 0;
+                const colCount = item?.boardData?.[0]?.length || 0;
+                const specialIds = collectSavedLevelSpecialBaseIds(item?.boardData);
+                const itemElement = document.createElement('div');
+                itemElement.className = 'saved-level-item';
+                itemElement.dataset.index = String(index);
+
+                const mainRow = document.createElement('div');
+                mainRow.className = 'saved-level-item-main';
+                const leftInfo = document.createElement('div');
+                leftInfo.className = 'saved-level-item-left';
+
+                const idLine = document.createElement('div');
+                idLine.className = 'saved-level-item-id';
+                idLine.textContent = `#${item.id}`;
+                const metaLine = document.createElement('div');
+                metaLine.className = 'saved-level-item-meta';
+                metaLine.textContent = `${colCount}×${rowCount} | 方向 ${item.direction}`;
+                leftInfo.appendChild(idLine);
+                leftInfo.appendChild(metaLine);
+                mainRow.appendChild(leftInfo);
+
+                if (specialIds.length > 0) {
+                    const iconRow = document.createElement('div');
+                    iconRow.className = 'saved-level-item-icons';
+                    specialIds.forEach((baseId) => {
+                        const iconPath = getSavedLevelSpecialIconPath(baseId);
+                        if (!iconPath) return;
+                        const icon = document.createElement('img');
+                        icon.className = 'saved-level-item-icon';
+                        icon.src = iconPath;
+                        icon.alt = getSavedLevelSpecialTitle(baseId);
+                        icon.title = getSavedLevelSpecialTitle(baseId);
+                        iconRow.appendChild(icon);
+                    });
+                    if (iconRow.childElementCount > 0) {
+                        mainRow.appendChild(iconRow);
+                    }
+                } else {
+                    const emptyText = document.createElement('div');
+                    emptyText.className = 'saved-level-item-icons-empty';
+                    emptyText.textContent = '无障碍/附着物';
+                    mainRow.appendChild(emptyText);
+                }
+                itemElement.appendChild(mainRow);
+
+                itemElement.onclick = () => readSavedLevelByIndex(index);
+                itemElement.oncontextmenu = (event) => {
+                    hideSavedLevelPreview();
+                    openSavedLevelContextMenu(event, index);
+                };
+                itemElement.onmouseenter = (event) => {
+                    showSavedLevelPreview(index, event.clientX, event.clientY);
+                };
+                itemElement.onmousemove = (event) => {
+                    moveSavedLevelPreview(event.clientX, event.clientY);
+                };
+                itemElement.onmouseleave = () => {
+                    hideSavedLevelPreview();
+                };
+                listContainer.appendChild(itemElement);
+            });
+        }
+
+        function saveCurrentLevelToList() {
+            if (isSimulatingPlayGames || isBatchCampaignRunning || isBatchGenerating) {
+                alert('当前有任务进行中，请稍后再试。');
+                return;
+            }
+            const boardData = normalizeBoardForSavedLevel(getBoardData());
+            if (!boardData) {
+                alert('当前棋盘无可保存数据。');
+                return;
+            }
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value || 0,
+                10
+            );
+            const levelEntry = {
+                id: getNextSavedLevelId(),
+                boardData: cloneBoardData(boardData),
+                direction: Number.isFinite(direction) ? direction : 0
+            };
+            savedLevels.push(levelEntry);
+            renderSavedLevelList();
+
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已保存关卡 #${levelEntry.id}`;
+        }
+
+        function readSavedLevelByIndex(index) {
+            const savedItem = savedLevels[index];
+            if (!savedItem) return;
+            closeSavedLevelContextMenu();
+            const loaded = loadBoardDataIntoEditor(savedItem.boardData, savedItem.direction);
+            if (!loaded) return;
+            const info = document.getElementById('info');
+            if (info) info.textContent = `已读取关卡 #${savedItem.id}`;
+        }
+
+        function deleteSavedLevelByIndex(index) {
+            if (index < 0 || index >= savedLevels.length) return;
+            const removed = savedLevels.splice(index, 1);
+            renderSavedLevelList();
+            const info = document.getElementById('info');
+            if (info && removed[0]) info.textContent = `已删除关卡 #${removed[0].id}`;
+        }
+
+        function moveSavedLevelToOrder(index, targetOrder) {
+            if (index < 0 || index >= savedLevels.length) return;
+            const clampedOrder = Math.max(1, Math.min(savedLevels.length, targetOrder));
+            const targetIndex = clampedOrder - 1;
+            if (targetIndex === index) return;
+            const [movedItem] = savedLevels.splice(index, 1);
+            savedLevels.splice(targetIndex, 0, movedItem);
+            renderSavedLevelList();
+        }
+
+        function openSavedLevelContextMenu(event, index) {
+            event.preventDefault();
+            hideSavedLevelPreview();
+            const contextMenu = document.getElementById('savedLevelContextMenu');
+            if (!contextMenu) return;
+            savedLevelContextIndex = index;
+            contextMenu.classList.add('visible');
+            const viewportWidth = window.innerWidth || 0;
+            const viewportHeight = window.innerHeight || 0;
+            const menuWidth = 140;
+            const menuHeight = 132;
+            const left = Math.min(Math.max(0, event.clientX), Math.max(0, viewportWidth - menuWidth - 6));
+            const top = Math.min(Math.max(0, event.clientY), Math.max(0, viewportHeight - menuHeight - 6));
+            contextMenu.style.left = `${left}px`;
+            contextMenu.style.top = `${top}px`;
+        }
+
+        function closeSavedLevelContextMenu() {
+            const contextMenu = document.getElementById('savedLevelContextMenu');
+            if (!contextMenu) return;
+            contextMenu.classList.remove('visible');
+            savedLevelContextIndex = -1;
+        }
+
+        function handleSavedLevelContextAction(action) {
+            const index = savedLevelContextIndex;
+            if (index < 0 || index >= savedLevels.length) {
+                closeSavedLevelContextMenu();
+                return;
+            }
+            if (action === 'read') {
+                readSavedLevelByIndex(index);
+                closeSavedLevelContextMenu();
+                return;
+            }
+            if (action === 'delete') {
+                deleteSavedLevelByIndex(index);
+                closeSavedLevelContextMenu();
+                return;
+            }
+            if (action === 'reorder') {
+                const rawInput = prompt('请输入新的序号（从1开始）', String(index + 1));
+                if (rawInput !== null) {
+                    const targetOrder = parseInt(rawInput, 10);
+                    if (Number.isFinite(targetOrder)) {
+                        moveSavedLevelToOrder(index, targetOrder);
+                    }
+                }
+                closeSavedLevelContextMenu();
+            }
+        }
+
+        function triggerImportSavedLevels() {
+            if (isBatchCampaignRunning || isBatchGenerating || isSimulatingPlayGames) {
+                alert('当前有任务进行中，请稍后再试。');
+                return;
+            }
+            const input = document.getElementById('savedLevelFileInput');
+            if (!input) return;
+            input.value = '';
+            input.click();
+        }
+
+        function parseSavedLevelsFromText(text) {
+            const result = [];
+            if (typeof text !== 'string') return result;
+            const trimmed = text.trim();
+            if (!trimmed) return result;
+
+            const tryParseJsonArray = () => {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (!Array.isArray(parsed)) return;
+                    for (const entry of parsed) {
+                        const rawBoard = Array.isArray(entry?.zhenxing) ? entry.zhenxing : entry?.boardData;
+                        const boardData = normalizeImportedBoardMatrix(rawBoard);
+                        if (!boardData) continue;
+                        const rawDirection = Number(entry?.fangxiang ?? entry?.direction);
+                        const direction = Number.isFinite(rawDirection)
+                            ? Math.max(0, Math.min(8, Math.round(rawDirection)))
+                            : 0;
+                        const rawId = Number(entry?.id ?? entry?.level);
+                        const id = Number.isFinite(rawId) ? Math.max(1, Math.floor(rawId)) : null;
+                        result.push({ id, boardData, direction });
+                    }
+                } catch (_) {}
+            };
+
+            tryParseJsonArray();
+            if (result.length > 0) return result;
+
+            const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+            for (const line of lines) {
+                const firstTab = line.indexOf('\t');
+                const lastTab = line.lastIndexOf('\t');
+                if (firstTab <= 0 || lastTab <= firstTab) continue;
+                const idText = line.slice(0, firstTab).trim();
+                const boardText = line.slice(firstTab + 1, lastTab).trim();
+                const directionText = line.slice(lastTab + 1).trim();
+                let parsedBoard = null;
+                try {
+                    parsedBoard = JSON.parse(boardText);
+                } catch (_) {
+                    parsedBoard = null;
+                }
+                const boardData = normalizeImportedBoardMatrix(parsedBoard);
+                if (!boardData) continue;
+                const rawId = Number(idText);
+                const id = Number.isFinite(rawId) ? Math.max(1, Math.floor(rawId)) : null;
+                const rawDirection = Number(directionText);
+                const direction = Number.isFinite(rawDirection)
+                    ? Math.max(0, Math.min(8, Math.round(rawDirection)))
+                    : 0;
+                result.push({ id, boardData, direction });
+            }
+            return result;
+        }
+
+        function exportSavedLevels() {
+            if (!Array.isArray(savedLevels) || savedLevels.length === 0) {
+                alert('列表为空，暂无可导出关卡。');
+                return;
+            }
+            let content = '';
+            savedLevels.forEach((item) => {
+                content += `${item.id}\t${JSON.stringify(item.boardData)}\t${item.direction}\n`;
+            });
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `关卡列表_${savedLevels.length}关.txt`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 0);
+        }
+
+        function handleSavedLevelFileChange(event) {
+            const input = event?.target || document.getElementById('savedLevelFileInput');
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const text = typeof reader.result === 'string' ? reader.result : '';
+                    const parsedItems = parseSavedLevelsFromText(text);
+                    if (parsedItems.length === 0) {
+                        alert('读取失败：文件中没有有效关卡。');
+                        return;
+                    }
+                    const normalized = [];
+                    const usedIds = new Set();
+                    let nextId = 1;
+                    for (const item of parsedItems) {
+                        let id = Number.isFinite(Number(item.id)) ? Math.floor(Number(item.id)) : null;
+                        if (!id || id <= 0 || usedIds.has(id)) {
+                            while (usedIds.has(nextId)) nextId++;
+                            id = nextId;
+                        }
+                        usedIds.add(id);
+                        normalized.push({
+                            id,
+                            boardData: cloneBoardData(item.boardData),
+                            direction: item.direction
+                        });
+                    }
+                    savedLevels = normalized;
+                    renderSavedLevelList();
+                    const info = document.getElementById('info');
+                    if (info) info.textContent = `已读取关卡列表：${savedLevels.length} 关`;
+                } catch (error) {
+                    console.error('Failed to import saved levels:', error);
+                    alert('读取失败，请检查文件格式。');
+                } finally {
+                    if (input) input.value = '';
+                }
+            };
+            reader.onerror = () => {
+                alert('读取文件失败，请重试。');
+                if (input) input.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
         }
 
         function getBoardData() {
@@ -4502,9 +6847,19 @@
             return getBoardData();
         }
 
-        function calculatePoolForGenerate(width, height, totalCellCount = null) {
-            const count8 = parseInt(document.getElementById('count8').value) || 0;
-            const count6 = parseInt(document.getElementById('count6').value) || 0;
+        function calculatePoolForGenerate(
+            width,
+            height,
+            totalCellCount = null,
+            count8Override = null,
+            count6Override = null
+        ) {
+            const count8 = Number.isFinite(Number(count8Override))
+                ? Math.max(0, Math.floor(Number(count8Override)))
+                : (parseInt(document.getElementById('count8')?.value, 10) || 0);
+            const count6 = Number.isFinite(Number(count6Override))
+                ? Math.max(0, Math.floor(Number(count6Override)))
+                : (parseInt(document.getElementById('count6')?.value, 10) || 0);
 
             const totalCells = Number.isInteger(totalCellCount) && totalCellCount > 0
                 ? totalCellCount
@@ -4665,7 +7020,434 @@
             return { adjacentBaselineAvg, directionBothAvg };
         }
 
-        function batchGenerate() {
+        function triggerBatchRunCampaignImport() {
+            if (isBatchCampaignRunning || isBatchGenerating || isSimulatingPlayGames) return;
+            const fileInput = document.getElementById('batchRunCampaignFileInput');
+            if (!fileInput) return;
+            fileInput.value = '';
+            fileInput.click();
+        }
+
+        async function handleBatchRunCampaignFileChange(event) {
+            const fileInput = event?.target || document.getElementById('batchRunCampaignFileInput');
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+
+            const readJsonFile = () => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const text = typeof reader.result === 'string' ? reader.result : '';
+                    resolve(text);
+                };
+                reader.onerror = () => {
+                    reject(reader.error || new Error('读取文件失败'));
+                };
+                reader.readAsText(file, 'utf-8');
+            });
+
+            try {
+                const content = await readJsonFile();
+                let parsed = null;
+                try {
+                    parsed = JSON.parse(content);
+                } catch (error) {
+                    throw new Error(`JSON解析失败：${error.message || '格式错误'}`);
+                }
+
+                const levelConfigs = Array.isArray(parsed)
+                    ? parsed
+                    : (Array.isArray(parsed?.levels) ? parsed.levels : null);
+                if (!Array.isArray(levelConfigs) || levelConfigs.length === 0) {
+                    throw new Error('JSON中没有可用的关卡数组。');
+                }
+                await runBatchCampaign(levelConfigs);
+            } catch (error) {
+                console.error('Failed to run campaign:', error);
+                alert(error.message || '跑关失败，请检查配置。');
+            } finally {
+                if (fileInput) fileInput.value = '';
+            }
+        }
+
+        function normalizeCampaignConfigKey(key) {
+            return String(key || '')
+                .replace(/[^a-z0-9]/gi, '')
+                .toLowerCase();
+        }
+
+        function getCampaignConfigValue(configItem, keyCandidates = []) {
+            if (!configItem || typeof configItem !== 'object') return undefined;
+            const valueByKey = new Map();
+            Object.keys(configItem).forEach((key) => {
+                valueByKey.set(normalizeCampaignConfigKey(key), configItem[key]);
+            });
+            for (const candidate of keyCandidates) {
+                const normalizedKey = normalizeCampaignConfigKey(candidate);
+                if (valueByKey.has(normalizedKey)) {
+                    return valueByKey.get(normalizedKey);
+                }
+            }
+            return undefined;
+        }
+
+        function normalizeFloatRange(rawValue, fallbackRange, minLimit, maxLimit) {
+            const fallbackMin = Number.isFinite(Number(fallbackRange?.[0]))
+                ? Number(fallbackRange[0])
+                : 0;
+            const fallbackMax = Number.isFinite(Number(fallbackRange?.[1]))
+                ? Number(fallbackRange[1])
+                : fallbackMin;
+            let minValue = fallbackMin;
+            let maxValue = fallbackMax;
+
+            if (Array.isArray(rawValue) && rawValue.length >= 2) {
+                minValue = Number(rawValue[0]);
+                maxValue = Number(rawValue[1]);
+            } else if (Number.isFinite(Number(rawValue))) {
+                minValue = Number(rawValue);
+                maxValue = Number(rawValue);
+            }
+
+            if (!Number.isFinite(minValue)) minValue = fallbackMin;
+            if (!Number.isFinite(maxValue)) maxValue = fallbackMax;
+            if (minValue > maxValue) {
+                const temp = minValue;
+                minValue = maxValue;
+                maxValue = temp;
+            }
+            minValue = Math.max(minLimit, Math.min(maxLimit, minValue));
+            maxValue = Math.max(minLimit, Math.min(maxLimit, maxValue));
+            if (minValue > maxValue) {
+                minValue = Math.max(minLimit, Math.min(maxLimit, fallbackMin));
+                maxValue = Math.max(minLimit, Math.min(maxLimit, fallbackMax));
+                if (minValue > maxValue) {
+                    const temp = minValue;
+                    minValue = maxValue;
+                    maxValue = temp;
+                }
+            }
+            return [minValue, maxValue];
+        }
+
+        function normalizeIntegerRange(rawValue, fallbackRange, minLimit, maxLimit) {
+            const floatRange = normalizeFloatRange(rawValue, fallbackRange, minLimit, maxLimit);
+            let minValue = Math.ceil(floatRange[0]);
+            let maxValue = Math.floor(floatRange[1]);
+            if (minValue > maxValue) {
+                const fallbackMin = Number.isFinite(Number(fallbackRange?.[0]))
+                    ? Number(fallbackRange[0])
+                    : minLimit;
+                const fallbackMax = Number.isFinite(Number(fallbackRange?.[1]))
+                    ? Number(fallbackRange[1])
+                    : fallbackMin;
+                minValue = Math.ceil(Math.max(minLimit, Math.min(maxLimit, Math.min(fallbackMin, fallbackMax))));
+                maxValue = Math.floor(Math.max(minLimit, Math.min(maxLimit, Math.max(fallbackMin, fallbackMax))));
+            }
+            return [minValue, maxValue];
+        }
+
+        function pickRandomFloatInRange(rangeValue) {
+            const minValue = Number(rangeValue?.[0]);
+            const maxValue = Number(rangeValue?.[1]);
+            if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) return 0;
+            if (maxValue <= minValue) return minValue;
+            return minValue + (Math.random() * (maxValue - minValue));
+        }
+
+        function normalizeCampaignBoardData(rawBoard) {
+            if (!Array.isArray(rawBoard) || rawBoard.length === 0) return null;
+            const width = Array.isArray(rawBoard[0]) ? rawBoard[0].length : 0;
+            if (width <= 0) return null;
+            const boardData = [];
+            for (const row of rawBoard) {
+                if (!Array.isArray(row) || row.length !== width) return null;
+                const normalizedRow = row.map((value) => {
+                    const parsed = Number(value);
+                    if (!Number.isFinite(parsed)) return EMPTY_CELL_ID;
+                    return Math.trunc(parsed);
+                });
+                boardData.push(normalizedRow);
+            }
+            return boardData;
+        }
+
+        function countRegenerateTargetsInBoard(boardData) {
+            if (!Array.isArray(boardData)) return 0;
+            let targetCount = 0;
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const value of row) {
+                    if (getRegenerateTargetMeta(value)) {
+                        targetCount++;
+                    }
+                }
+            }
+            return targetCount;
+        }
+
+        function buildCount8And6Candidates(fillableCellCount, count8Range, count6Range) {
+            const min8 = Number.isFinite(Number(count8Range?.[0])) ? Number(count8Range[0]) : 0;
+            const max8 = Number.isFinite(Number(count8Range?.[1])) ? Number(count8Range[1]) : min8;
+            const min6 = Number.isFinite(Number(count6Range?.[0])) ? Number(count6Range[0]) : 0;
+            const max6 = Number.isFinite(Number(count6Range?.[1])) ? Number(count6Range[1]) : min6;
+            const candidates = [];
+            for (let count8 = min8; count8 <= max8; count8++) {
+                for (let count6 = min6; count6 <= max6; count6++) {
+                    const usedCards = count8 * 8 + count6 * 6;
+                    if (usedCards > fillableCellCount) continue;
+                    const remainingCards = fillableCellCount - usedCards;
+                    if (remainingCards < 0 || remainingCards % 2 !== 0) continue;
+                    candidates.push({ count8, count6 });
+                }
+            }
+            return candidates;
+        }
+
+        function parseCampaignLevelEntry(rawItem, fallbackLevel) {
+            if (!rawItem || typeof rawItem !== 'object') {
+                return { valid: false, message: '关卡配置必须是对象。' };
+            }
+
+            const levelValue = Number(rawItem.level);
+            const level = Number.isFinite(levelValue)
+                ? Math.max(1, Math.trunc(levelValue))
+                : (fallbackLevel + 1);
+
+            const zhenxingRaw = getCampaignConfigValue(rawItem, ['zhenxing', 'board']);
+            const boardTemplate = normalizeCampaignBoardData(zhenxingRaw);
+            if (!boardTemplate) {
+                return { valid: false, level, message: 'zhenxing棋盘数据格式无效。' };
+            }
+
+            const directionRaw = getCampaignConfigValue(rawItem, ['fangxiang', 'direction']);
+            const direction = Number.isFinite(Number(directionRaw))
+                ? Math.max(0, Math.min(8, Math.round(Number(directionRaw))))
+                : 0;
+
+            const count8Raw = getCampaignConfigValue(rawItem, ['8zhang', 'count8']);
+            const count6Raw = getCampaignConfigValue(rawItem, ['6zhang', 'count6']);
+            const variable1Raw = getCampaignConfigValue(rawItem, ['Variable_1', 'variable1']);
+            const variable2Raw = getCampaignConfigValue(rawItem, ['Variable_2', 'variable2']);
+            const variable3Raw = getCampaignConfigValue(rawItem, ['Variable_3', 'variable3']);
+            const variable4Raw = getCampaignConfigValue(rawItem, ['Variable_4', 'variable4']);
+            const variable5Raw = getCampaignConfigValue(rawItem, ['Variable_5', 'variable5']);
+            const shenglvRaw = getCampaignConfigValue(rawItem, ['shenglv', 'winrate']);
+
+            const count8Range = normalizeIntegerRange(count8Raw, [0, 0], 0, 200);
+            const count6Range = normalizeIntegerRange(count6Raw, [0, 0], 0, 200);
+            const sameLieRange = normalizeFloatRange(variable1Raw, [0.1, 0.1], 0, 1);
+            const sameNumRange = normalizeFloatRange(variable2Raw, [0.1, 0.1], 0, 1);
+            const xianglinSameRange = normalizeFloatRange(variable3Raw, [0.1, 0.1], 0, 1);
+            const directionBothRange = normalizeFloatRange(variable4Raw, [0.5, 0.5], 0, 1);
+            const distanceRange = normalizeFloatRange(variable5Raw, [0.1, 0.1], 0, 1);
+            const winRateRange = normalizeFloatRange(shenglvRaw, [0, 100], 0, 100);
+
+            return {
+                valid: true,
+                level,
+                boardTemplate,
+                direction,
+                count8Range,
+                count6Range,
+                sameLieRange,
+                sameNumRange,
+                xianglinSameRange,
+                directionBothRange,
+                distanceRange,
+                winRateRange
+            };
+        }
+
+        async function runBatchCampaign(levelConfigs) {
+            const MAX_ATTEMPTS_PER_LEVEL = 100;
+            const SIMULATE_GAME_COUNT = 100;
+
+            if (isBatchCampaignRunning) return;
+            if (isBatchGenerating) {
+                alert('当前正在批量导出，请稍后再试。');
+                return;
+            }
+            if (isSimulatingPlayGames) {
+                alert('当前正在执行模拟100局，请稍后再试。');
+                return;
+            }
+
+            const runButton = document.getElementById('btnBatchRunCampaign');
+            const info = document.getElementById('info');
+            const originalButtonText = runButton ? runButton.textContent : '';
+            const totalLevels = Array.isArray(levelConfigs) ? levelConfigs.length : 0;
+            if (totalLevels <= 0) {
+                alert('没有可跑关的配置。');
+                return;
+            }
+
+            let exportResult = '';
+            let successCount = 0;
+            let timeoutCount = 0;
+            let invalidCount = 0;
+
+            isBatchCampaignRunning = true;
+            setSimulationInteractionLock(true);
+            if (runButton) {
+                runButton.disabled = true;
+                runButton.textContent = '跑关中...';
+            }
+
+            try {
+                for (let index = 0; index < totalLevels; index++) {
+                    const parsedLevel = parseCampaignLevelEntry(levelConfigs[index], index);
+                    const displayLevel = parsedLevel.level || (index + 1);
+
+                    if (!parsedLevel.valid) {
+                        invalidCount++;
+                        if (info) {
+                            info.textContent =
+                                `第${displayLevel}关配置无效，已跳过：${parsedLevel.message || '未知错误'}`;
+                        }
+                        continue;
+                    }
+
+                    const fillableCellCount = countRegenerateTargetsInBoard(parsedLevel.boardTemplate);
+                    if (fillableCellCount <= 0 || fillableCellCount % 2 !== 0) {
+                        invalidCount++;
+                        if (info) {
+                            info.textContent =
+                                `第${displayLevel}关无可生成偶数格子，已跳过。`;
+                        }
+                        continue;
+                    }
+
+                    const countCandidates = buildCount8And6Candidates(
+                        fillableCellCount,
+                        parsedLevel.count8Range,
+                        parsedLevel.count6Range
+                    );
+                    if (countCandidates.length === 0) {
+                        invalidCount++;
+                        if (info) {
+                            info.textContent =
+                                `第${displayLevel}关的8张/6张范围无可用组合，已跳过。`;
+                        }
+                        continue;
+                    }
+
+                    let matchedBoardData = null;
+                    let matchedWinRate = null;
+                    for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_LEVEL; attempt++) {
+                        const countCandidate =
+                            countCandidates[Math.floor(Math.random() * countCandidates.length)];
+                        const generateResult = buildRegenerateFillPlanForBoard(
+                            parsedLevel.boardTemplate,
+                            {
+                                direction: parsedLevel.direction,
+                                count8: countCandidate.count8,
+                                count6: countCandidate.count6,
+                                sameLie: pickRandomFloatInRange(parsedLevel.sameLieRange),
+                                sameNum: pickRandomFloatInRange(parsedLevel.sameNumRange),
+                                xianglinSame: pickRandomFloatInRange(parsedLevel.xianglinSameRange),
+                                directionBothCtrl: pickRandomFloatInRange(parsedLevel.directionBothRange),
+                                distanceCtrl: pickRandomFloatInRange(parsedLevel.distanceRange)
+                            }
+                        );
+
+                        if (!generateResult.success) continue;
+
+                        const legality = validateBoardPairLegality(generateResult.boardData);
+                        if (!legality.valid) continue;
+
+                        if (runButton) {
+                            runButton.textContent =
+                                `跑关 ${index + 1}/${totalLevels} (${attempt}/${MAX_ATTEMPTS_PER_LEVEL})`;
+                        }
+                        if (info && (attempt === 1 || attempt % 5 === 0)) {
+                            info.textContent =
+                                `跑关中：第${displayLevel}关，尝试 ${attempt}/${MAX_ATTEMPTS_PER_LEVEL}`;
+                        }
+
+                        const simulationResult = await simulateBoardWinRate(
+                            generateResult.boardData,
+                            parsedLevel.direction,
+                            SIMULATE_GAME_COUNT,
+                            null,
+                            {
+                                winRateRange: parsedLevel.winRateRange,
+                                enableUnreachableEarlyStop: true
+                            }
+                        );
+                        if (simulationResult.unreachable) {
+                            continue;
+                        }
+                        const winRate = simulationResult.winRate;
+                        if (
+                            winRate >= parsedLevel.winRateRange[0] &&
+                            winRate <= parsedLevel.winRateRange[1]
+                        ) {
+                            matchedBoardData = generateResult.boardData;
+                            matchedWinRate = winRate;
+                            break;
+                        }
+
+                        if (attempt % 2 === 0) {
+                            await waitForMs(0);
+                        }
+                    }
+
+                    if (!matchedBoardData) {
+                        timeoutCount++;
+                        if (info) {
+                            info.textContent =
+                                `第${displayLevel}关连续${MAX_ATTEMPTS_PER_LEVEL}次未命中胜率，已跳过。`;
+                        }
+                        continue;
+                    }
+
+                    exportResult += `${displayLevel}\t${JSON.stringify(matchedBoardData)}\t` +
+                        `${parsedLevel.direction}\t${Number(matchedWinRate || 0).toFixed(2)}\n`;
+                    successCount++;
+
+                    if (info) {
+                        info.textContent =
+                            `第${displayLevel}关完成（${successCount}/${totalLevels}）。`;
+                    }
+                }
+
+                if (exportResult) {
+                    const now = new Date();
+                    const stamp = [
+                        now.getFullYear(),
+                        String(now.getMonth() + 1).padStart(2, '0'),
+                        String(now.getDate()).padStart(2, '0'),
+                        '_',
+                        String(now.getHours()).padStart(2, '0'),
+                        String(now.getMinutes()).padStart(2, '0'),
+                        String(now.getSeconds()).padStart(2, '0')
+                    ].join('');
+                    const blob = new Blob([exportResult], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `跑关结果_${successCount}关_${stamp}.txt`;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 0);
+                }
+
+                if (info) {
+                    info.textContent =
+                        `跑关完成：成功${successCount}关，超限跳过${timeoutCount}关，配置跳过${invalidCount}关。`;
+                }
+            } finally {
+                isBatchCampaignRunning = false;
+                setSimulationInteractionLock(false);
+                if (runButton) {
+                    runButton.disabled = false;
+                    runButton.textContent = originalButtonText || '跑关导出';
+                }
+            }
+        }
+
+        async function batchGenerate() {
+            const SIMULATE_GAME_COUNT = 100;
+            if (isBatchGenerating || isBatchCampaignRunning || isSimulatingPlayGames) return;
             const count = parseInt(document.getElementById('batchCount').value) || 10;
             const direction = parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
             const sameLie = getProbabilityValue('sameLie', 0.1);
@@ -4677,33 +7459,56 @@
             let result = '';
             const width = parseInt(document.getElementById('width').value) || 8;
             const height = parseInt(document.getElementById('height').value) || 14;
+            const batchButton = document.getElementById('btnBatchGenerate');
+            const info = document.getElementById('info');
 
-            for (let i = 0; i < count; i++) {
-                const boardData = generateSingleLevel(
-                    direction,
-                    sameLie,
-                    sameNum,
-                    xianglinSame,
-                    directionBothCtrl,
-                    distanceCtrl
-                );
-                const boardStr = JSON.stringify(boardData);
-                const exportAverages = calculateExportAverages(boardData, direction);
-                result += `${i + 1}\t${boardStr}\t${direction}\t` +
-                    `${exportAverages.adjacentBaselineAvg.toFixed(2)}\t` +
-                    `${exportAverages.directionBothAvg.toFixed(2)}\n`;
+            isBatchGenerating = true;
+            setSimulationInteractionLock(true);
+            if (batchButton) batchButton.disabled = true;
+
+            try {
+                for (let i = 0; i < count; i++) {
+                    const boardData = generateSingleLevel(
+                        direction,
+                        sameLie,
+                        sameNum,
+                        xianglinSame,
+                        directionBothCtrl,
+                        distanceCtrl
+                    );
+                    const boardStr = JSON.stringify(boardData);
+                    const simulationResult = await simulateBoardWinRate(
+                        boardData,
+                        direction,
+                        SIMULATE_GAME_COUNT
+                    );
+                    result += `${i + 1}\t${boardStr}\t${direction}\t${simulationResult.winRate.toFixed(2)}\n`;
+                    if (info) {
+                        info.textContent = `批量导出中：${i + 1}/${count}`;
+                    }
+                }
+
+                const blob = new Blob([result], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `关卡批量生成_${width}x${height}_${count}个.txt`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 0);
+            } catch (error) {
+                console.error('Batch export failed:', error);
+                alert('批量导出失败，请重试。');
+            } finally {
+                isBatchGenerating = false;
+                setSimulationInteractionLock(false);
+                if (batchButton) batchButton.disabled = false;
             }
-
-            const blob = new Blob([result], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `关卡批量生成_${width}x${height}_${count}个.txt`;
-            a.click();
         }
 
         function init() {
             loadConfigGroupsFromStorage();
             renderEditorTools();
+            renderSavedLevelList();
             const board = document.getElementById('board');
             if (board) {
                 board.addEventListener('click', handleBoardCellClick);
@@ -4720,8 +7525,33 @@
                     }
                     generateBoard();
                     updatePlayModeButton();
+                    renderSavedLevelList();
                 });
             }
+            document.addEventListener('click', () => {
+                closeSavedLevelContextMenu();
+                hideSavedLevelPreview();
+            });
+            document.addEventListener('contextmenu', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('#savedLevelContextMenu')) return;
+                if (target && target.closest && target.closest('.saved-level-item')) return;
+                closeSavedLevelContextMenu();
+                hideSavedLevelPreview();
+            });
+            const savedMenu = document.getElementById('savedLevelContextMenu');
+            if (savedMenu) {
+                savedMenu.addEventListener('contextmenu', (event) => event.preventDefault());
+                savedMenu.addEventListener('click', (event) => event.stopPropagation());
+            }
+            window.addEventListener('resize', () => {
+                closeSavedLevelContextMenu();
+                hideSavedLevelPreview();
+            });
+            window.addEventListener('blur', () => {
+                closeSavedLevelContextMenu();
+                hideSavedLevelPreview();
+            });
             updatePlayModeButton();
             window.addEventListener('resize', scaleBoard);
         }
