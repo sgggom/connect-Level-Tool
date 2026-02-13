@@ -406,6 +406,9 @@
             display: flex;
             justify-content: flex-start;
             width: max-content;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         .board {
@@ -417,16 +420,23 @@
             backdrop-filter: blur(10px);
         }
 
+        .board.play-mode {
+            backdrop-filter: none;
+        }
+
         .cell {
             width: 150px;
-            height: 190px;
+            height: 162px;
             background: rgba(255,255,255,0.15);
             border-radius: 4px;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
             overflow: hidden;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         .cell.filled {
@@ -436,17 +446,87 @@
 
         .board.play-mode .cell.filled {
             cursor: pointer;
+            transition: transform 0.15s ease;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
         }
 
         .board.play-mode .cell.play-selected {
-            box-shadow: inset 0 0 0 3px #ffd166, 0 0 12px rgba(255, 209, 102, 0.8);
+            transform: translateY(-30px);
+            transition: none;
+            z-index: 8;
+            will-change: transform;
         }
 
-        .cell img {
+        .board.play-mode .cell.play-clearing {
+            transform: translateY(-30px) scale(0);
+            transition: transform 0.1s ease;
+        }
+
+        .board.play-mode.play-shifting {
+            pointer-events: none;
+        }
+
+        .board.play-mode.play-no-transition .cell,
+        .board.play-mode.play-no-transition .cell.filled {
+            transition: none !important;
+        }
+
+        .board.play-mode .cell.play-shift-anim {
+            animation-duration: 0.15s;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-name: play-shift-variable;
+        }
+
+        @keyframes play-shift-variable {
+            from {
+                transform: translate3d(var(--shift-start-x, 0px), var(--shift-start-y, 0px), 0);
+            }
+            to { transform: translate3d(0, 0, 0); }
+        }
+
+        .card-image-stack {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-image-stack img {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: contain;
+            object-position: top center;
+            pointer-events: none;
+            user-select: none;
+            backface-visibility: hidden;
+            will-change: transform, opacity;
+        }
+
+        .card-image-base {
+            z-index: 1;
+            transform: scale(1.3);
+            transform-origin: top center;
+        }
+
+        .card-image-guide {
+            z-index: 2;
+            transform: scale(1.05);
+            transform-origin: top center;
+            object-position: top center;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+
+        .card-image-face {
+            z-index: 3;
+            transform: scale(1.2);
+            transform-origin: top center;
+        }
+
+        .board.play-mode .cell.play-selected .card-image-guide {
+            opacity: 1;
         }
 
         .info {
@@ -599,7 +679,7 @@
 
             .cell {
                 width: 80px;
-                height: 100px;
+                height: 72px;
             }
 
             .board {
@@ -1420,7 +1500,10 @@
             if (!playModeState || !playModeState.selected) return;
             const { row, col } = playModeState.selected;
             const selectedCell = document.getElementById(`cell-${row}-${col}`);
-            if (selectedCell) selectedCell.classList.remove('play-selected');
+            if (selectedCell) {
+                selectedCell.classList.remove('play-selected');
+                selectedCell.classList.remove('play-clearing');
+            }
             playModeState.selected = null;
         }
 
@@ -1432,12 +1515,133 @@
             playModeState.selected = { row, col };
         }
 
+        function waitForMs(durationMs) {
+            return new Promise((resolve) => {
+                setTimeout(resolve, durationMs);
+            });
+        }
+
+        function createTokenBoardFromBoard(boardData) {
+            if (!Array.isArray(boardData)) return [];
+            let nextToken = 1;
+            return boardData.map((row) => {
+                if (!Array.isArray(row)) return [];
+                return row.map((value) => {
+                    if (!Number.isInteger(value) || value <= 0) return null;
+                    const token = nextToken;
+                    nextToken++;
+                    return token;
+                });
+            });
+        }
+
+        function getCellStepDistance() {
+            const fallback = { stepX: 151, stepY: 166 };
+            const originCell = document.getElementById('cell-0-0');
+            if (!originCell) return fallback;
+
+            const rightCell = document.getElementById('cell-0-1');
+            const downCell = document.getElementById('cell-1-0');
+            const originRect = originCell.getBoundingClientRect();
+
+            const stepX = rightCell
+                ? Math.abs(rightCell.getBoundingClientRect().left - originRect.left)
+                : fallback.stepX;
+            const stepY = downCell
+                ? Math.abs(downCell.getBoundingClientRect().top - originRect.top)
+                : fallback.stepY;
+
+            return {
+                stepX: stepX > 0 ? stepX : fallback.stepX,
+                stepY: stepY > 0 ? stepY : fallback.stepY
+            };
+        }
+
+        function collectShiftedCells(beforeTokenBoard, afterTokenBoard) {
+            const movedCells = [];
+            if (!Array.isArray(beforeTokenBoard) || !Array.isArray(afterTokenBoard)) {
+                return movedCells;
+            }
+
+            const sourcePositionsByToken = new Map();
+            const beforeRows = beforeTokenBoard.length;
+            for (let row = 0; row < beforeRows; row++) {
+                const cols = beforeTokenBoard[row]?.length || 0;
+                for (let col = 0; col < cols; col++) {
+                    const token = beforeTokenBoard[row]?.[col];
+                    if (!Number.isInteger(token) || token <= 0) continue;
+                    sourcePositionsByToken.set(token, { row, col });
+                }
+            }
+
+            const afterRows = afterTokenBoard.length;
+            for (let row = 0; row < afterRows; row++) {
+                const cols = afterTokenBoard[row]?.length || 0;
+                for (let col = 0; col < cols; col++) {
+                    const token = afterTokenBoard[row]?.[col];
+                    if (!Number.isInteger(token) || token <= 0) continue;
+                    const source = sourcePositionsByToken.get(token);
+                    if (!source) continue;
+                    if (source.row === row && source.col === col) continue;
+                    movedCells.push({
+                        row,
+                        col,
+                        deltaRow: source.row - row,
+                        deltaCol: source.col - col
+                    });
+                }
+            }
+
+            return movedCells;
+        }
+
+        async function animateBoardShift(movedCells = []) {
+            const SHIFT_ANIMATION_MS = 150;
+            const board = document.getElementById('board');
+            if (!board) return;
+            if (!Array.isArray(movedCells) || movedCells.length === 0) return;
+
+            const { stepX, stepY } = getCellStepDistance();
+            board.classList.add('play-shifting');
+            const animatedCells = [];
+            for (const position of movedCells) {
+                const cell = document.getElementById(`cell-${position.row}-${position.col}`);
+                if (!cell || !cell.classList.contains('filled')) continue;
+                const translateX = (position.deltaCol || 0) * stepX;
+                const translateY = (position.deltaRow || 0) * stepY;
+                cell.style.setProperty('--shift-start-x', `${translateX}px`);
+                cell.style.setProperty('--shift-start-y', `${translateY}px`);
+                cell.classList.remove('play-shift-anim');
+                void cell.offsetWidth;
+                cell.classList.add('play-shift-anim');
+                animatedCells.push(cell);
+            }
+
+            await waitForMs(SHIFT_ANIMATION_MS);
+            for (const cell of animatedCells) {
+                cell.classList.remove('play-shift-anim');
+                cell.style.removeProperty('--shift-start-x');
+                cell.style.removeProperty('--shift-start-y');
+            }
+            board.classList.remove('play-shifting');
+        }
+
         function syncBoardDisplayByData(boardData) {
             if (!Array.isArray(boardData)) return;
             for (let i = 0; i < boardData.length; i++) {
                 for (let j = 0; j < boardData[i].length; j++) {
                     renderCellNumber(i, j, boardData[i][j]);
                 }
+            }
+        }
+
+        function syncBoardDisplayWithoutTransition(boardData) {
+            const board = document.getElementById('board');
+            if (board) board.classList.add('play-no-transition');
+            syncBoardDisplayByData(boardData);
+            if (board) {
+                void board.offsetWidth;
+                board.classList.remove('play-no-transition');
             }
         }
 
@@ -1565,8 +1769,8 @@
             return false;
         }
 
-        function processPlayCellSelection(row, col) {
-            if (!playModeState || !playModeState.active) return;
+        async function processPlayCellSelection(row, col) {
+            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
             const boardData = playModeState.boardData;
             const currentValue = boardData?.[row]?.[col];
             if (!Number.isInteger(currentValue) || currentValue <= 0) return;
@@ -1612,18 +1816,52 @@
                 return;
             }
 
-            boardData[selected.row][selected.col] = null;
-            boardData[row][col] = null;
-            const direction = Number.isInteger(playModeState.direction) ? playModeState.direction : 0;
-            applyDirectionShiftUntilStable(boardData, direction);
-            syncBoardDisplayByData(boardData);
-            playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
-            clearPlaySelectionVisual();
+            playModeState.isResolving = true;
+            const firstCell = document.getElementById(`cell-${selected.row}-${selected.col}`);
+            const secondCell = document.getElementById(`cell-${row}-${col}`);
+            if (firstCell) firstCell.classList.add('play-selected');
+            if (secondCell) secondCell.classList.add('play-selected');
 
-            if (isPlayBoardCleared(boardData)) {
-                if (info) info.textContent = `试玩模式：已清空棋盘，共消除 ${playModeState.clearedPairs} 对`;
-            } else {
-                if (info) info.textContent = `试玩模式：已消除 ${playModeState.clearedPairs} 对`;
+            try {
+                await waitForMs(100);
+                if (!playModeState || !playModeState.active) return;
+
+                if (firstCell) firstCell.classList.add('play-clearing');
+                if (secondCell) secondCell.classList.add('play-clearing');
+
+                await waitForMs(100);
+                if (!playModeState || !playModeState.active) return;
+
+                boardData[selected.row][selected.col] = null;
+                boardData[row][col] = null;
+                const tokenBoard = playModeState.tokenBoard;
+                if (Array.isArray(tokenBoard)) {
+                    tokenBoard[selected.row][selected.col] = null;
+                    tokenBoard[row][col] = null;
+                }
+                const direction = Number.isInteger(playModeState.direction)
+                    ? playModeState.direction
+                    : 0;
+                const tokenBeforeShift = cloneBoardData(tokenBoard);
+                applyDirectionShiftUntilStable(boardData, direction);
+                if (Array.isArray(tokenBoard)) {
+                    applyDirectionShiftUntilStable(tokenBoard, direction);
+                }
+                playModeState.selected = null;
+                syncBoardDisplayWithoutTransition(boardData);
+                const movedCells = collectShiftedCells(tokenBeforeShift, tokenBoard);
+                await animateBoardShift(movedCells);
+                playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
+
+                if (isPlayBoardCleared(boardData)) {
+                    if (info) info.textContent = `试玩模式：已清空棋盘，共消除 ${playModeState.clearedPairs} 对`;
+                } else {
+                    if (info) info.textContent = `试玩模式：已消除 ${playModeState.clearedPairs} 对`;
+                }
+            } finally {
+                if (playModeState && playModeState.active) {
+                    playModeState.isResolving = false;
+                }
             }
         }
 
@@ -1660,7 +1898,9 @@
                 active: true,
                 originalBoard: sourceBoard,
                 boardData: cloneBoardData(sourceBoard),
+                tokenBoard: createTokenBoardFromBoard(sourceBoard),
                 selected: null,
+                isResolving: false,
                 clearedPairs: 0,
                 direction: parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0)
             };
@@ -1682,7 +1922,7 @@
         }
 
         function handleBoardCellClick(event) {
-            if (!playModeState || !playModeState.active) return;
+            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
             const cellElement = event.target.closest('.cell');
             if (!cellElement) return;
             const position = getCellPositionByElement(cellElement);
@@ -2179,10 +2419,35 @@
             cell.className = 'cell filled';
             cell.innerHTML = '';
             const imgNum = getImageForNumber(num);
-            const img = document.createElement('img');
-            img.src = `img/${imgNum}.png`;
-            img.alt = num.toString();
-            cell.appendChild(img);
+            cell.appendChild(createCardImageStack(imgNum, num));
+        }
+
+        function createCardImageStack(imgNum, num) {
+            const BASE_IMAGE_PATH = 'img/base.png';
+            const stack = document.createElement('div');
+            stack.className = 'card-image-stack';
+
+            const baseImage = document.createElement('img');
+            baseImage.className = 'card-image-base';
+            baseImage.src = BASE_IMAGE_PATH;
+            baseImage.alt = '';
+            baseImage.setAttribute('aria-hidden', 'true');
+
+            const guideImage = document.createElement('img');
+            guideImage.className = 'card-image-guide';
+            guideImage.src = 'img/GuideTips.png';
+            guideImage.alt = '';
+            guideImage.setAttribute('aria-hidden', 'true');
+
+            const faceImage = document.createElement('img');
+            faceImage.className = 'card-image-face';
+            faceImage.src = `img/${imgNum}.png`;
+            faceImage.alt = num.toString();
+
+            stack.appendChild(baseImage);
+            stack.appendChild(guideImage);
+            stack.appendChild(faceImage);
+            return stack;
         }
 
         function revealNextStepGroup() {
@@ -2599,10 +2864,7 @@
                         cell.className = 'cell filled';
                         cell.innerHTML = '';
                         const imgNum = getImageForNumber(num);
-                        const img = document.createElement('img');
-                        img.src = `img/${imgNum}.png`;
-                        img.alt = num.toString();
-                        cell.appendChild(img);
+                        cell.appendChild(createCardImageStack(imgNum, num));
                     }
                 }
             }
@@ -3652,8 +3914,27 @@
             if (!wrapper || !container) return;
 
             requestAnimationFrame(() => {
-                const containerWidth = container.clientWidth - 16;
-                const containerHeight = container.clientHeight - 16;
+                const SCALE_SAFE_MARGIN = 2;
+                const containerStyle = window.getComputedStyle(container);
+                const horizontalPadding =
+                    parseFloat(containerStyle.paddingLeft || '0') +
+                    parseFloat(containerStyle.paddingRight || '0');
+                const verticalPadding =
+                    parseFloat(containerStyle.paddingTop || '0') +
+                    parseFloat(containerStyle.paddingBottom || '0');
+                const topTools = container.querySelector('.board-top-tools');
+                const topToolsMarginBottom = topTools
+                    ? parseFloat(window.getComputedStyle(topTools).marginBottom || '0')
+                    : 0;
+                const topToolsHeight = topTools ? topTools.offsetHeight + topToolsMarginBottom : 0;
+
+                const containerWidth =
+                    container.clientWidth - horizontalPadding - SCALE_SAFE_MARGIN;
+                const containerHeight =
+                    container.clientHeight -
+                    verticalPadding -
+                    topToolsHeight -
+                    SCALE_SAFE_MARGIN;
                 const boardWidth = wrapper.scrollWidth;
                 const boardHeight = wrapper.scrollHeight;
 
