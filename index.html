@@ -603,8 +603,36 @@
         .info {
             text-align: left;
             margin-top: 2px;
-            font-size: 0.9em;
-            opacity: 0.8;
+            font-size: 1.08em;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            opacity: 0.98;
+            color: #e7f0ff;
+            transition: color 0.15s ease;
+        }
+
+        .info.info-default {
+            color: #e7f0ff;
+        }
+
+        .info.info-success {
+            color: #86efac;
+        }
+
+        .info.info-progress {
+            color: #fde68a;
+        }
+
+        .info.info-mode {
+            color: #93c5fd;
+        }
+
+        .info.info-warning {
+            color: #fdba74;
+        }
+
+        .info.info-error {
+            color: #fca5a5;
         }
 
         .stats-section {
@@ -830,6 +858,12 @@
             border-color: rgba(255,255,255,0.35);
         }
 
+        .saved-level-item.saved-level-item-editing {
+            background: rgba(59, 130, 246, 0.16);
+            border-color: rgba(96, 165, 250, 0.75);
+            cursor: default;
+        }
+
         .saved-level-item-main {
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
@@ -910,6 +944,21 @@
             white-space: nowrap;
             width: auto;
             align-self: center;
+        }
+
+        .saved-level-item-edit-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .saved-level-item-edit-actions button {
+            width: 100%;
+            min-width: 0;
+            padding: 6px 8px;
+            font-size: 0.78em;
         }
 
         .saved-level-empty {
@@ -1594,8 +1643,16 @@
         let isBatchCampaignRunning = false;
         let savedLevels = [];
         let savedLevelContextIndex = -1;
+        let editingSavedLevelIndex = -1;
+        let editingSavedLevelSnapshot = null;
         let simulationWorkerScriptUrl = null;
+        let infoMutationObserver = null;
         let selectedEditorTool = 'placeholder';
+        let editorBrushState = {
+            active: false,
+            mode: null,
+            lastCellKey: ''
+        };
         let savedConfigGroups = [];
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
@@ -1646,6 +1703,17 @@
             { key: 'ice3', title: '冰块3', idLabel: '506', preview: 'img/bing3.png' },
             { key: 'bomb', title: '炸弹', idLabel: '99', preview: 'img/zhadan.png' }
         ];
+        const EDITOR_BRUSH_TOOL_KEYS = new Set([
+            'placeholder',
+            'attach-fanpai',
+            'attach-iceshell',
+            'stone',
+            'wood',
+            'magnet',
+            'ice1',
+            'ice2',
+            'ice3'
+        ]);
 
         function getObstacleImagePath(baseId) {
             const imageMap = {
@@ -1922,8 +1990,21 @@
             const editorTip = document.getElementById('editorTip');
             if (editorTip && tool) {
                 editorTip.textContent =
-                    `已选中：${tool.title}（ID:${tool.idLabel}）。左键放置，右键删除该格全部元素。`;
+                    `已选中：${tool.title}（ID:${tool.idLabel}）。左键放置，右键删除；占位块/障碍/附着支持按住拖动。`;
             }
+        }
+
+        function isEditorOperationBlocked() {
+            return Boolean(
+                (playModeState && playModeState.active) ||
+                isSimulatingPlayGames ||
+                isBatchCampaignRunning ||
+                isBatchGenerating
+            );
+        }
+
+        function canUseEditorBrushForCurrentTool() {
+            return EDITOR_BRUSH_TOOL_KEYS.has(selectedEditorTool);
         }
 
         function fillEmptyWithPlaceholder() {
@@ -1953,7 +2034,7 @@
         }
 
         function applyEditorToolOnCell(row, col) {
-            if (playModeState && playModeState.active) return;
+            if (isEditorOperationBlocked()) return;
             const currentValue = filledCells[row]?.[col] ?? EMPTY_CELL_ID;
             const parsed = decodeCellId(currentValue);
 
@@ -2004,7 +2085,7 @@
         }
 
         function clearCellByRightClick(row, col) {
-            if (playModeState && playModeState.active) return;
+            if (isEditorOperationBlocked()) return;
             setCellIdAtPosition(row, col, EMPTY_CELL_ID);
         }
 
@@ -2401,15 +2482,98 @@
             return false;
         }
 
+        function detectInfoMessageType(text) {
+            const content = typeof text === 'string' ? text : '';
+            if (!content) return 'default';
+            if (
+                content.includes('失败') ||
+                content.includes('错误') ||
+                content.includes('无效') ||
+                content.includes('未找到')
+            ) {
+                return 'error';
+            }
+            if (
+                content.includes('进行中') ||
+                content.includes('模拟中') ||
+                content.includes('导出中') ||
+                content.includes('跑关中') ||
+                content.includes('%')
+            ) {
+                return 'progress';
+            }
+            if (content.includes('试玩模式')) {
+                return 'mode';
+            }
+            if (
+                content.includes('请先') ||
+                content.includes('请稍后') ||
+                content.includes('提示')
+            ) {
+                return 'warning';
+            }
+            if (
+                content.includes('已') ||
+                content.includes('完成') ||
+                content.includes('成功') ||
+                content.includes('保存') ||
+                content.includes('读取') ||
+                content.includes('导入') ||
+                content.includes('导出')
+            ) {
+                return 'success';
+            }
+            return 'default';
+        }
+
+        function applyInfoTypeClass(type = 'default') {
+            const info = document.getElementById('info');
+            if (!info) return;
+            info.classList.remove(
+                'info-default',
+                'info-success',
+                'info-progress',
+                'info-mode',
+                'info-warning',
+                'info-error'
+            );
+            info.classList.add(`info-${type}`);
+        }
+
+        function refreshInfoTypeByCurrentText() {
+            const info = document.getElementById('info');
+            if (!info) return;
+            applyInfoTypeClass(detectInfoMessageType(info.textContent || ''));
+        }
+
+        function setInfoText(text = '') {
+            const info = document.getElementById('info');
+            if (!info) return;
+            info.textContent = text;
+            refreshInfoTypeByCurrentText();
+        }
+
+        function initInfoMutationObserver() {
+            const info = document.getElementById('info');
+            if (!info || infoMutationObserver) return;
+            infoMutationObserver = new MutationObserver(() => {
+                refreshInfoTypeByCurrentText();
+            });
+            infoMutationObserver.observe(info, {
+                childList: true,
+                characterData: true,
+                subtree: true
+            });
+            refreshInfoTypeByCurrentText();
+        }
+
         function setDefaultInfoText() {
             const width = parseInt(document.getElementById('width').value) || 0;
             const height = parseInt(document.getElementById('height').value) || 0;
-            const info = document.getElementById('info');
-            if (!info) return;
             if (width > 0 && height > 0) {
-                info.textContent = `棋盘: ${width}×${height} = ${width * height} 格`;
+                setInfoText(`棋盘: ${width}×${height} = ${width * height} 格`);
             } else {
-                info.textContent = '';
+                setInfoText('');
             }
         }
 
@@ -3134,6 +3298,78 @@
             enterPlayMode();
         }
 
+        function stopEditorBrush() {
+            editorBrushState.active = false;
+            editorBrushState.mode = null;
+            editorBrushState.lastCellKey = '';
+        }
+
+        function applyEditorBrushAction(row, col) {
+            const cellKey = `${row},${col}`;
+            if (editorBrushState.lastCellKey === cellKey) return;
+            editorBrushState.lastCellKey = cellKey;
+            if (editorBrushState.mode === 'clear') {
+                clearCellByRightClick(row, col);
+                return;
+            }
+            applyEditorToolOnCell(row, col);
+        }
+
+        function handleBoardCellMouseDown(event) {
+            if (!event) return;
+            if (isEditorOperationBlocked()) return;
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+            const position = getCellPositionByElement(cellElement);
+            if (!position) return;
+
+            if (event.button === 2) {
+                event.preventDefault();
+                editorBrushState.active = true;
+                editorBrushState.mode = 'clear';
+                editorBrushState.lastCellKey = '';
+                applyEditorBrushAction(position.row, position.col);
+                return;
+            }
+
+            if (event.button === 0 && canUseEditorBrushForCurrentTool()) {
+                event.preventDefault();
+                editorBrushState.active = true;
+                editorBrushState.mode = 'apply';
+                editorBrushState.lastCellKey = '';
+                applyEditorBrushAction(position.row, position.col);
+            }
+        }
+
+        function handleBoardCellMouseMove(event) {
+            if (!editorBrushState.active) return;
+            if (isEditorOperationBlocked()) {
+                stopEditorBrush();
+                return;
+            }
+            const requiredMask = editorBrushState.mode === 'clear' ? 2 : 1;
+            if ((event.buttons & requiredMask) === 0) {
+                stopEditorBrush();
+                return;
+            }
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+            const position = getCellPositionByElement(cellElement);
+            if (!position) return;
+            applyEditorBrushAction(position.row, position.col);
+        }
+
+        function handleBoardCellMouseLeave(event) {
+            if (!editorBrushState.active) return;
+            if (!event || event.buttons === 0) {
+                stopEditorBrush();
+            }
+        }
+
+        function handleEditorBrushMouseUp() {
+            stopEditorBrush();
+        }
+
         function handleBoardCellClick(event) {
             const cellElement = event.target.closest('.cell');
             if (!cellElement) return;
@@ -3151,6 +3387,7 @@
             const cellElement = event.target.closest('.cell');
             if (!cellElement) return;
             event.preventDefault();
+            if (editorBrushState.active) return;
             const position = getCellPositionByElement(cellElement);
             if (!position) return;
             clearCellByRightClick(position.row, position.col);
@@ -6393,6 +6630,83 @@ function runBatch(games, baseBoardData, direction) {
             moveSavedLevelPreview(clientX, clientY);
         }
 
+        function resetSavedLevelEditState() {
+            editingSavedLevelIndex = -1;
+            editingSavedLevelSnapshot = null;
+        }
+
+        function beginSavedLevelEdit(index) {
+            if (index < 0 || index >= savedLevels.length) return;
+            if (editingSavedLevelIndex !== -1 && editingSavedLevelIndex !== index) {
+                alert('请先保存或取消当前编辑关卡。');
+                return;
+            }
+            const savedItem = savedLevels[index];
+            if (!savedItem) return;
+            closeSavedLevelContextMenu();
+            const loaded = loadBoardDataIntoEditor(savedItem.boardData, savedItem.direction);
+            if (!loaded) return;
+
+            editingSavedLevelIndex = index;
+            editingSavedLevelSnapshot = {
+                index,
+                boardData: cloneBoardData(savedItem.boardData),
+                direction: Number.isFinite(savedItem.direction) ? savedItem.direction : 0
+            };
+            renderSavedLevelList();
+            setInfoText(`已进入编辑：关卡 #${savedItem.id}（保存/取消）`);
+        }
+
+        function saveEditingSavedLevel() {
+            if (editingSavedLevelIndex < 0 || editingSavedLevelIndex >= savedLevels.length) return;
+            const boardData = normalizeBoardForSavedLevel(getBoardData());
+            if (!boardData) {
+                alert('当前棋盘无可保存数据。');
+                return;
+            }
+            const direction = parseInt(
+                document.querySelector('input[name="direction"]:checked')?.value || 0,
+                10
+            );
+            const currentItem = savedLevels[editingSavedLevelIndex];
+            if (!currentItem) {
+                resetSavedLevelEditState();
+                renderSavedLevelList();
+                return;
+            }
+            savedLevels[editingSavedLevelIndex] = {
+                ...currentItem,
+                boardData: cloneBoardData(boardData),
+                direction: Number.isFinite(direction) ? direction : 0
+            };
+            const savedId = currentItem.id;
+            resetSavedLevelEditState();
+            renderSavedLevelList();
+            setInfoText(`已保存编辑：关卡 #${savedId}`);
+        }
+
+        function cancelSavedLevelEdit() {
+            if (editingSavedLevelIndex < 0) return;
+            const snapshot = editingSavedLevelSnapshot
+                ? {
+                    boardData: cloneBoardData(editingSavedLevelSnapshot.boardData),
+                    direction: editingSavedLevelSnapshot.direction
+                }
+                : null;
+            const editingItem = savedLevels[editingSavedLevelIndex];
+            const editingLevelId = editingItem?.id;
+            resetSavedLevelEditState();
+            renderSavedLevelList();
+            if (snapshot && Array.isArray(snapshot.boardData)) {
+                loadBoardDataIntoEditor(snapshot.boardData, snapshot.direction);
+            }
+            if (Number.isFinite(Number(editingLevelId))) {
+                setInfoText(`已取消编辑：关卡 #${editingLevelId}`);
+            } else {
+                setInfoText('已取消编辑');
+            }
+        }
+
         function renderSavedLevelList() {
             closeSavedLevelContextMenu();
             hideSavedLevelPreview();
@@ -6415,6 +6729,37 @@ function runBatch(games, baseBoardData, direction) {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'saved-level-item';
                 itemElement.dataset.index = String(index);
+
+                const isEditingItem = editingSavedLevelIndex === index;
+                if (isEditingItem) {
+                    itemElement.classList.add('saved-level-item-editing');
+                    const editActions = document.createElement('div');
+                    editActions.className = 'saved-level-item-edit-actions';
+
+                    const saveButton = document.createElement('button');
+                    saveButton.type = 'button';
+                    saveButton.className = 'btn-primary';
+                    saveButton.textContent = '保存';
+                    saveButton.onclick = (event) => {
+                        event.stopPropagation();
+                        saveEditingSavedLevel();
+                    };
+
+                    const cancelButton = document.createElement('button');
+                    cancelButton.type = 'button';
+                    cancelButton.className = 'btn-secondary';
+                    cancelButton.textContent = '取消';
+                    cancelButton.onclick = (event) => {
+                        event.stopPropagation();
+                        cancelSavedLevelEdit();
+                    };
+
+                    editActions.appendChild(saveButton);
+                    editActions.appendChild(cancelButton);
+                    itemElement.appendChild(editActions);
+                    listContainer.appendChild(itemElement);
+                    return;
+                }
 
                 const mainRow = document.createElement('div');
                 mainRow.className = 'saved-level-item-main';
@@ -6458,7 +6803,7 @@ function runBatch(games, baseBoardData, direction) {
                 mainRow.appendChild(iconRow);
                 itemElement.appendChild(mainRow);
 
-                itemElement.onclick = () => readSavedLevelByIndex(index);
+                itemElement.onclick = () => beginSavedLevelEdit(index);
                 itemElement.oncontextmenu = (event) => {
                     hideSavedLevelPreview();
                     openSavedLevelContextMenu(event, index);
@@ -6497,27 +6842,23 @@ function runBatch(games, baseBoardData, direction) {
             };
             savedLevels.push(levelEntry);
             renderSavedLevelList();
-
-            const info = document.getElementById('info');
-            if (info) info.textContent = `已保存关卡 #${levelEntry.id}`;
+            setInfoText(`已保存关卡 #${levelEntry.id}`);
         }
 
         function readSavedLevelByIndex(index) {
-            const savedItem = savedLevels[index];
-            if (!savedItem) return;
-            closeSavedLevelContextMenu();
-            const loaded = loadBoardDataIntoEditor(savedItem.boardData, savedItem.direction);
-            if (!loaded) return;
-            const info = document.getElementById('info');
-            if (info) info.textContent = `已读取关卡 #${savedItem.id}`;
+            beginSavedLevelEdit(index);
         }
 
         function deleteSavedLevelByIndex(index) {
             if (index < 0 || index >= savedLevels.length) return;
             const removed = savedLevels.splice(index, 1);
+            if (editingSavedLevelIndex === index) {
+                resetSavedLevelEditState();
+            } else if (editingSavedLevelIndex > index) {
+                editingSavedLevelIndex -= 1;
+            }
             renderSavedLevelList();
-            const info = document.getElementById('info');
-            if (info && removed[0]) info.textContent = `已删除关卡 #${removed[0].id}`;
+            if (removed[0]) setInfoText(`已删除关卡 #${removed[0].id}`);
         }
 
         function moveSavedLevelToOrder(index, targetOrder) {
@@ -6527,6 +6868,16 @@ function runBatch(games, baseBoardData, direction) {
             if (targetIndex === index) return;
             const [movedItem] = savedLevels.splice(index, 1);
             savedLevels.splice(targetIndex, 0, movedItem);
+            if (editingSavedLevelIndex === index) {
+                editingSavedLevelIndex = targetIndex;
+                if (editingSavedLevelSnapshot) editingSavedLevelSnapshot.index = targetIndex;
+            } else if (editingSavedLevelIndex > index && editingSavedLevelIndex <= targetIndex) {
+                editingSavedLevelIndex -= 1;
+                if (editingSavedLevelSnapshot) editingSavedLevelSnapshot.index = editingSavedLevelIndex;
+            } else if (editingSavedLevelIndex < index && editingSavedLevelIndex >= targetIndex) {
+                editingSavedLevelIndex += 1;
+                if (editingSavedLevelSnapshot) editingSavedLevelSnapshot.index = editingSavedLevelIndex;
+            }
             renderSavedLevelList();
         }
 
@@ -6696,9 +7047,9 @@ function runBatch(games, baseBoardData, direction) {
                         });
                     }
                     savedLevels = normalized;
+                    resetSavedLevelEditState();
                     renderSavedLevelList();
-                    const info = document.getElementById('info');
-                    if (info) info.textContent = `已读取关卡列表：${savedLevels.length} 关`;
+                    setInfoText(`已读取关卡列表：${savedLevels.length} 关`);
                 } catch (error) {
                     console.error('Failed to import saved levels:', error);
                     alert('读取失败，请检查文件格式。');
@@ -7709,8 +8060,12 @@ function runBatch(games, baseBoardData, direction) {
             loadConfigGroupsFromStorage();
             renderEditorTools();
             renderSavedLevelList();
+            initInfoMutationObserver();
             const board = document.getElementById('board');
             if (board) {
+                board.addEventListener('mousedown', handleBoardCellMouseDown);
+                board.addEventListener('mousemove', handleBoardCellMouseMove);
+                board.addEventListener('mouseleave', handleBoardCellMouseLeave);
                 board.addEventListener('click', handleBoardCellClick);
                 board.addEventListener('contextmenu', handleBoardCellContextMenu);
                 generateBoard();
@@ -7720,6 +8075,9 @@ function runBatch(games, baseBoardData, direction) {
                     renderEditorTools();
                     const readyBoard = document.getElementById('board');
                     if (readyBoard) {
+                        readyBoard.addEventListener('mousedown', handleBoardCellMouseDown);
+                        readyBoard.addEventListener('mousemove', handleBoardCellMouseMove);
+                        readyBoard.addEventListener('mouseleave', handleBoardCellMouseLeave);
                         readyBoard.addEventListener('click', handleBoardCellClick);
                         readyBoard.addEventListener('contextmenu', handleBoardCellContextMenu);
                     }
@@ -7739,6 +8097,7 @@ function runBatch(games, baseBoardData, direction) {
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
             });
+            document.addEventListener('mouseup', handleEditorBrushMouseUp);
             const savedMenu = document.getElementById('savedLevelContextMenu');
             if (savedMenu) {
                 savedMenu.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -7749,6 +8108,7 @@ function runBatch(games, baseBoardData, direction) {
                 hideSavedLevelPreview();
             });
             window.addEventListener('blur', () => {
+                stopEditorBrush();
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
             });
