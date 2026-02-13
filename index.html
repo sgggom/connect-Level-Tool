@@ -246,6 +246,7 @@
             transition: all 0.3s;
             cursor: pointer;
             text-align: center;
+            position: relative;
         }
 
         .direction-item:hover {
@@ -676,6 +677,11 @@
             user-select: none;
         }
 
+        .editor-tool[data-tool="attach-iceshell"] .editor-tool-preview {
+            transform: translateY(-3px) scale(0.8);
+            transform-origin: center center;
+        }
+
         .editor-tool-id {
             opacity: 0.75;
             font-size: 0.92em;
@@ -746,7 +752,9 @@
             gap: 10px;
             width: auto;
             height: 100%;
-            overflow: auto;
+            min-height: 0;
+            align-self: stretch;
+            overflow: hidden;
         }
 
         .board-editor-panel {
@@ -772,7 +780,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-height: 100%;
+            height: 100%;
+            min-height: 0;
         }
 
         .saved-level-actions {
@@ -788,13 +797,16 @@
 
         .saved-level-list {
             flex: 1;
-            min-height: 280px;
-            max-height: calc(100vh - 280px);
-            overflow: auto;
+            height: 100%;
+            min-height: 0;
+            max-height: none;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 6px;
             padding-right: 2px;
+            overscroll-behavior: contain;
         }
 
         .saved-level-item {
@@ -805,7 +817,12 @@
             cursor: pointer;
             transition: background-color 0.2s ease, border-color 0.2s ease;
             line-height: 1.3;
-            min-height: 31px;
+            height: 46px;
+            min-height: 46px;
+            max-height: 46px;
+            flex: 0 0 46px;
+            overflow: hidden;
+            position: relative;
         }
 
         .saved-level-item:hover {
@@ -818,11 +835,14 @@
             grid-template-columns: minmax(0, 1fr) auto;
             align-items: center;
             gap: 8px;
-            min-height: 0;
+            height: 100%;
         }
 
         .saved-level-item-left {
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .saved-level-item-id {
@@ -835,36 +855,46 @@
             margin-top: 2px;
             opacity: 0.85;
             font-size: 0.8em;
-            word-break: break-word;
+            word-break: normal;
+            white-space: nowrap;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
         .saved-level-direction-icon {
-            width: 18px;
-            height: 18px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             object-position: center;
             border-radius: 3px;
             background: rgba(255,255,255,0.12);
             border: 1px solid rgba(255,255,255,0.24);
             padding: 1px;
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .saved-level-item-icons {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 4px;
-            justify-content: flex-end;
+            justify-content: center;
             align-content: center;
-            max-width: 140px;
-            min-height: 0;
+            align-items: center;
+            width: auto;
+            max-width: none;
+            min-height: 32px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
         }
 
         .saved-level-item-icon {
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             border-radius: 4px;
             border: 1px solid rgba(255,255,255,0.28);
             background: rgba(255,255,255,0.12);
@@ -874,10 +904,12 @@
         }
 
         .saved-level-item-icons-empty {
-            text-align: right;
+            text-align: center;
             opacity: 0.7;
             font-size: 0.78em;
             white-space: nowrap;
+            width: auto;
+            align-self: center;
         }
 
         .saved-level-empty {
@@ -914,6 +946,29 @@
             font-weight: 600;
         }
 
+        .hotkey-button {
+            position: relative;
+            padding-left: 44px;
+        }
+
+        .hotkey-button::before {
+            content: attr(data-shortcut);
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.72em;
+            line-height: 1;
+            padding: 3px 7px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #fff;
+            opacity: 0.95;
+            pointer-events: none;
+            letter-spacing: 0.02em;
+        }
+
         .saved-level-context-menu button:hover {
             background: rgba(255,255,255,0.16);
             transform: none;
@@ -947,12 +1002,13 @@
 
         .saved-level-preview-board {
             display: grid;
-            gap: 1px;
-            background: rgba(255,255,255,0.08);
-            padding: 2px;
+            gap: 0;
+            background: transparent;
+            padding: 0;
             border-radius: 6px;
             width: fit-content;
             max-width: 100%;
+            --preview-scale: 1;
         }
 
         .saved-level-preview-cell {
@@ -960,7 +1016,7 @@
             width: 14px;
             height: 14px;
             border-radius: 2px;
-            background: rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.15);
             overflow: hidden;
         }
 
@@ -968,24 +1024,64 @@
             background: rgba(255,255,255,0.04);
         }
 
-        .saved-level-preview-cell img {
+        .saved-level-preview-stack {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .saved-level-preview-stack img,
+        .saved-level-preview-obstacle {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: contain;
-            object-position: center;
+            object-position: top center;
+            pointer-events: none;
+            user-select: none;
+            backface-visibility: hidden;
+            will-change: transform, opacity;
+        }
+
+        .saved-level-preview-base {
+            z-index: 1;
+            transform: scale(1.3);
+            transform-origin: top center;
+        }
+
+        .saved-level-preview-face {
+            z-index: 3;
+            transform: scale(1.2);
+            transform-origin: top center;
+        }
+
+        .saved-level-preview-face-bomb {
+            transform: scale(0.8);
+            transform-origin: top center;
+            object-position: top center;
         }
 
         .saved-level-preview-attachment {
-            width: 60% !important;
-            height: 60% !important;
-            right: 0;
-            left: auto !important;
-            top: 0;
-            bottom: auto !important;
-            border-radius: 2px;
-            background: rgba(0, 0, 0, 0.25);
+            z-index: 4;
+            transform-origin: top center;
+        }
+
+        .saved-level-preview-attachment-fanpai {
+            transform: scale(1.3);
+        }
+
+        .saved-level-preview-attachment-iceshell {
+            transform: translateY(calc(2px * var(--preview-scale))) scale(1.2);
+        }
+
+        .saved-level-preview-obstacle {
+            object-position: top center;
+        }
+
+        .saved-level-preview-obstacle-scale130 {
+            transform: translateY(calc(5px * var(--preview-scale))) scale(1.2);
+            transform-origin: top center;
         }
 
         .stats-line {
@@ -1084,9 +1180,6 @@
                 height: 72vh;
             }
 
-            .saved-level-list {
-                max-height: 320px;
-            }
         }
 
         @media (max-width: 600px) {
@@ -1187,41 +1280,59 @@
                 <div class="config-section">
                     <div class="config-title">方向规则</div>
                     <div class="direction-grid compact">
-                        <div class="direction-item selected" onclick="selectDirection(0)" title="无规则">
+                        <div class="direction-item selected" data-shortcut="0"
+                            onclick="selectDirection(0)" title="无规则">
                             <input type="radio" name="direction" value="0" checked>
                             <img class="direction-icon" src="img/ruleIcon_0.png" alt="0">
+                            <div class="direction-name">0</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(1)" title="向上">
+                        <div class="direction-item" data-shortcut="1"
+                            onclick="selectDirection(1)" title="向上">
                             <input type="radio" name="direction" value="1">
                             <img class="direction-icon" src="img/ruleIcon_1.png" alt="1">
+                            <div class="direction-name">1</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(2)" title="向下">
+                        <div class="direction-item" data-shortcut="2"
+                            onclick="selectDirection(2)" title="向下">
                             <input type="radio" name="direction" value="2">
                             <img class="direction-icon" src="img/ruleIcon_2.png" alt="2">
+                            <div class="direction-name">2</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(3)" title="向左">
+                        <div class="direction-item" data-shortcut="3"
+                            onclick="selectDirection(3)" title="向左">
                             <input type="radio" name="direction" value="3">
                             <img class="direction-icon" src="img/ruleIcon_3.png" alt="3">
+                            <div class="direction-name">3</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(4)" title="向右">
+                        <div class="direction-item" data-shortcut="4"
+                            onclick="selectDirection(4)" title="向右">
                             <input type="radio" name="direction" value="4">
                             <img class="direction-icon" src="img/ruleIcon_4.png" alt="4">
+                            <div class="direction-name">4</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(5)" title="上下向内">
+                        <div class="direction-item" data-shortcut="5"
+                            onclick="selectDirection(5)" title="上下向内">
                             <input type="radio" name="direction" value="5">
                             <img class="direction-icon" src="img/ruleIcon_5.png" alt="5">
+                            <div class="direction-name">5</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(6)" title="左右向内">
+                        <div class="direction-item" data-shortcut="6"
+                            onclick="selectDirection(6)" title="左右向内">
                             <input type="radio" name="direction" value="6">
                             <img class="direction-icon" src="img/ruleIcon_6.png" alt="6">
+                            <div class="direction-name">6</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(7)" title="上下向外">
+                        <div class="direction-item" data-shortcut="7"
+                            onclick="selectDirection(7)" title="上下向外">
                             <input type="radio" name="direction" value="7">
                             <img class="direction-icon" src="img/ruleIcon_7.png" alt="7">
+                            <div class="direction-name">7</div>
                         </div>
-                        <div class="direction-item" onclick="selectDirection(8)" title="左右向外">
+                        <div class="direction-item" data-shortcut="8"
+                            onclick="selectDirection(8)" title="左右向外">
                             <input type="radio" name="direction" value="8">
                             <img class="direction-icon" src="img/ruleIcon_8.png" alt="8">
+                            <div class="direction-name">8</div>
                         </div>
                     </div>
                 </div>
@@ -1365,11 +1476,15 @@
                         <div class="editor-section">
                             <div class="result-title">关卡编辑</div>
                             <div class="editor-board-actions">
-                                <button class="btn-generate" onclick="fillBoard()">生成</button>
-                                <button class="btn-primary" onclick="refreshBoardWithPlaceholder()">刷新棋盘</button>
-                                <button class="btn-secondary" onclick="clearBoard()">清空</button>
+                                <button class="btn-generate hotkey-button" data-shortcut="Q"
+                                    onclick="fillBoard()">生成</button>
+                                <button class="btn-primary hotkey-button" data-shortcut="N"
+                                    onclick="refreshBoardWithPlaceholder()">刷新棋盘</button>
+                                <button class="btn-secondary hotkey-button" data-shortcut="C"
+                                    onclick="clearBoard()">清空</button>
                                 <button class="btn-primary" onclick="importBoardFromClipboard()">读取阵型</button>
-                                <button class="btn-secondary" onclick="saveCurrentLevelToList()">保存本关</button>
+                                <button class="btn-secondary hotkey-button" data-shortcut="S"
+                                    onclick="saveCurrentLevelToList()">保存本关</button>
                                 <button class="btn-export" id="btnExportSingle"
                                     onclick="exportToClipboard()">导出当前</button>
                             </div>
@@ -1385,7 +1500,8 @@
                                 <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
                                 <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
                                     style="margin-top: 8px;">试玩模式</button>
-                                <button class="btn-export" id="btnSimulatePlay" onclick="simulatePlayGames()"
+                                <button class="btn-export hotkey-button" data-shortcut="空格"
+                                    id="btnSimulatePlay" onclick="simulatePlayGames()"
                                     style="margin-top: 8px;">模拟100局</button>
                             </div>
                             <div class="stats-grid">
@@ -6190,6 +6306,8 @@ function runBatch(games, baseBoardData, direction) {
             const cellWidth = Math.max(10, Math.min(18, Math.min(widthByCols, widthByRows)));
             const cellHeight = Math.max(10, Math.round(cellWidth * ratio));
             board.style.gridTemplateColumns = `repeat(${safeColCount}, ${cellWidth}px)`;
+            const previewScale = Math.min(cellWidth / 150, cellHeight / 162);
+            board.style.setProperty('--preview-scale', previewScale.toFixed(4));
 
             for (const row of savedItem.boardData) {
                 for (const rawId of row) {
@@ -6204,24 +6322,68 @@ function runBatch(games, baseBoardData, direction) {
                         continue;
                     }
 
-                    const imagePath = getSavedLevelPreviewImagePath(parsed.baseId);
-                    if (imagePath) {
-                        const image = document.createElement('img');
-                        image.src = imagePath;
-                        image.alt = '';
-                        cell.appendChild(image);
+                    if (isObstacleBaseId(parsed.baseId)) {
+                        const obstaclePath = getObstacleImagePath(parsed.baseId);
+                        if (obstaclePath) {
+                            const obstacleImage = document.createElement('img');
+                            obstacleImage.className = 'saved-level-preview-obstacle';
+                            if (
+                                parsed.baseId === STONE_CELL_ID ||
+                                parsed.baseId === WOOD_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_1_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_2_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_3_CELL_ID
+                            ) {
+                                obstacleImage.classList.add('saved-level-preview-obstacle-scale130');
+                            }
+                            obstacleImage.src = obstaclePath;
+                            obstacleImage.alt = '';
+                            cell.appendChild(obstacleImage);
+                        }
+                        board.appendChild(cell);
+                        continue;
+                    }
+
+                    const stack = document.createElement('div');
+                    stack.className = 'saved-level-preview-stack';
+
+                    const baseImage = document.createElement('img');
+                    baseImage.className = 'saved-level-preview-base';
+                    baseImage.src = 'img/base.png';
+                    baseImage.alt = '';
+                    stack.appendChild(baseImage);
+
+                    if (parsed.baseId !== PLACEHOLDER_CELL_ID) {
+                        const facePath = getSavedLevelPreviewImagePath(parsed.baseId);
+                        if (facePath) {
+                            const faceImage = document.createElement('img');
+                            faceImage.className = 'saved-level-preview-face';
+                            if (parsed.baseId === BOMB_CELL_ID) {
+                                faceImage.classList.add('saved-level-preview-face-bomb');
+                            }
+                            faceImage.src = facePath;
+                            faceImage.alt = '';
+                            stack.appendChild(faceImage);
+                        }
                     }
 
                     if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
                         const attachmentPath = getAttachmentImagePath(parsed.attachmentId);
                         if (attachmentPath) {
-                            const attachment = document.createElement('img');
-                            attachment.src = attachmentPath;
-                            attachment.alt = '';
-                            attachment.className = 'saved-level-preview-attachment';
-                            cell.appendChild(attachment);
+                            const attachmentImage = document.createElement('img');
+                            attachmentImage.className = 'saved-level-preview-attachment';
+                            if (parsed.attachmentId === ATTACHMENT_FANPAI_ID) {
+                                attachmentImage.classList.add('saved-level-preview-attachment-fanpai');
+                            } else if (parsed.attachmentId === ATTACHMENT_ICESHELL_ID) {
+                                attachmentImage.classList.add('saved-level-preview-attachment-iceshell');
+                            }
+                            attachmentImage.src = attachmentPath;
+                            attachmentImage.alt = '';
+                            stack.appendChild(attachmentImage);
                         }
                     }
+
+                    cell.appendChild(stack);
                     board.appendChild(cell);
                 }
             }
@@ -6256,6 +6418,7 @@ function runBatch(games, baseBoardData, direction) {
 
                 const mainRow = document.createElement('div');
                 mainRow.className = 'saved-level-item-main';
+
                 const leftInfo = document.createElement('div');
                 leftInfo.className = 'saved-level-item-left';
 
@@ -6266,39 +6429,33 @@ function runBatch(games, baseBoardData, direction) {
                 metaLine.className = 'saved-level-item-meta';
                 const metaText = document.createElement('span');
                 metaText.textContent = `${colCount}×${rowCount}`;
+                metaLine.appendChild(metaText);
+                leftInfo.appendChild(idLine);
+                leftInfo.appendChild(metaLine);
+                mainRow.appendChild(leftInfo);
+
                 const directionIcon = document.createElement('img');
                 directionIcon.className = 'saved-level-direction-icon';
                 directionIcon.src = getDirectionIconPath(item.direction);
                 directionIcon.alt = String(item.direction);
                 directionIcon.title = getDirectionTitleById(item.direction);
-                metaLine.appendChild(metaText);
-                metaLine.appendChild(directionIcon);
-                leftInfo.appendChild(idLine);
-                leftInfo.appendChild(metaLine);
-                mainRow.appendChild(leftInfo);
+                mainRow.appendChild(directionIcon);
 
-                if (specialIds.length > 0) {
-                    const iconRow = document.createElement('div');
-                    iconRow.className = 'saved-level-item-icons';
-                    specialIds.forEach((baseId) => {
-                        const iconPath = getSavedLevelSpecialIconPath(baseId);
-                        if (!iconPath) return;
-                        const icon = document.createElement('img');
-                        icon.className = 'saved-level-item-icon';
-                        icon.src = iconPath;
-                        icon.alt = getSavedLevelSpecialTitle(baseId);
-                        icon.title = getSavedLevelSpecialTitle(baseId);
-                        iconRow.appendChild(icon);
-                    });
-                    if (iconRow.childElementCount > 0) {
-                        mainRow.appendChild(iconRow);
-                    }
-                } else {
-                    const emptyText = document.createElement('div');
-                    emptyText.className = 'saved-level-item-icons-empty';
-                    emptyText.textContent = '无障碍/附着物';
-                    mainRow.appendChild(emptyText);
-                }
+                const iconRow = document.createElement('div');
+                iconRow.className = 'saved-level-item-icons';
+
+                specialIds.forEach((baseId) => {
+                    const iconPath = getSavedLevelSpecialIconPath(baseId);
+                    if (!iconPath) return;
+                    const icon = document.createElement('img');
+                    icon.className = 'saved-level-item-icon';
+                    icon.src = iconPath;
+                    icon.alt = getSavedLevelSpecialTitle(baseId);
+                    icon.title = getSavedLevelSpecialTitle(baseId);
+                    iconRow.appendChild(icon);
+                });
+
+                mainRow.appendChild(iconRow);
                 itemElement.appendChild(mainRow);
 
                 itemElement.onclick = () => readSavedLevelByIndex(index);
@@ -7595,6 +7752,7 @@ function runBatch(games, baseBoardData, direction) {
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
             });
+            document.addEventListener('keydown', handleGlobalShortcut);
             updatePlayModeButton();
             window.addEventListener('resize', scaleBoard);
         }
@@ -7606,6 +7764,7 @@ function runBatch(games, baseBoardData, direction) {
 
             requestAnimationFrame(() => {
                 const SCALE_SAFE_MARGIN = 2;
+                const EXTRA_VERTICAL_CELL_SPACES = 2; // top + bottom
                 const containerStyle = window.getComputedStyle(container);
                 const horizontalPadding =
                     parseFloat(containerStyle.paddingLeft || '0') +
@@ -7628,17 +7787,81 @@ function runBatch(games, baseBoardData, direction) {
                     SCALE_SAFE_MARGIN;
                 const boardWidth = wrapper.scrollWidth;
                 const boardHeight = wrapper.scrollHeight;
+                const { stepY } = getCellStepDistance();
+                const extraVerticalSpace = Math.max(0, stepY) * EXTRA_VERTICAL_CELL_SPACES;
+                const virtualBoardHeight = boardHeight + extraVerticalSpace;
 
                 let scale = 1;
                 if (boardWidth > containerWidth && containerWidth > 0) {
                     scale = Math.min(scale, containerWidth / boardWidth);
                 }
-                if (boardHeight > containerHeight && containerHeight > 0) {
-                    scale = Math.min(scale, containerHeight / boardHeight);
+                if (virtualBoardHeight > containerHeight && containerHeight > 0) {
+                    scale = Math.min(scale, containerHeight / virtualBoardHeight);
                 }
 
-                wrapper.style.transform = `scale(${scale.toFixed(3)})`;
+                const scaledBoardWidth = boardWidth * scale;
+                const scaledBoardHeight = boardHeight * scale;
+                const offsetX = Math.max(0, (containerWidth - scaledBoardWidth) / 2);
+                const offsetY = Math.max(0, (containerHeight - scaledBoardHeight) / 2);
+
+                wrapper.style.transform =
+                    `translate(${offsetX.toFixed(2)}px, ${offsetY.toFixed(2)}px) scale(${scale.toFixed(3)})`;
             });
+        }
+
+        function isShortcutBlockedByFocus(target) {
+            if (!target || typeof target.closest !== 'function') return false;
+            return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+        }
+
+        function handleGlobalShortcut(event) {
+            if (!event || event.defaultPrevented) return;
+            if (event.repeat) return;
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            if (isShortcutBlockedByFocus(event.target)) return;
+            if (isBatchGenerating || isBatchCampaignRunning) return;
+
+            const key = String(event.key || '').toLowerCase();
+            if (!key) return;
+
+            // Direction shortcuts: keyboard 0-8 (including numpad)
+            const isDigitDirection = key >= '0' && key <= '8';
+            const isNumpadDirection = /^Numpad[0-8]$/.test(String(event.code || ''));
+            if (isDigitDirection || isNumpadDirection) {
+                event.preventDefault();
+                const direction = isDigitDirection
+                    ? parseInt(key, 10)
+                    : parseInt(String(event.code).replace('Numpad', ''), 10);
+                if (Number.isFinite(direction)) {
+                    selectDirection(direction);
+                }
+                return;
+            }
+
+            if (key === 'q') {
+                event.preventDefault();
+                fillBoard();
+                return;
+            }
+            if (key === 'n') {
+                event.preventDefault();
+                refreshBoardWithPlaceholder();
+                return;
+            }
+            if (key === 'c') {
+                event.preventDefault();
+                clearBoard();
+                return;
+            }
+            if (key === 's') {
+                event.preventDefault();
+                saveCurrentLevelToList();
+                return;
+            }
+            if (event.code === 'Space' || key === ' ') {
+                event.preventDefault();
+                simulatePlayGames();
+            }
         }
 
         init();
