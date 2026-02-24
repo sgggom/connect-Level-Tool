@@ -1651,7 +1651,7 @@
     </div>
     <div class="global-interaction-blocker" id="globalInteractionBlocker" aria-hidden="true"></div>
     <div class="saved-level-context-menu" id="savedLevelContextMenu">
-        <button type="button" onclick="handleSavedLevelContextAction('read')">读取</button>
+        <button type="button" onclick="handleSavedLevelContextAction('edit')">编辑</button>
         <button type="button" onclick="handleSavedLevelContextAction('reorder')">输入序号</button>
         <button type="button" onclick="handleSavedLevelContextAction('delete')">删除</button>
     </div>
@@ -6513,6 +6513,9 @@ function runBatch(games, baseBoardData, direction) {
         }
 
         function getSavedLevelSpecialIconPath(specialKey) {
+            if (specialKey === 'bomb') {
+                return 'img/zhadan.png';
+            }
             if (specialKey === `attachment-${ATTACHMENT_FANPAI_ID}`) {
                 return getAttachmentImagePath(ATTACHMENT_FANPAI_ID);
             }
@@ -6528,6 +6531,7 @@ function runBatch(games, baseBoardData, direction) {
 
         function getSavedLevelSpecialTitle(specialKey) {
             const titleMap = {
+                bomb: '火箭',
                 [`attachment-${ATTACHMENT_FANPAI_ID}`]: '翻牌附着',
                 [`attachment-${ATTACHMENT_ICESHELL_ID}`]: '冰壳附着',
                 [`obstacle-${STONE_CELL_ID}`]: '石头',
@@ -6547,6 +6551,9 @@ function runBatch(games, baseBoardData, direction) {
                 if (!Array.isArray(row)) continue;
                 for (const rawId of row) {
                     const parsed = decodeCellId(rawId);
+                    if (parsed.baseId === BOMB_CELL_ID) {
+                        usedKeys.add('bomb');
+                    }
                     if (isObstacleBaseId(parsed.baseId)) {
                         usedKeys.add(`obstacle-${parsed.baseId}`);
                     }
@@ -6556,6 +6563,7 @@ function runBatch(games, baseBoardData, direction) {
                 }
             }
             const preferredOrder = [
+                'bomb',
                 `attachment-${ATTACHMENT_FANPAI_ID}`,
                 `attachment-${ATTACHMENT_ICESHELL_ID}`,
                 `obstacle-${STONE_CELL_ID}`,
@@ -6943,7 +6951,10 @@ function runBatch(games, baseBoardData, direction) {
                 mainRow.appendChild(iconRow);
                 itemElement.appendChild(mainRow);
 
-                itemElement.onclick = () => beginSavedLevelEdit(index);
+                itemElement.onclick = () => {
+                    hideSavedLevelPreview();
+                    applySavedLevelByIndex(index);
+                };
                 itemElement.oncontextmenu = (event) => {
                     hideSavedLevelPreview();
                     openSavedLevelContextMenu(event, index);
@@ -6959,6 +6970,19 @@ function runBatch(games, baseBoardData, direction) {
                 };
                 listContainer.appendChild(itemElement);
             });
+        }
+
+        function applySavedLevelByIndex(index) {
+            if (index < 0 || index >= savedLevels.length) return;
+            if (editingSavedLevelIndex !== -1 && editingSavedLevelIndex !== index) {
+                alert('请先保存或取消当前编辑关卡。');
+                return;
+            }
+            const savedItem = savedLevels[index];
+            if (!savedItem) return;
+            const loaded = loadBoardDataIntoEditor(savedItem.boardData, savedItem.direction);
+            if (!loaded) return;
+            setInfoText(`已应用关卡 #${savedItem.id} 到棋盘`);
         }
 
         function saveCurrentLevelToList() {
@@ -6983,10 +7007,6 @@ function runBatch(games, baseBoardData, direction) {
             savedLevels.push(levelEntry);
             renderSavedLevelList();
             setInfoText(`已保存关卡 #${levelEntry.id}`);
-        }
-
-        function readSavedLevelByIndex(index) {
-            beginSavedLevelEdit(index);
         }
 
         function deleteSavedLevelByIndex(index) {
@@ -7056,8 +7076,8 @@ function runBatch(games, baseBoardData, direction) {
                 closeSavedLevelContextMenu();
                 return;
             }
-            if (action === 'read') {
-                readSavedLevelByIndex(index);
+            if (action === 'edit' || action === 'read') {
+                beginSavedLevelEdit(index);
                 closeSavedLevelContextMenu();
                 return;
             }
