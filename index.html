@@ -975,6 +975,81 @@
             overflow: hidden;
         }
 
+        .play-step-log-section {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 160px;
+            max-height: 260px;
+        }
+
+        .play-step-log-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .play-step-log-header .result-title {
+            margin: 0;
+        }
+
+        .play-step-log-counts {
+            font-size: 0.74em;
+            color: rgba(231, 240, 255, 0.86);
+            line-height: 1.35;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .play-step-log-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
+        }
+
+        .play-step-log-empty {
+            font-size: 0.85em;
+            color: rgba(231, 240, 255, 0.8);
+            opacity: 0.9;
+            line-height: 1.45;
+        }
+
+        .play-step-log-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 7px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            font-size: 0.84em;
+            color: #e7f0ff;
+        }
+
+        .play-step-log-index {
+            flex: 0 0 auto;
+            min-width: 42px;
+            font-weight: 700;
+            color: rgba(147, 197, 253, 0.95);
+        }
+
+        .play-step-log-type {
+            flex: 1;
+            min-width: 0;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
         .board-editor-panel {
             display: flex;
             flex-direction: column;
@@ -998,7 +1073,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            height: 100%;
+            flex: 1;
+            height: auto;
             min-height: 0;
         }
 
@@ -1902,6 +1978,17 @@
                     </div>
 
                     <div class="board-side-panel">
+                        <div class="play-step-log-section">
+                            <div class="play-step-log-header">
+                                <div class="result-title">试玩消除记录</div>
+                                <div class="play-step-log-counts" id="playStepTypeCounts">
+                                    0拐：0，1拐：0，同向2拐：0，反向2拐：0
+                                </div>
+                            </div>
+                            <div class="play-step-log-list" id="playStepLogList">
+                                <div class="play-step-log-empty">进入试玩后会在这里按步骤记录消除连接类型</div>
+                            </div>
+                        </div>
                         <div class="saved-levels-section">
                             <div class="result-title">关卡列表</div>
                             <div class="saved-level-actions">
@@ -1939,6 +2026,7 @@
         let placedCounts = {};
         let stepGenerationState = null;
         let playModeState = null;
+        let playStepTypeCounts = null;
         let isSimulatingPlayGames = false;
         let isBatchGenerating = false;
         let isBatchCampaignRunning = false;
@@ -2001,6 +2089,12 @@
             [0, -1],
             [0, 1]
         ];
+        const PLAY_CONNECTION_TYPE_KEY_MAP = Object.freeze({
+            '直线连接': '0',
+            '1拐连接': '1',
+            '同向2拐': '2',
+            '反向2拐': '3'
+        });
         const EDITOR_TOOLS = [
             { key: 'placeholder', title: '占位块', idLabel: '499', preview: 'img/base.png' },
             { key: 'attach-fanpai', title: '翻牌', idLabel: '1000', preview: 'img/fanpai.png' },
@@ -3063,6 +3157,75 @@
             if (displayChanged) scaleBoard();
         }
 
+        function createEmptyPlayStepTypeCounts() {
+            return {
+                '0': 0,
+                '1': 0,
+                '2': 0,
+                '3': 0
+            };
+        }
+
+        function updatePlayStepTypeCountsText() {
+            const countsElement = document.getElementById('playStepTypeCounts');
+            if (!countsElement) return;
+            if (!playStepTypeCounts) {
+                playStepTypeCounts = createEmptyPlayStepTypeCounts();
+            }
+            countsElement.textContent =
+                `0拐：${playStepTypeCounts['0']}，` +
+                `1拐：${playStepTypeCounts['1']}，` +
+                `同向2拐：${playStepTypeCounts['2']}，` +
+                `反向2拐：${playStepTypeCounts['3']}`;
+        }
+
+        function increasePlayStepTypeCount(connectionType) {
+            if (!playStepTypeCounts) {
+                playStepTypeCounts = createEmptyPlayStepTypeCounts();
+            }
+            const typeKey = PLAY_CONNECTION_TYPE_KEY_MAP[connectionType];
+            if (!typeKey) return;
+            playStepTypeCounts[typeKey] = (playStepTypeCounts[typeKey] || 0) + 1;
+            updatePlayStepTypeCountsText();
+        }
+
+        function resetPlayStepLog(message = '进入试玩后会在这里按步骤记录消除连接类型') {
+            const logList = document.getElementById('playStepLogList');
+            if (!logList) return;
+            playStepTypeCounts = createEmptyPlayStepTypeCounts();
+            updatePlayStepTypeCountsText();
+            logList.innerHTML = '';
+            const empty = document.createElement('div');
+            empty.className = 'play-step-log-empty';
+            empty.textContent = message;
+            logList.appendChild(empty);
+        }
+
+        function appendPlayStepLog(stepIndex, connectionType) {
+            const logList = document.getElementById('playStepLogList');
+            if (!logList) return;
+
+            const empty = logList.querySelector('.play-step-log-empty');
+            if (empty) empty.remove();
+
+            const safeStep = Number.isFinite(Number(stepIndex))
+                ? Math.max(1, Math.round(Number(stepIndex)))
+                : (logList.children.length + 1);
+            const item = document.createElement('div');
+            item.className = 'play-step-log-item';
+            const stepText = document.createElement('span');
+            stepText.className = 'play-step-log-index';
+            stepText.textContent = `第${safeStep}步`;
+            const typeText = document.createElement('span');
+            typeText.className = 'play-step-log-type';
+            typeText.textContent = connectionType || '未知连接';
+            item.appendChild(stepText);
+            item.appendChild(typeText);
+            logList.appendChild(item);
+            increasePlayStepTypeCount(connectionType);
+            logList.scrollTop = logList.scrollHeight;
+        }
+
         function markPlayModeFailed() {
             if (!playModeState || !playModeState.active) return;
             clearPlaySelectionVisual();
@@ -3103,6 +3266,7 @@
             syncBoardDisplayWithoutTransition(playModeState.boardData);
             updatePlayRetryButton(false);
             updatePlayAutoPairButton();
+            resetPlayStepLog('试玩模式：已重玩，等待新的消除步骤');
             setInfoText('试玩模式：已重玩，请继续选择可消除牌');
         }
 
@@ -3818,6 +3982,7 @@
                 const movedCells = collectShiftedCells(tokenBeforeShift, tokenBoard);
                 await animateBoardShift(movedCells);
                 playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
+                appendPlayStepLog(playModeState.clearedPairs, connectionType);
 
                 if (isPlayBoardCleared(boardData)) {
                     updatePlayRetryButton(false);
@@ -3858,6 +4023,7 @@
             if (board) board.classList.remove('play-mode');
             clearPlayLinkPath();
             updatePlayRetryButton(false);
+            resetPlayStepLog();
 
             playModeState = null;
             updatePlayModeButton();
@@ -3894,6 +4060,7 @@
 
             updatePlayRetryButton(false);
             updatePlayModeButton();
+            resetPlayStepLog('试玩模式：开始记录消除连接类型');
             const info = document.getElementById('info');
             if (info) info.textContent = '试玩模式：点击两张相同且可连通的牌进行消除';
             checkAndHandlePlayFailure(playModeState.boardData);
@@ -11254,6 +11421,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             });
             document.addEventListener('keydown', handleGlobalShortcut);
             updatePlayModeButton();
+            resetPlayStepLog();
             window.addEventListener('resize', scaleBoard);
         }
 
