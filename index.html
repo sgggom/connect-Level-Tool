@@ -3201,7 +3201,7 @@
             logList.appendChild(empty);
         }
 
-        function appendPlayStepLog(stepIndex, connectionType) {
+        function appendPlayStepLog(stepIndex, connectionType, remainingPairCount = null) {
             const logList = document.getElementById('playStepLogList');
             if (!logList) return;
 
@@ -3218,7 +3218,12 @@
             stepText.textContent = `第${safeStep}步`;
             const typeText = document.createElement('span');
             typeText.className = 'play-step-log-type';
-            typeText.textContent = connectionType || '未知连接';
+            const safeRemainingPairCount = Number.isFinite(Number(remainingPairCount))
+                ? Math.max(0, Math.round(Number(remainingPairCount)))
+                : null;
+            typeText.textContent = safeRemainingPairCount === null
+                ? (connectionType || '未知连接')
+                : `${connectionType || '未知连接'}（可配对：${safeRemainingPairCount}对）`;
             item.appendChild(stepText);
             item.appendChild(typeText);
             logList.appendChild(item);
@@ -3982,7 +3987,14 @@
                 const movedCells = collectShiftedCells(tokenBeforeShift, tokenBoard);
                 await animateBoardShift(movedCells);
                 playModeState.clearedPairs = (playModeState.clearedPairs || 0) + 1;
-                appendPlayStepLog(playModeState.clearedPairs, connectionType);
+                const remainingPairsNow = isPlayBoardCleared(boardData)
+                    ? 0
+                    : countRemainingPairCountByBoard(boardData);
+                appendPlayStepLog(
+                    playModeState.clearedPairs,
+                    connectionType,
+                    remainingPairsNow
+                );
 
                 if (isPlayBoardCleared(boardData)) {
                     updatePlayRetryButton(false);
@@ -3996,10 +4008,9 @@
                         info.textContent = `${info.textContent}（本次连接：${connectionType}）`;
                     }
                     if (!failed && info) {
-                        const remainingPairs = countRemainingPairCountByBoard(boardData);
                         info.textContent =
                             `试玩模式：已消除 ${playModeState.clearedPairs} 对，当前可配对 ` +
-                            `${remainingPairs} 对（本次连接：${connectionType}）`;
+                            `${remainingPairsNow} 对（本次连接：${connectionType}）`;
                     }
                 }
             } finally {
