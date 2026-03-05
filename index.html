@@ -1359,6 +1359,8 @@
             width: fit-content;
             max-width: 100%;
             --preview-scale: 1;
+            position: relative;
+            overflow: visible;
         }
 
         .saved-level-preview-cell {
@@ -1441,6 +1443,22 @@
         .saved-level-preview-obstacle-scale130 {
             transform: translateY(calc(5px * var(--preview-scale))) scale(1.2);
             transform-origin: top center;
+        }
+
+        .saved-level-preview-link-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 6;
+            overflow: visible;
+        }
+
+        .saved-level-preview-link-path {
+            fill: none;
+            stroke: #ffd54f;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 2px rgba(255, 213, 79, 0.72));
         }
 
         .saved-level-preview-cell.agent-step-selected {
@@ -1660,6 +1678,29 @@
             white-space: nowrap;
         }
 
+        .agent-memory-view-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .agent-memory-view-btn {
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.6);
+            color: #dbeafe;
+            font-size: 0.72em;
+            line-height: 1.3;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+
+        .agent-memory-view-btn.active {
+            border-color: rgba(125, 211, 252, 0.82);
+            background: rgba(14, 116, 144, 0.35);
+            color: #e0f2fe;
+        }
+
         .agent-memory-trend {
             border: 1px solid rgba(148, 163, 184, 0.3);
             border-radius: 8px;
@@ -1726,20 +1767,72 @@
         }
 
         .agent-run-controls {
-            display: grid;
-            grid-template-columns: auto minmax(92px, 1fr) auto auto minmax(140px, 1fr) repeat(4, auto);
+            display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             padding: 8px 10px 6px;
             border-bottom: 1px solid rgba(255,255,255,0.15);
         }
 
-        .agent-run-controls label {
-            font-size: 0.78em;
-            opacity: 0.85;
+        .agent-run-controls .agent-btn {
+            flex: 0 0 auto;
         }
 
-        .agent-run-controls select {
+        .agent-run-settings-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: flex-start;
+            justify-content: flex-end;
+            background: rgba(2, 6, 23, 0.55);
+            z-index: 12020;
+            padding: 44px 10px 10px;
+        }
+
+        .agent-run-settings-overlay.visible {
+            display: flex;
+        }
+
+        .agent-run-settings-panel {
+            width: min(420px, calc(100% - 6px));
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            background: rgba(15, 23, 42, 0.97);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .agent-run-settings-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .agent-run-settings-title {
+            font-size: 0.84em;
+            font-weight: 700;
+            color: #dbeafe;
+            letter-spacing: 0.02em;
+        }
+
+        .agent-run-settings-grid {
+            display: grid;
+            grid-template-columns: auto minmax(120px, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-run-settings-grid label {
+            font-size: 0.78em;
+            opacity: 0.9;
+            white-space: nowrap;
+        }
+
+        .agent-run-settings-grid select {
             width: 100%;
             min-width: 0;
             text-align: left;
@@ -1778,7 +1871,28 @@
             word-break: break-word;
         }
 
-        .agent-run-status.error {
+        .agent-run-status.status-idle {
+            color: #cfe5ff;
+        }
+
+        .agent-run-status.status-running {
+            color: #7dd3fc;
+            text-shadow: 0 0 10px rgba(125, 211, 252, 0.28);
+        }
+
+        .agent-run-status.status-waiting {
+            color: #fde68a;
+        }
+
+        .agent-run-status.status-success {
+            color: #86efac;
+        }
+
+        .agent-run-status.status-warning {
+            color: #fdba74;
+        }
+
+        .agent-run-status.status-error {
             color: #fca5a5;
         }
 
@@ -2171,7 +2285,20 @@
             }
 
             .agent-run-controls {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                flex-wrap: wrap;
+            }
+
+            .agent-run-settings-overlay {
+                padding: 38px 8px 8px;
+                justify-content: center;
+            }
+
+            .agent-run-settings-panel {
+                width: min(460px, calc(100vw - 24px));
+            }
+
+            .agent-run-settings-grid {
+                grid-template-columns: 1fr;
             }
 
             .agent-memory-row {
@@ -2641,21 +2768,38 @@
             </div>
         </div>
         <div class="agent-run-controls">
-            <label for="agentRunModeSelect">模式</label>
-            <select id="agentRunModeSelect">
-                <option value="continuous">持续操作</option>
-                <option value="step">单步操作</option>
-            </select>
-            <label class="agent-human-mode-toggle">
-                <input type="checkbox" id="agentHumanModeToggle">
-                <span>人类模式</span>
-            </label>
-            <label for="agentModelSelect">模型</label>
-            <select id="agentModelSelect" class="agent-model-select"></select>
-            <button type="button" class="agent-btn" id="agentValidateApiBtn">验证</button>
+            <button type="button" class="agent-btn" id="agentRunSettingsBtn">运行设置</button>
             <button type="button" class="agent-btn" id="agentRunStartBtn">开始</button>
             <button type="button" class="agent-btn" id="agentRunStepBtn">下一步</button>
             <button type="button" class="agent-btn" id="agentRunStopBtn">终止</button>
+        </div>
+        <div class="agent-run-settings-overlay" id="agentRunSettingsOverlay">
+            <div class="agent-run-settings-panel" id="agentRunSettingsPanel">
+                <div class="agent-run-settings-head">
+                    <div class="agent-run-settings-title">运行配置</div>
+                    <button type="button" class="agent-btn" id="agentRunSettingsCloseBtn">关闭</button>
+                </div>
+                <div class="agent-run-settings-grid">
+                    <label for="agentRunModeSelect">模式</label>
+                    <select id="agentRunModeSelect">
+                        <option value="continuous">持续操作</option>
+                        <option value="step">单步操作</option>
+                    </select>
+                    <span></span>
+                    <label class="agent-human-mode-toggle">
+                        <input type="checkbox" id="agentHumanModeToggle">
+                        <span>人类模式</span>
+                    </label>
+                    <label class="agent-human-mode-toggle">
+                        <input type="checkbox" id="agentQuickModeToggle">
+                        <span>快速模式（全本地）</span>
+                    </label>
+                    <span></span>
+                    <label for="agentModelSelect">模型</label>
+                    <select id="agentModelSelect" class="agent-model-select"></select>
+                    <button type="button" class="agent-btn" id="agentValidateApiBtn">验证</button>
+                </div>
+            </div>
         </div>
         <div class="agent-run-status" id="agentRunStatus">状态：空闲</div>
         <div class="agent-chat-body">
@@ -2744,6 +2888,7 @@
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
         const AGENT_API_CONFIG_STORAGE_KEY = 'levelmake.agentApiConfig.v1';
         const AGENT_HUMAN_MODE_STORAGE_KEY = 'levelmake.agentHumanMode.v1';
+        const AGENT_QUICK_MODE_STORAGE_KEY = 'levelmake.agentQuickMode.v1';
         const BOARD_BACKGROUND_MIN_INDEX = 1;
         const BOARD_BACKGROUND_MAX_INDEX = 9;
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
@@ -2824,15 +2969,21 @@
             pendingSelectedProfileId: '',
             runMode: 'continuous',
             humanModeEnabled: false,
+            quickModeEnabled: false,
             isRunning: false,
             isExecutingStep: false,
             stopRequested: false,
             activeFetchAbortController: null,
             playSessionSignature: '',
             playSessionReviewSignature: '',
+            playSessionInitialRemovableCount: 0,
             stepMemory: [],
             lastActionResult: null,
-            userConversation: []
+            userConversation: [],
+            statusLoadingTimer: null,
+            statusLoadingTick: 0,
+            statusLoadingBaseText: '',
+            memoryTrendView: 'avg_candidate'
         };
 
         function getObstacleImagePath(baseId) {
@@ -5360,6 +5511,27 @@
         function countRemainingPairCountByBoard(boardData) {
             if (!Array.isArray(boardData) || boardData.length === 0) return 0;
             return getRemovablePairsForBoard(boardData).length;
+        }
+
+        function countRemainingPairCombinationCountByBoard(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+            const countMap = new Map();
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    if (!isRemovableBaseId(parsed.baseId)) continue;
+                    if (parsed.baseId === PLACEHOLDER_CELL_ID) continue;
+                    countMap.set(parsed.baseId, (countMap.get(parsed.baseId) || 0) + 1);
+                }
+            }
+            let total = 0;
+            countMap.forEach((count) => {
+                const safeCount = Number(count) || 0;
+                if (safeCount < 2) return;
+                total += (safeCount * (safeCount - 1)) / 2;
+            });
+            return Math.max(0, Math.round(total));
         }
 
         function pickRandomRemovablePairForBoard(boardData, preferAdjacent = false) {
@@ -10489,6 +10661,81 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             return `img/${getImageForNumber(baseId)}.png`;
         }
 
+        function buildAgentStepPreviewConnectionPath(stepItem, rowCount, colCount) {
+            const boardData = Array.isArray(stepItem?.boardSnapshotBefore)
+                ? stepItem.boardSnapshotBefore
+                : null;
+            const move = stepItem?.move && typeof stepItem.move === 'object'
+                ? stepItem.move
+                : null;
+            if (!boardData || !move) return null;
+            const row1 = Number(move.row1);
+            const col1 = Number(move.col1);
+            const row2 = Number(move.row2);
+            const col2 = Number(move.col2);
+            const inRange = (row, col) =>
+                Number.isInteger(row) && Number.isInteger(col) &&
+                row >= 0 && row < rowCount && col >= 0 && col < colCount;
+            if (!inRange(row1, col1) || !inRange(row2, col2)) return null;
+            if (!canConnectByLianliankan(boardData, row1, col1, row2, col2)) return null;
+            const path = findConnectionPathByLianliankan(boardData, row1, col1, row2, col2);
+            return Array.isArray(path) && path.length >= 2 ? path : null;
+        }
+
+        function convertExtPathToPreviewPixels(extPath, colCount, rowCount, cellWidth, cellHeight, marginX, marginY) {
+            if (!Array.isArray(extPath) || extPath.length < 2) return [];
+            const safeColCount = Math.max(1, colCount);
+            const safeRowCount = Math.max(1, rowCount);
+            const points = [];
+            for (const point of extPath) {
+                if (!point || !Number.isFinite(Number(point.row)) || !Number.isFinite(Number(point.col))) continue;
+                const gridCol = Math.max(-1, Math.min(safeColCount, Number(point.col) - 1));
+                const gridRow = Math.max(-1, Math.min(safeRowCount, Number(point.row) - 1));
+                points.push({
+                    x: ((gridCol + 0.5) * cellWidth) + marginX,
+                    y: ((gridRow + 0.5) * cellHeight) + marginY
+                });
+            }
+            return points;
+        }
+
+        function renderAgentStepPreviewConnectionPath(boardElement, extPath, colCount, rowCount, cellWidth, cellHeight) {
+            if (!boardElement || !Array.isArray(extPath) || extPath.length < 2) return;
+            const boardWidth = Math.max(1, colCount) * cellWidth;
+            const boardHeight = Math.max(1, rowCount) * cellHeight;
+            const marginX = cellWidth;
+            const marginY = cellHeight;
+            const overlayWidth = boardWidth + (marginX * 2);
+            const overlayHeight = boardHeight + (marginY * 2);
+            const points = convertExtPathToPreviewPixels(
+                extPath,
+                colCount,
+                rowCount,
+                cellWidth,
+                cellHeight,
+                marginX,
+                marginY
+            );
+            if (points.length < 2) return;
+
+            const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            overlay.classList.add('saved-level-preview-link-overlay');
+            overlay.setAttribute('viewBox', `0 0 ${overlayWidth} ${overlayHeight}`);
+            overlay.style.left = `${-marginX}px`;
+            overlay.style.top = `${-marginY}px`;
+            overlay.style.width = `${overlayWidth}px`;
+            overlay.style.height = `${overlayHeight}px`;
+
+            const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            polyline.classList.add('saved-level-preview-link-path');
+            polyline.setAttribute(
+                'points',
+                points.map((point) => `${point.x},${point.y}`).join(' ')
+            );
+            overlay.appendChild(polyline);
+            boardElement.appendChild(overlay);
+        }
+
         function showAgentStepBoardPreview(stepItem, clientX, clientY) {
             const preview = document.getElementById('savedLevelPreview');
             const boardData = Array.isArray(stepItem?.boardSnapshotBefore)
@@ -10523,6 +10770,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             board.style.gridTemplateColumns = `repeat(${safeColCount}, ${cellWidth}px)`;
             const previewScale = Math.min(cellWidth / 150, cellHeight / 162);
             board.style.setProperty('--preview-scale', previewScale.toFixed(4));
+            const connectionPath = buildAgentStepPreviewConnectionPath(stepItem, rowCount, colCount);
 
             const selectedKeys = buildAgentStepPreviewSelectedKeys(stepItem?.move);
             for (let row = 0; row < rowCount; row++) {
@@ -10616,6 +10864,15 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     board.appendChild(cell);
                 }
             }
+
+            renderAgentStepPreviewConnectionPath(
+                board,
+                connectionPath,
+                safeColCount,
+                safeRowCount,
+                cellWidth,
+                cellHeight
+            );
 
             preview.appendChild(board);
             preview.classList.add('visible');
@@ -12597,7 +12854,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const role = item.role === 'assistant' ? 'assistant' : 'user';
             const msg = document.createElement('div');
             msg.className = `agent-chat-msg agent-chat-msg-${role}`;
-            msg.textContent = item.text;
+            const baseText = String(item.collapseBaseText || item.text || '');
+            const collapseCount = Number(item.collapseCount);
+            if (Number.isFinite(collapseCount) && collapseCount > 1) {
+                msg.textContent = `${baseText}（+${collapseCount - 1}）`;
+            } else {
+                msg.textContent = String(item.text || '');
+            }
             return msg;
         }
 
@@ -12611,8 +12874,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             title.className = 'agent-step-title';
             title.textContent = `第 ${Number(item.stepIndex) || 0} 步`;
             const status = document.createElement('div');
-            status.className = `agent-step-result ${item.success ? 'ok' : 'fail'}`;
-            status.textContent = item.success ? '操作结果：正确' : `操作结果：错误${item.error ? `（${item.error}）` : ''}`;
+            const outcomeCode = String(item.gameOutcome || '').trim().toLowerCase();
+            const outcomeLabel = outcomeCode === 'victory'
+                ? '胜利'
+                : (outcomeCode === 'failure' ? '失败' : '');
+            const statusIsFail = !item.success || outcomeCode === 'failure';
+            status.className = `agent-step-result ${statusIsFail ? 'fail' : 'ok'}`;
+            const baseResultText = item.success ? '操作结果：正确' : `操作结果：错误${item.error ? `（${item.error}）` : ''}`;
+            status.textContent = outcomeLabel ? `${baseResultText}｜结局：${outcomeLabel}` : baseResultText;
             const hasBoardPreview = Array.isArray(item.boardSnapshotBefore) && item.boardSnapshotBefore.length > 0;
             if (hasBoardPreview) {
                 status.classList.add('previewable');
@@ -12638,10 +12907,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const remainingText = item.humanMode
                 ? '未知（人类模式）'
                 : `${Number.isFinite(Number(item.remainingPairsBefore)) ? Number(item.remainingPairsBefore) : '-'} -> ${Number.isFinite(Number(item.remainingPairsAfter)) ? Number(item.remainingPairsAfter) : '-'}`;
+            const remainingCardText = Number.isFinite(Number(item.remainingCardCountAfter))
+                ? String(Math.max(0, Number(item.remainingCardCountAfter)))
+                : '-';
+            const clearedCardText = Number.isFinite(Number(item.clearedCardCountAfter))
+                ? String(Math.max(0, Number(item.clearedCardCountAfter)))
+                : '-';
+            const resultText = outcomeLabel || '-';
             const cellEntries = [
                 ['操作坐标', item.moveText || '未给出'],
                 ['候选数', Number.isFinite(Number(item.candidateCount)) ? String(Math.max(0, Number(item.candidateCount))) : '-'],
                 ['连接/拐点', `${item.connectionType || '-'} / ${Number.isFinite(Number(item.turnCount)) ? Number(item.turnCount) : '-'}`],
+                ['局面结果', resultText],
+                ['剩余牌数', remainingCardText],
+                ['已消除牌数', clearedCardText],
                 ['剩余可配对', remainingText],
                 ['选择原因', String(item.reason || '未提供')],
                 ['感受评级', String(item.feelingLevel || '-')]
@@ -12728,6 +13007,45 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             renderAgentChatMessages();
         }
 
+        function pushCollapsedAssistantMessage(text, collapseKey) {
+            const safeText = String(text || '').trim();
+            const safeKey = String(collapseKey || '').trim();
+            if (!safeText) return;
+            if (!safeKey) {
+                pushAgentChatMessage('assistant', safeText);
+                return;
+            }
+            if (!Array.isArray(agentUiState.chatMessages)) {
+                agentUiState.chatMessages = [];
+            }
+            const history = agentUiState.chatMessages;
+            const last = history.length > 0 ? history[history.length - 1] : null;
+            if (
+                last &&
+                typeof last === 'object' &&
+                last.kind !== 'step' &&
+                last.role === 'assistant' &&
+                String(last.collapseKey || '') === safeKey
+            ) {
+                const nextCount = Math.max(1, Number(last.collapseCount) || 1) + 1;
+                last.collapseCount = nextCount;
+                if (!last.collapseBaseText) {
+                    last.collapseBaseText = String(last.text || safeText);
+                }
+                last.text = String(last.collapseBaseText);
+                renderAgentChatMessages();
+                return;
+            }
+            history.push({
+                role: 'assistant',
+                text: safeText,
+                collapseKey: safeKey,
+                collapseCount: 1,
+                collapseBaseText: safeText
+            });
+            renderAgentChatMessages();
+        }
+
         function pushAgentStepCard(stepPayload) {
             if (!stepPayload || typeof stepPayload !== 'object') return;
             if (!Array.isArray(agentUiState.chatMessages)) {
@@ -12753,6 +13071,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 turnCount: Number(stepPayload.turnCount),
                 remainingPairsBefore: Number(stepPayload.remainingPairsBefore),
                 remainingPairsAfter: Number(stepPayload.remainingPairsAfter),
+                remainingCardCountBefore: Number(stepPayload.remainingCardCountBefore),
+                remainingCardCountAfter: Number(stepPayload.remainingCardCountAfter),
+                clearedCardCountBefore: Number(stepPayload.clearedCardCountBefore),
+                clearedCardCountAfter: Number(stepPayload.clearedCardCountAfter),
+                gameOutcome: String(stepPayload.gameOutcome || ''),
                 feelingLevel: String(stepPayload.feelingLevel || ''),
                 feelingDetail: String(stepPayload.feelingDetail || ''),
                 thought: String(stepPayload.thought || ''),
@@ -12968,6 +13291,27 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             }
         }
 
+        function persistAgentQuickModePreference() {
+            try {
+                localStorage.setItem(
+                    AGENT_QUICK_MODE_STORAGE_KEY,
+                    agentUiState.quickModeEnabled ? '1' : '0'
+                );
+            } catch (error) {
+                console.error('Save agent quick mode failed:', error);
+            }
+        }
+
+        function loadAgentQuickModePreference() {
+            try {
+                const raw = String(localStorage.getItem(AGENT_QUICK_MODE_STORAGE_KEY) || '').trim();
+                agentUiState.quickModeEnabled = raw === '1' || /^true$/i.test(raw);
+            } catch (error) {
+                console.error('Load agent quick mode failed:', error);
+                agentUiState.quickModeEnabled = false;
+            }
+        }
+
         function getMaskedAgentApiKey(apiKey) {
             const safeKey = String(apiKey || '');
             if (!safeKey) return '-';
@@ -13126,6 +13470,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const elements = agentUiState.elements;
             if (!elements) return;
             elements.dialog.classList.remove('visible');
+            closeAgentRunSettingsPanel();
             elements.icon.classList.remove('hidden');
             keepAgentElementInViewport(elements.icon);
         }
@@ -13149,6 +13494,18 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const elements = agentUiState.elements;
             if (!elements) return;
             elements.configOverlay.classList.remove('visible');
+        }
+
+        function openAgentRunSettingsPanel() {
+            const elements = agentUiState.elements;
+            if (!elements?.runSettingsOverlay) return;
+            elements.runSettingsOverlay.classList.add('visible');
+        }
+
+        function closeAgentRunSettingsPanel() {
+            const elements = agentUiState.elements;
+            if (!elements?.runSettingsOverlay) return;
+            elements.runSettingsOverlay.classList.remove('visible');
         }
 
         async function importAgentApiConfigFromFile(file) {
@@ -13182,11 +13539,80 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             renderAgentConfigPreview();
         }
 
+        function clearAgentRunStatusLoadingAnimation() {
+            if (agentUiState.statusLoadingTimer) {
+                clearInterval(agentUiState.statusLoadingTimer);
+                agentUiState.statusLoadingTimer = null;
+            }
+            agentUiState.statusLoadingTick = 0;
+            agentUiState.statusLoadingBaseText = '';
+        }
+
+        function applyAgentRunStatusTypeClass(statusElement, type) {
+            if (!statusElement) return;
+            const typeList = ['status-idle', 'status-running', 'status-waiting', 'status-success', 'status-warning', 'status-error'];
+            for (const className of typeList) {
+                statusElement.classList.remove(className);
+            }
+            const normalizedType = typeList.includes(`status-${type}`) ? `status-${type}` : 'status-idle';
+            statusElement.classList.add(normalizedType);
+        }
+
+        function resolveAgentRunStatusStyle(text, isError = false) {
+            if (isError) return { type: 'error', loading: false };
+            const safeText = String(text || '');
+            if (!safeText) return { type: 'idle', loading: false };
+            if (/思考中|执行操作中|等待结算反馈|持续操作中|正在验证|正在读取|请求中|加载中/i.test(safeText)) {
+                return { type: 'running', loading: true };
+            }
+            if (/等待进入试玩模式|单步模式，就绪|待机|等待/i.test(safeText)) {
+                return { type: 'waiting', loading: false };
+            }
+            if (/已通关|验证通过|可继续|请求成功/i.test(safeText)) {
+                return { type: 'success', loading: false };
+            }
+            if (/已终止|已停止|空闲|单步模式|持续模式/i.test(safeText)) {
+                return { type: 'idle', loading: false };
+            }
+            if (/失败|不可用|错误|异常|缺少|未配置/i.test(safeText)) {
+                return { type: 'warning', loading: false };
+            }
+            return { type: 'idle', loading: false };
+        }
+
         function updateAgentRunStatus(text, isError = false) {
             const elements = agentUiState.elements;
             if (!elements?.runStatus) return;
-            elements.runStatus.textContent = String(text || '状态：空闲');
-            elements.runStatus.classList.toggle('error', Boolean(isError));
+            const safeText = String(text || '状态：空闲');
+            const style = resolveAgentRunStatusStyle(safeText, isError);
+            applyAgentRunStatusTypeClass(elements.runStatus, style.type);
+            if (!style.loading) {
+                clearAgentRunStatusLoadingAnimation();
+                elements.runStatus.textContent = safeText;
+                return;
+            }
+
+            const loadingBaseText = safeText.replace(/(?:\s*[.。…]+)\s*$/, '');
+            if (
+                agentUiState.statusLoadingTimer &&
+                agentUiState.statusLoadingBaseText === loadingBaseText
+            ) {
+                return;
+            }
+
+            clearAgentRunStatusLoadingAnimation();
+            agentUiState.statusLoadingBaseText = loadingBaseText;
+            elements.runStatus.textContent = `${loadingBaseText}.`;
+            agentUiState.statusLoadingTimer = setInterval(() => {
+                const runStatusElement = agentUiState.elements?.runStatus;
+                if (!runStatusElement) {
+                    clearAgentRunStatusLoadingAnimation();
+                    return;
+                }
+                agentUiState.statusLoadingTick = (agentUiState.statusLoadingTick + 1) % 3;
+                const dotCount = agentUiState.statusLoadingTick + 1;
+                runStatusElement.textContent = `${agentUiState.statusLoadingBaseText}${'.'.repeat(dotCount)}`;
+            }, 360);
         }
 
         function updateAgentRunControls() {
@@ -13195,7 +13621,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const stepMode = agentUiState.runMode === 'step';
             const runningContinuous = agentUiState.isRunning && !stepMode;
             const hasProfiles = Array.isArray(agentUiState.apiProfiles) && agentUiState.apiProfiles.length > 0;
-            const canRunAgent = hasProfiles || Boolean(agentUiState.humanModeEnabled);
+            const canRunAgent = hasProfiles || Boolean(agentUiState.humanModeEnabled) || Boolean(agentUiState.quickModeEnabled);
             if (elements.runModeSelect) {
                 elements.runModeSelect.value = stepMode ? 'step' : 'continuous';
                 elements.runModeSelect.disabled = agentUiState.isExecutingStep || runningContinuous;
@@ -13204,12 +13630,19 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 elements.humanModeToggle.checked = Boolean(agentUiState.humanModeEnabled);
                 elements.humanModeToggle.disabled = agentUiState.isExecutingStep || agentUiState.isRunning;
             }
+            if (elements.quickModeToggle) {
+                elements.quickModeToggle.checked = Boolean(agentUiState.quickModeEnabled);
+                elements.quickModeToggle.disabled = agentUiState.isExecutingStep || agentUiState.isRunning;
+            }
             if (elements.modelSelect) {
                 renderAgentModelSelectOptions();
                 elements.modelSelect.disabled = agentUiState.isExecutingStep || agentUiState.isRunning || !hasProfiles;
             }
             if (elements.validateApiBtn) {
                 elements.validateApiBtn.disabled = agentUiState.isExecutingStep || !hasProfiles;
+            }
+            if (elements.runSettingsBtn) {
+                elements.runSettingsBtn.disabled = agentUiState.isExecutingStep;
             }
             if (elements.runStartBtn) {
                 elements.runStartBtn.disabled = agentUiState.isExecutingStep || runningContinuous || !canRunAgent;
@@ -13236,19 +13669,41 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             if (!signature) {
                 agentUiState.playSessionSignature = '';
                 agentUiState.playSessionReviewSignature = '';
+                agentUiState.playSessionInitialRemovableCount = 0;
                 agentUiState.stepMemory = [];
                 agentUiState.lastActionResult = null;
                 renderAgentMemoryPanel();
                 return;
             }
             if (forceReset || signature !== agentUiState.playSessionSignature) {
+                const sourceBoard = Array.isArray(playModeState?.originalBoard)
+                    ? playModeState.originalBoard
+                    : playModeState?.boardData;
+                const initialCount = Array.isArray(sourceBoard)
+                    ? countRemovableCellCount(sourceBoard)
+                    : 0;
                 agentUiState.playSessionSignature = signature;
                 agentUiState.playSessionReviewSignature = '';
+                agentUiState.playSessionInitialRemovableCount = Number.isFinite(Number(initialCount))
+                    ? Math.max(0, Math.round(Number(initialCount)))
+                    : 0;
                 agentUiState.stepMemory = [];
                 agentUiState.lastActionResult = null;
                 renderAgentMemoryPanel();
                 pushAgentChatMessage('assistant', '已创建新关卡记忆会话。');
             }
+        }
+
+        function getAgentSessionInitialRemovableCount(snapshotBoard = null) {
+            const fromState = Number(agentUiState.playSessionInitialRemovableCount);
+            if (Number.isFinite(fromState) && fromState > 0) {
+                return Math.max(0, Math.round(fromState));
+            }
+            const sourceBoard = Array.isArray(playModeState?.originalBoard)
+                ? playModeState.originalBoard
+                : (Array.isArray(snapshotBoard) ? snapshotBoard : playModeState?.boardData);
+            const fallback = Array.isArray(sourceBoard) ? countRemovableCellCount(sourceBoard) : 0;
+            return Number.isFinite(Number(fallback)) ? Math.max(0, Math.round(Number(fallback))) : 0;
         }
 
         function getAgentApiEndpoint(profile = null) {
@@ -13395,6 +13850,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             }
             const boardData = cloneBoardData(playModeState.boardData);
             const removablePairs = getRemovablePairsForBoard(boardData);
+            const pairCombinationTotal = countRemainingPairCombinationCountByBoard(boardData);
             const direction = Number.isInteger(playModeState.direction) ? playModeState.direction : 0;
             return {
                 boardData,
@@ -13404,8 +13860,91 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 directionRule: getDirectionShiftRuleDescription(direction),
                 mechanismSummary: summarizeBoardMechanismState(boardData),
                 remainingPairs: Array.isArray(removablePairs) ? removablePairs.length : 0,
+                pairCombinationTotal,
                 removablePairs: Array.isArray(removablePairs) ? removablePairs : []
             };
+        }
+
+        function getAgentMemoryTrendViewOptions() {
+            return [
+                { key: 'avg_candidate', label: '均候选' },
+                { key: 'thinking_complexity', label: '思考复杂度' },
+                { key: 'trial_error_count', label: '试错次数' },
+                { key: 'pair_delta_after_move', label: '操作后配对数变动' }
+            ];
+        }
+
+        function computeAgentStepTrialErrorCount(record, options = {}) {
+            const direct = Number(record?.trialErrorCount);
+            if (Number.isFinite(direct) && direct >= 0) {
+                return Math.round(direct);
+            }
+            const carryFailures = Number(options?.carryFailures);
+            const safeCarryFailures = Number.isFinite(carryFailures) && carryFailures > 0
+                ? Math.round(carryFailures)
+                : 0;
+            const searchAttempts = Number(record?.humanMetrics?.searchAttempts);
+            const successfulCandidates = Number(record?.humanMetrics?.successfulCandidateCount);
+            let baseCount = 0;
+            if (Number.isFinite(searchAttempts) && Number.isFinite(successfulCandidates)) {
+                baseCount = Math.max(0, Math.round(searchAttempts - successfulCandidates));
+            } else {
+                baseCount = record?.success ? 0 : 1;
+            }
+            return Math.max(0, Math.round(baseCount + safeCarryFailures));
+        }
+
+        function buildAgentMemoryTrendPoints(records, viewKey) {
+            const points = [];
+            let runningCandidateSum = 0;
+            let runningCandidateCount = 0;
+            for (const record of records) {
+                const step = Number(record?.step) || 0;
+                if (viewKey === 'avg_candidate') {
+                    const candidateCount = Number(record?.candidateCountBefore);
+                    if (!Number.isFinite(candidateCount) || candidateCount < 0) continue;
+                    runningCandidateSum += candidateCount;
+                    runningCandidateCount++;
+                    const value = runningCandidateSum / Math.max(1, runningCandidateCount);
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：均候选 ${value.toFixed(2)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'thinking_complexity') {
+                    const value = Number(record?.thinkingComplexity);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：思考复杂度 ${value.toFixed(2)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'trial_error_count') {
+                    const value = computeAgentStepTrialErrorCount(record);
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：试错次数 ${value}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'pair_delta_after_move') {
+                    const before = Number(record?.remainingPairsBefore);
+                    const after = Number(record?.remainingPairsAfter);
+                    if (!Number.isFinite(before) || !Number.isFinite(after)) continue;
+                    const value = before - after;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：配对数变动 ${value >= 0 ? '+' : ''}${value}`
+                    });
+                }
+            }
+            return points;
         }
 
         function renderAgentMemoryPanel() {
@@ -13458,6 +13997,30 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             header.appendChild(summary);
             panel.appendChild(header);
 
+            const trendViewOptions = getAgentMemoryTrendViewOptions();
+            const activeTrendView = trendViewOptions.some((item) => item.key === agentUiState.memoryTrendView)
+                ? agentUiState.memoryTrendView
+                : trendViewOptions[0].key;
+            agentUiState.memoryTrendView = activeTrendView;
+            const tabs = document.createElement('div');
+            tabs.className = 'agent-memory-view-tabs';
+            for (const option of trendViewOptions) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'agent-memory-view-btn';
+                if (option.key === activeTrendView) {
+                    button.classList.add('active');
+                }
+                button.textContent = option.label;
+                button.addEventListener('click', () => {
+                    if (agentUiState.memoryTrendView === option.key) return;
+                    agentUiState.memoryTrendView = option.key;
+                    renderAgentMemoryPanel();
+                });
+                tabs.appendChild(button);
+            }
+            panel.appendChild(tabs);
+
             const trendWrap = document.createElement('div');
             trendWrap.className = 'agent-memory-trend';
             const trendSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -13471,21 +14034,29 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             axis.setAttribute('y2', '78');
             trendSvg.appendChild(axis);
             const trendRecords = history.slice(-24);
-            const values = trendRecords.map((item) => Number(item?.remainingPairsAfter));
-            const finiteValues = values.filter((value) => Number.isFinite(value));
+            const trendPointsRaw = buildAgentMemoryTrendPoints(trendRecords, activeTrendView);
+            const finiteValues = trendPointsRaw
+                .map((item) => Number(item?.value))
+                .filter((value) => Number.isFinite(value));
             if (finiteValues.length > 0) {
                 const minValue = Math.min(...finiteValues);
                 const maxValue = Math.max(...finiteValues);
                 const range = Math.max(1, maxValue - minValue);
                 const pathPoints = [];
-                for (let index = 0; index < values.length; index++) {
-                    const value = Number(values[index]);
+                for (let index = 0; index < trendPointsRaw.length; index++) {
+                    const value = Number(trendPointsRaw[index]?.value);
                     if (!Number.isFinite(value)) continue;
-                    const x = values.length <= 1
+                    const x = trendPointsRaw.length <= 1
                         ? 160
-                        : 8 + ((304 * index) / Math.max(1, values.length - 1));
+                        : 8 + ((304 * index) / Math.max(1, trendPointsRaw.length - 1));
                     const y = 8 + (((maxValue - value) / range) * 66);
-                    pathPoints.push({ x, y, value, step: Number(trendRecords[index]?.step) || index + 1 });
+                    pathPoints.push({
+                        x,
+                        y,
+                        value,
+                        step: Number(trendPointsRaw[index]?.step) || index + 1,
+                        tip: String(trendPointsRaw[index]?.tip || '')
+                    });
                 }
                 if (pathPoints.length > 0) {
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -13501,7 +14072,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         dot.setAttribute('cy', point.y.toFixed(2));
                         dot.setAttribute('r', '2.2');
                         const tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                        tip.textContent = `第${point.step}步：剩余可配对 ${point.value}`;
+                        tip.textContent = point.tip || `第${point.step}步：${point.value}`;
                         dot.appendChild(tip);
                         trendSvg.appendChild(dot);
                     }
@@ -14065,7 +14636,37 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             return null;
         }
 
+        function buildAgentThoughtObservationPrefix(options = {}) {
+            const directionRule = String(options?.directionRule || '').trim() || '无位移规则';
+            const mechanismSummary = options?.mechanismSummary && typeof options.mechanismSummary === 'object'
+                ? options.mechanismSummary
+                : {};
+            const obstacleTotal = Number(mechanismSummary?.obstacleTotal) || 0;
+            const attachmentsTotal = Number(mechanismSummary?.attachmentsTotal) || 0;
+            const lockCount = Number(mechanismSummary?.magnetLockCount) || 0;
+            const obstacleText = obstacleTotal > 0 ? `障碍 ${obstacleTotal} 个` : '无明显障碍';
+            const attachmentText = attachmentsTotal > 0 ? `附着层 ${attachmentsTotal} 个` : '无附着层';
+            const lockText = lockCount > 0 ? `，锁定位 ${lockCount} 处` : '';
+            return `先观察棋盘：${obstacleText}，${attachmentText}${lockText}；位移规则：${directionRule}。`;
+        }
+
+        function ensureDecisionThoughtStartsWithObservation(thought, options = {}) {
+            const content = String(thought || '').trim();
+            if (/^先观察棋盘[:：]/.test(content)) {
+                return content;
+            }
+            const prefix = buildAgentThoughtObservationPrefix(options);
+            if (!content) {
+                return `${prefix}继续执行本步观察与配对判断。`;
+            }
+            return `${prefix}${content}`;
+        }
+
         function buildHumanModeProcessThought(planningContext, picked) {
+            const observationPrefix = buildAgentThoughtObservationPrefix({
+                directionRule: planningContext?.directionRule,
+                mechanismSummary: planningContext?.mechanismSummary
+            });
             const anchor = picked?.anchor;
             const move = picked?.move;
             if (!anchor || !move) {
@@ -14073,28 +14674,18 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     ? planningContext.failedBaseSummaries[planningContext.failedBaseSummaries.length - 1]
                     : null;
                 if (failedBase) {
-                    return `观察锚点(${failedBase.anchorRow},${failedBase.anchorCol})后，核对同花色候选 ${failedBase.checkedCount} 个，均无法与该锚点合法连通。`;
+                    return `${observationPrefix}观察锚点(${failedBase.anchorRow},${failedBase.anchorCol})后，核对同花色候选 ${failedBase.checkedCount} 个，均无法与该锚点合法连通。`;
                 }
-                return `本轮观察了 ${Number(planningContext?.anchorsTried) || 0} 个锚点，同花色检查 ${Number(planningContext?.sameTypeChecked) || 0} 次，暂未找到可连通配对。`;
+                return `${observationPrefix}本轮观察了 ${Number(planningContext?.anchorsTried) || 0} 个锚点，同花色检查 ${Number(planningContext?.sameTypeChecked) || 0} 次，暂未找到可连通配对。`;
             }
             const sameTypeCount = Number(picked?.sameTypeCandidateCount) || 0;
             const legalCount = Number(picked?.legalCandidateCount) || 0;
             const connectionType = String(picked?.connectionType || '-');
-            const forecast = picked?.forecastSummary && typeof picked.forecastSummary === 'object'
-                ? picked.forecastSummary
-                : null;
-            const mechanismLine = forecast
-                ? (
-                    `模拟消除后，剩余可配对变化 ${Number(forecast.remainingPairsDelta) || 0}，` +
-                    `机关变化：翻牌/冰壳释放 ${Number(forecast.releasedAttachment) || 0}，` +
-                    `冰层削减 ${Number(forecast.iceHpReduction) || 0}，磁铁锁定减少 ${Number(forecast.magnetLockReduction) || 0}。`
-                )
-                : '';
             return [
+                observationPrefix,
                 `先观察到锚点牌(${anchor.row},${anchor.col})，同花色候选共 ${sameTypeCount} 张。`,
                 `逐个检查连通后，可合法连线 ${legalCount} 组。`,
-                `本步执行 (${move.row1},${move.col1}) -> (${move.row2},${move.col2})，连法 ${connectionType}。`,
-                mechanismLine
+                `本步执行 (${move.row1},${move.col1}) -> (${move.row2},${move.col2})，连法 ${connectionType}。`
             ].join('');
         }
 
@@ -14190,6 +14781,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         '限制：你只能根据棋盘数据与局部观察进行决策，不能使用“剩余配对数”等全局计数捷径。',
                         '流程：先选显眼锚点牌A1 -> 找出同花色A2/A3/A4... -> 逐个判断是否与A1合法连通 -> 结合消除后局面预估选步。',
                         '你必须考虑机关影响（翻牌/冰壳/冰块/磁铁等）和方向位移规则对后续局面的改变。',
+                        '每一步 thought 的第一句必须是“先观察棋盘：...”，且包含障碍概况与方向规则。',
+                        '除非本步机关直接决定成败，不要反复将单一机关（如磁铁）作为主因。',
                         '不要全盘穷举，不要固定每次选同类最优，要保留人类式概率偏好。',
                         'thought 字段只写本步实际观察与比对过程，不要写“方法、规则、策略说明”。',
                         '必须严格输出 JSON，不要输出其他文本。',
@@ -14310,6 +14903,83 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             return sample;
         }
 
+        function buildLocalStandardAgentDecision(snapshot) {
+            if (!snapshot || !Array.isArray(snapshot.boardData)) {
+                return { ok: false, error: '棋盘数据不可用' };
+            }
+            const legalPairs = Array.isArray(snapshot.removablePairs) ? snapshot.removablePairs : [];
+            if (legalPairs.length <= 0) {
+                return { ok: false, error: '当前无可消除配对，无法继续操作。' };
+            }
+            const mechanismSummary = summarizeBoardMechanismState(snapshot.boardData);
+            const directionRule = getDirectionShiftRuleDescription(snapshot.direction);
+            let best = null;
+            for (const pair of legalPairs) {
+                if (!pair) continue;
+                const path = findConnectionPathByLianliankan(
+                    snapshot.boardData,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                );
+                const pathNodeCount = Array.isArray(path) ? path.length : 0;
+                const turnCount = Math.max(0, pathNodeCount - 2);
+                const connectionType = getPlayConnectionTypeByPath(path);
+                const connectionDifficultyRank = getConnectionDifficultyRank(connectionType, turnCount);
+                const simulated = simulateAgentMoveOutcome(snapshot, pair);
+                const effects = simulated?.mechanismEffects || {};
+                const geometryScore = estimateHumanModePostMoveQuality(snapshot, pair);
+                const score = (
+                    (Number(simulated?.remainingPairsDelta) || 0) * 1.35 +
+                    (Number(effects.releasedAttachment) || 0) * 0.9 +
+                    (Number(effects.iceHpReduction) || 0) * 0.55 +
+                    (Number(effects.obstacleReduction) || 0) * 0.72 +
+                    (Number(effects.extraRemovedByMechanism) || Number(simulated?.extraRemovedByMechanism) || 0) * 0.8 +
+                    (geometryScore * 0.52) -
+                    (connectionDifficultyRank * 0.24)
+                );
+                if (!best || score > best.score) {
+                    best = {
+                        move: {
+                            row1: pair.row1,
+                            col1: pair.col1,
+                            row2: pair.row2,
+                            col2: pair.col2
+                        },
+                        score,
+                        connectionType,
+                        turnCount,
+                        connectionDifficultyRank
+                    };
+                }
+            }
+            if (!best || !best.move) {
+                return { ok: false, error: '本地决策失败：未找到可执行操作。' };
+            }
+            const thought = ensureDecisionThoughtStartsWithObservation(
+                `观察合法候选 ${legalPairs.length} 组后，优先选择消除后局面更稳的一手，执行 (${best.move.row1},${best.move.col1}) -> (${best.move.row2},${best.move.col2})。`,
+                {
+                    directionRule,
+                    mechanismSummary
+                }
+            );
+            const reason = [
+                `本地快速决策：评估合法候选 ${legalPairs.length} 组。`,
+                `本步连法 ${best.connectionType || '-'}（难度级别 ${best.connectionDifficultyRank}，拐点 ${best.turnCount}）。`,
+                `已结合方向规则与机关结算后的局面收益进行选择。`
+            ].join(' ');
+            return {
+                ok: true,
+                thought,
+                reason,
+                currentFeeling: '',
+                move: best.move,
+                candidateCountBefore: legalPairs.length,
+                humanMode: false
+            };
+        }
+
         function buildAgentDecisionMessages(snapshot) {
             const legalPairs = Array.isArray(snapshot?.removablePairs)
                 ? snapshot.removablePairs.slice(0, 180)
@@ -14341,6 +15011,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         '规则：只能消除两张“可点击且数字相同”的牌，且两牌路径最多2个拐点。',
                         '棋盘ID说明：0=空格，1-99=可消除普通牌，>=1000含附着层不可直接消除，501/502/503/504/505/506是障碍。',
                         '你必须考虑机关触发（翻牌/冰壳/冰块层级/磁铁锁定等）与方向位移规则对消除后局面的影响。',
+                        '每一步 thought 必须先写“先观察棋盘：...”并概括障碍与方向规则，再写本步观察与选择。',
+                        '除非该机关直接影响本步合法性或收益，不要反复把单一机关作为核心理由。',
                         '请优先选择“当前合法且消除后局面更优”的一步，而不是只看当前连通。 ',
                         '坐标从0开始，row是行，col是列。',
                         '必须严格输出 JSON，不要输出其他内容。',
@@ -14407,6 +15079,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 return { ok: false, error: '当前不在试玩模式，无法执行。' };
             }
             const boardSnapshotBefore = cloneBoardData(snapshot.boardData);
+            const pairCombinationTotalBefore = Number.isFinite(Number(snapshot.pairCombinationTotal))
+                ? Math.max(0, Math.round(Number(snapshot.pairCombinationTotal)))
+                : countRemainingPairCombinationCountByBoard(snapshot.boardData);
+            const initialRemovableCardCount = getAgentSessionInitialRemovableCount(snapshot.boardData);
+            const remainingCardCountBefore = countRemovableCellCount(snapshot.boardData);
+            const clearedCardCountBefore = Math.max(0, initialRemovableCardCount - remainingCardCountBefore);
             const humanMetrics = decisionMeta?.humanMetrics && typeof decisionMeta.humanMetrics === 'object'
                 ? { ...decisionMeta.humanMetrics }
                 : null;
@@ -14424,6 +15102,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     move,
                     remainingPairsBefore: snapshot.remainingPairs,
                     remainingPairsAfter: snapshot.remainingPairs,
+                    pairCombinationTotalBefore,
+                    pairCombinationTotalAfter: pairCombinationTotalBefore,
+                    remainingCardCountBefore,
+                    remainingCardCountAfter: remainingCardCountBefore,
+                    clearedCardCountBefore,
+                    clearedCardCountAfter: clearedCardCountBefore,
+                    gameOutcome: '',
                     boardCleared: false,
                     playFailed: false,
                     connectionType: '',
@@ -14443,6 +15128,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     candidateCountBefore,
                     remainingPairsBefore: snapshot.remainingPairs,
                     remainingPairsAfter: snapshot.remainingPairs,
+                    pairCombinationTotalBefore,
+                    pairCombinationTotalAfter: pairCombinationTotalBefore,
+                    remainingCardCountBefore,
+                    remainingCardCountAfter: remainingCardCountBefore,
+                    clearedCardCountBefore,
+                    clearedCardCountAfter: clearedCardCountBefore,
+                    gameOutcome: '',
                     thought: String(decisionMeta?.thought || ''),
                     reason: String(decisionMeta?.reason || ''),
                     error: validated.error,
@@ -14473,12 +15165,26 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const boardNow = playModeState.boardData;
             const boardCleared = isPlayBoardCleared(boardNow);
             const remainingPairsAfter = boardCleared ? 0 : countRemainingPairCountByBoard(boardNow);
+            const pairCombinationTotalAfter = boardCleared ? 0 : countRemainingPairCombinationCountByBoard(boardNow);
+            const remainingCardCountAfter = countRemovableCellCount(boardNow);
+            const clearedCardCountAfter = Math.max(0, initialRemovableCardCount - remainingCardCountAfter);
+            const failedWithCardsLeft = Boolean(playModeState.failed) && remainingCardCountAfter > 0;
+            const gameOutcome = boardCleared
+                ? 'victory'
+                : (failedWithCardsLeft ? 'failure' : '');
             const result = {
                 ok: success,
                 move,
                 step: clearedPairsAfter,
                 remainingPairsBefore,
                 remainingPairsAfter,
+                pairCombinationTotalBefore,
+                pairCombinationTotalAfter,
+                remainingCardCountBefore,
+                remainingCardCountAfter,
+                clearedCardCountBefore,
+                clearedCardCountAfter,
+                gameOutcome,
                 boardCleared,
                 playFailed: Boolean(playModeState.failed),
                 connectionType: validated.connectionType,
@@ -14499,6 +15205,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 candidateCountBefore: result.candidateCountBefore,
                 remainingPairsBefore: result.remainingPairsBefore,
                 remainingPairsAfter: result.remainingPairsAfter,
+                pairCombinationTotalBefore: result.pairCombinationTotalBefore,
+                pairCombinationTotalAfter: result.pairCombinationTotalAfter,
+                remainingCardCountBefore: result.remainingCardCountBefore,
+                remainingCardCountAfter: result.remainingCardCountAfter,
+                clearedCardCountBefore: result.clearedCardCountBefore,
+                clearedCardCountAfter: result.clearedCardCountAfter,
+                gameOutcome: result.gameOutcome,
                 thought: String(decisionMeta?.thought || ''),
                 reason: String(decisionMeta?.reason || ''),
                 error: result.error || '',
@@ -14516,32 +15229,6 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             if (/困难|hard|challeng|受阻|复杂|卡住/i.test(text)) return '困难';
             if (/简单|easy|轻松|顺畅|容易/i.test(text)) return '简单';
             return '正常';
-        }
-
-        function buildLocalAgentFeeling(result, options = {}) {
-            const humanMode = Boolean(options?.humanMode);
-            const turnCount = Number(result?.turnCount);
-            const remainingBefore = Number(result?.remainingPairsBefore);
-            const remainingAfter = Number(result?.remainingPairsAfter);
-            const noProgress = !humanMode
-                && Number.isFinite(remainingBefore) && Number.isFinite(remainingAfter)
-                && remainingAfter >= remainingBefore;
-            if (!result?.ok || noProgress || (Number.isFinite(turnCount) && turnCount >= 2)) {
-                return {
-                    level: '困难',
-                    detail: '这步推进受阻或路径复杂，后续需要优先筛选更稳定的可达配对。'
-                };
-            }
-            if (Number.isFinite(turnCount) && turnCount === 0) {
-                return {
-                    level: '简单',
-                    detail: ''
-                };
-            }
-            return {
-                level: '正常',
-                detail: ''
-            };
         }
 
         function extractHumanMetricsFromDecisionResult(decision, result) {
@@ -14575,37 +15262,188 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             };
         }
 
+        function getRecentAgentTrialStats(sampleSize = 6) {
+            const safeSize = Math.max(1, Math.floor(Number(sampleSize) || 6));
+            const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
+            const recent = history.slice(-safeSize);
+            let failCount = 0;
+            let consecutiveFailCount = 0;
+            for (let index = recent.length - 1; index >= 0; index--) {
+                const isSuccess = Boolean(recent[index]?.success);
+                if (!isSuccess) {
+                    failCount++;
+                    if (consecutiveFailCount === (recent.length - 1 - index)) {
+                        consecutiveFailCount++;
+                    }
+                } else if (consecutiveFailCount > 0) {
+                    break;
+                }
+            }
+            const latestStep = history.length > 0 ? history[history.length - 1] : null;
+            let preSuccessFailCount = 0;
+            if (latestStep && latestStep.success === true) {
+                for (let index = history.length - 2; index >= 0; index--) {
+                    if (history[index]?.success) break;
+                    preSuccessFailCount++;
+                }
+            }
+            return {
+                sampleCount: recent.length,
+                failRatio: recent.length > 0 ? failCount / recent.length : 0,
+                consecutiveFailCount,
+                preSuccessFailCount
+            };
+        }
+
+        function buildAgentStepDifficultyComplexity(decision, result, options = {}) {
+            const humanMode = Boolean(options?.humanMode);
+            const metrics = options?.humanMetrics && typeof options.humanMetrics === 'object'
+                ? options.humanMetrics
+                : extractHumanMetricsFromDecisionResult(decision, result);
+            const candidateCount = Number(result?.candidateCountBefore ?? decision?.candidateCountBefore);
+            const successfulCandidateCount = Number(metrics?.successfulCandidateCount);
+            const turnCount = Number(result?.turnCount);
+            const connectionType = String(result?.connectionType || '');
+            const rank = getConnectionDifficultyRank(connectionType, turnCount);
+            const thoughtText = String(decision?.thought || '');
+            const reasonText = String(decision?.reason || '');
+            const thoughtTextLength = thoughtText.length + reasonText.length;
+            const searchAttempts = Number(metrics?.searchAttempts) || 0;
+            const observedCells = Number(metrics?.localObservedCells) || 0;
+            const remainingBefore = Number(result?.remainingPairsBefore);
+            const remainingAfter = Number(result?.remainingPairsAfter);
+            const pairCombinationTotalBefore = Number(result?.pairCombinationTotalBefore);
+            const noProgress = Number.isFinite(remainingBefore) && Number.isFinite(remainingAfter)
+                ? remainingAfter >= remainingBefore
+                : false;
+            const trialStats = getRecentAgentTrialStats(6);
+
+            const availableChoiceCount = Number.isFinite(successfulCandidateCount) && successfulCandidateCount > 0
+                ? successfulCandidateCount
+                : (Number.isFinite(candidateCount) ? candidateCount : 0);
+            const hasPairRatioBase = Number.isFinite(remainingBefore)
+                && remainingBefore >= 0
+                && Number.isFinite(pairCombinationTotalBefore)
+                && pairCombinationTotalBefore > 0;
+            const pairAvailabilityRatio = hasPairRatioBase
+                ? clamp01(remainingBefore / pairCombinationTotalBefore)
+                : clamp01(availableChoiceCount / (humanMode ? 8 : 16));
+            const choiceEaseNorm = pairAvailabilityRatio;
+            const choiceHardnessNorm = 1 - choiceEaseNorm;
+            const turnNorm = clamp01(rank / 3);
+            const thoughtNorm = clamp01(thoughtTextLength / 160);
+            const searchNorm = clamp01(searchAttempts / 10);
+            const observedNorm = clamp01(observedCells / 68);
+            const typeNorm = clamp01(metrics?.typeComplexityScore);
+            const spaceNorm = clamp01(metrics?.spaceComplexityScore);
+            const thinkingDimensionCount = [
+                choiceHardnessNorm,
+                turnNorm,
+                thoughtNorm,
+                searchNorm,
+                observedNorm,
+                typeNorm,
+                spaceNorm
+            ].filter((value) => Number(value) > 0.08).length;
+            const thinkingDimensionNorm = clamp01(thinkingDimensionCount / 7);
+
+            const thinkingComplexity = clamp01(
+                choiceHardnessNorm * 0.24 +
+                turnNorm * 0.17 +
+                thoughtNorm * 0.14 +
+                searchNorm * 0.16 +
+                observedNorm * 0.08 +
+                typeNorm * 0.08 +
+                spaceNorm * 0.07 +
+                thinkingDimensionNorm * 0.06
+            );
+
+            const failNorm = result?.ok ? 0 : 1;
+            const noProgressNorm = noProgress ? 1 : 0;
+            const consecutiveFailNorm = clamp01(trialStats.consecutiveFailCount / 3);
+            const preSuccessFailNorm = clamp01(trialStats.preSuccessFailCount / 3);
+            const failRatioNorm = clamp01(trialStats.failRatio);
+            const retrySearchNorm = clamp01(searchAttempts / 12);
+            const trialDimensionCount = [
+                failNorm,
+                noProgressNorm,
+                consecutiveFailNorm,
+                preSuccessFailNorm,
+                failRatioNorm,
+                retrySearchNorm
+            ].filter((value) => Number(value) > 0.08).length;
+            const trialDimensionNorm = clamp01(trialDimensionCount / 6);
+            const trialErrorComplexity = clamp01(
+                failNorm * 0.24 +
+                noProgressNorm * 0.2 +
+                consecutiveFailNorm * 0.16 +
+                preSuccessFailNorm * 0.2 +
+                failRatioNorm * 0.1 +
+                retrySearchNorm * 0.04 +
+                trialDimensionNorm * 0.06
+            );
+
+            const totalComplexity = clamp01((thinkingComplexity * 0.56) + (trialErrorComplexity * 0.44));
+            return {
+                thinkingComplexity,
+                trialErrorComplexity,
+                totalComplexity,
+                availableChoiceCount: Math.max(0, availableChoiceCount),
+                preSuccessFailCount: Number(trialStats.preSuccessFailCount) || 0
+            };
+        }
+
+        function buildAgentFeelingFromComplexity(decision, result, options = {}) {
+            const humanMode = Boolean(options?.humanMode);
+            const complexity = buildAgentStepDifficultyComplexity(decision, result, options);
+            const preSuccessFailCount = Number(complexity?.preSuccessFailCount) || 0;
+            if (complexity.totalComplexity < 0.34) {
+                if (preSuccessFailCount > 0) {
+                    return {
+                        level: '正常',
+                        detail: '',
+                        complexity
+                    };
+                }
+                return {
+                    level: '简单',
+                    detail: '',
+                    complexity
+                };
+            }
+            if (complexity.totalComplexity < 0.66) {
+                return {
+                    level: '正常',
+                    detail: '',
+                    complexity
+                };
+            }
+            const detail = humanMode
+                ? `思考复杂度 ${complexity.thinkingComplexity.toFixed(2)}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，本步决策压力较高。`
+                : `思考复杂度 ${complexity.thinkingComplexity.toFixed(2)}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，当前推进阻力较大。`;
+            return {
+                level: '困难',
+                detail,
+                complexity
+            };
+        }
+
+        function buildLocalAgentFeeling(result, options = {}) {
+            const decision = options?.decision && typeof options.decision === 'object'
+                ? options.decision
+                : null;
+            return buildAgentFeelingFromComplexity(decision, result, {
+                humanMode: Boolean(options?.humanMode),
+                humanMetrics: options?.humanMetrics
+            });
+        }
+
         function buildHumanModeFeelingFromMetrics(decision, result) {
             const metrics = extractHumanMetricsFromDecisionResult(decision, result);
-            const attemptsNorm = clamp01(metrics.searchAttempts / 9);
-            const anchorNorm = clamp01(metrics.anchorsTried / 3);
-            const distanceNorm = clamp01(metrics.avgDistance / 7);
-            const observedNorm = clamp01(metrics.localObservedCells / 64);
-            const typeNorm = clamp01(metrics.typeComplexityScore);
-            const spaceNorm = clamp01(metrics.spaceComplexityScore);
-            const failPenalty = result?.ok ? 0 : 0.32;
-            const score = clamp01(
-                attemptsNorm * 0.2 +
-                anchorNorm * 0.12 +
-                distanceNorm * 0.14 +
-                observedNorm * 0.14 +
-                typeNorm * 0.2 +
-                spaceNorm * 0.2 +
-                failPenalty
-            );
-            if (score < 0.35) {
-                return { level: '简单', detail: '' };
-            }
-            if (score < 0.67) {
-                return { level: '正常', detail: '' };
-            }
-            const detail = [
-                `搜索尝试 ${metrics.searchAttempts} 次、锚点尝试 ${metrics.anchorsTried} 次，`,
-                `平均目标距离 ${metrics.avgDistance.toFixed(2)}，`,
-                `花色复杂度 ${metrics.typeComplexityScore.toFixed(2)}，空间复杂度 ${metrics.spaceComplexityScore.toFixed(2)}。`,
-                '本步决策压力偏高。'
-            ].join('');
-            return { level: '困难', detail };
+            return buildAgentFeelingFromComplexity(decision, result, {
+                humanMode: true,
+                humanMetrics: metrics
+            });
         }
 
         function parseAgentFeelingResponse(rawText, result, options = {}) {
@@ -14614,6 +15452,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 ? options.fallbackFeeling
                 : null;
             if (!parsed || typeof parsed !== 'object') {
+                if (explicitFallback) {
+                    return {
+                        level: String(explicitFallback.level || '正常'),
+                        detail: String(explicitFallback.level) === '困难'
+                            ? String(explicitFallback.detail || '')
+                            : ''
+                    };
+                }
                 const level = normalizeAgentFeelingLevel(rawText);
                 return {
                     level,
@@ -14646,13 +15492,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             };
         }
 
-        async function requestAgentPostStepFeeling(decision, result) {
+        async function requestAgentPostStepFeeling(decision, result, options = {}) {
+            const forceLocal = Boolean(options?.forceLocal || agentUiState.quickModeEnabled);
             const humanMode = Boolean(agentUiState.humanModeEnabled || decision?.humanMode);
             if (humanMode) {
                 const metrics = extractHumanMetricsFromDecisionResult(decision, result);
                 const localFallback = buildHumanModeFeelingFromMetrics(decision, result);
+                const complexity = localFallback?.complexity && typeof localFallback.complexity === 'object'
+                    ? localFallback.complexity
+                    : buildAgentStepDifficultyComplexity(decision, result, {
+                        humanMode: true,
+                        humanMetrics: metrics
+                    });
                 const currentProfile = getCurrentAgentProfile();
-                if (!currentProfile) {
+                if (forceLocal || !currentProfile) {
                     return localFallback;
                 }
                 try {
@@ -14663,6 +15516,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 content: [
                                     '你是人类模式下的关卡体验分析助手。',
                                     '你只能基于给定指标做难度感受判断。',
+                                    '请重点结合 thinkingComplexity（思考复杂度）和 trialErrorComplexity（试错复杂度）做评价。',
                                     '仅输出 JSON，格式：{"level":"简单|正常|困难","detail":"仅当困难时填写，其余留空"}。'
                                 ].join('\n')
                             },
@@ -14670,6 +15524,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 role: 'user',
                                 content: JSON.stringify({
                                     metrics,
+                                    complexity,
                                     actionResult: {
                                         ok: Boolean(result?.ok),
                                         connectionType: String(result?.connectionType || ''),
@@ -14687,6 +15542,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     );
                     return parseAgentFeelingResponse(responseText, result, {
                         humanMode: true,
+                        decision,
                         fallbackFeeling: localFallback
                     });
                 } catch (error) {
@@ -14694,11 +15550,22 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 }
             }
             const snapshot = getAgentBoardSnapshot();
+            const localFallback = buildLocalAgentFeeling(result, {
+                humanMode: false,
+                decision
+            });
+            if (forceLocal) {
+                return localFallback;
+            }
+            const complexity = localFallback?.complexity && typeof localFallback.complexity === 'object'
+                ? localFallback.complexity
+                : buildAgentStepDifficultyComplexity(decision, result, { humanMode: false });
             const messages = [
                 {
                     role: 'system',
                     content: [
                         '你是关卡体验分析助手。',
+                        '请结合 thinkingComplexity（思考复杂度）与 trialErrorComplexity（试错复杂度）判断本步难度。',
                         '仅输出 JSON，不要输出任何额外文本。',
                         '格式：{"level":"简单|正常|困难","detail":"仅当level=困难时填写，其余留空"}。'
                     ].join('\n')
@@ -14711,6 +15578,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             reason: decision?.reason || '',
                             currentFeeling: decision?.currentFeeling || ''
                         },
+                        complexity,
                         actionResult: result,
                         boardSummary: snapshot
                             ? {
@@ -14725,14 +15593,50 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             ];
             try {
                 const responseText = await callAgentModel(messages, { temperature: 0.2 });
-                return parseAgentFeelingResponse(responseText, result, { humanMode: false });
+                return parseAgentFeelingResponse(responseText, result, {
+                    humanMode: false,
+                    decision,
+                    fallbackFeeling: localFallback
+                });
             } catch (error) {
-                return buildLocalAgentFeeling(result, { humanMode: false });
+                return localFallback;
             }
+        }
+
+        function resolveAgentFinalOutcome(finalResult) {
+            const boardCleared = Boolean(finalResult?.boardCleared);
+            const playFailed = Boolean(finalResult?.playFailed);
+            const remainingCardCountAfter = Number(finalResult?.remainingCardCountAfter);
+            const hasRemainingCardCount = Number.isFinite(remainingCardCountAfter) && remainingCardCountAfter >= 0;
+            const clearedByCards = hasRemainingCardCount && remainingCardCountAfter <= 0;
+            if (boardCleared || clearedByCards) {
+                return {
+                    code: 'victory',
+                    label: '胜利',
+                    ruleText: hasRemainingCardCount
+                        ? `胜利规则：棋盘可消除牌已清空（剩余牌数=${remainingCardCountAfter}）。`
+                        : '胜利规则：棋盘可消除牌已清空（boardCleared=true）。'
+                };
+            }
+            if (playFailed) {
+                return {
+                    code: 'defeat',
+                    label: '失败',
+                    ruleText: hasRemainingCardCount
+                        ? `失败规则：已进入无可消除配对状态，且仍有剩余牌 ${remainingCardCountAfter} 张。`
+                        : '失败规则：进入无可消除配对状态（playFailed=true）。'
+                };
+            }
+            return {
+                code: 'unfinished',
+                label: '未结束',
+                ruleText: '规则判定：既未清盘也未进入失败状态。'
+            };
         }
 
         function buildLocalAgentSessionReview(finalResult, options = {}) {
             const humanMode = Boolean(options?.humanMode);
+            const outcome = resolveAgentFinalOutcome(finalResult);
             const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
             const totalSteps = history.length;
             const successSteps = history.filter((item) => item?.success).length;
@@ -14754,7 +15658,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             };
             const lines = humanMode
                 ? [
-                    `通关结果：${finalResult?.boardCleared ? '通关' : '未通关'}，总步数 ${totalSteps}。`,
+                    `结果判定：${outcome.label}。`,
+                    `判定依据：${outcome.ruleText}`,
+                    `回合统计：总步数 ${totalSteps}。`,
                     `观察维度：平均搜索尝试 ${averageHumanMetric('searchAttempts').toFixed(2)} 次，平均局部观察 ${averageHumanMetric('localObservedCells').toFixed(2)} 格。`,
                     `稳定性维度：成功步数 ${successSteps}，平均拐点 ${avgTurns.toFixed(2)}。`,
                     `策略维度：平均目标距离 ${averageHumanMetric('avgDistance').toFixed(2)}，会先做消除后局面假设，再带概率偏好选择下一手。`,
@@ -14768,7 +15674,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         ? Math.max(0, Math.min(1, (firstRemaining - lastRemaining) / firstRemaining))
                         : 0;
                     return [
-                        `通关结果：${finalResult?.boardCleared ? '通关' : '未通关'}，总步数 ${totalSteps}。`,
+                        `结果判定：${outcome.label}。`,
+                        `判定依据：${outcome.ruleText}`,
+                        `回合统计：总步数 ${totalSteps}。`,
                         `效率维度：成功步数 ${successSteps}，推进比例 ${(progressRatio * 100).toFixed(1)}%。`,
                         `稳定性维度：平均拐点 ${avgTurns.toFixed(2)}，高拐点步数越多表示决策压力越大。`,
                         `策略维度：前期候选较多、后期候选收缩明显，说明后程更依赖路径质量与顺序规划。`,
@@ -14778,14 +15686,17 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             return lines.join('\n');
         }
 
-        async function requestAgentSessionReview(finalResult) {
+        async function requestAgentSessionReview(finalResult, options = {}) {
+            const forceLocal = Boolean(options?.forceLocal || agentUiState.quickModeEnabled);
             const humanMode = Boolean(agentUiState.humanModeEnabled);
-            if (humanMode) {
-                return buildLocalAgentSessionReview(finalResult, { humanMode: true });
+            if (humanMode || forceLocal) {
+                return buildLocalAgentSessionReview(finalResult, { humanMode });
             }
             const snapshot = getAgentBoardSnapshot();
+            const outcome = resolveAgentFinalOutcome(finalResult);
             const reviewPayload = {
                 finalResult,
+                finalOutcome: outcome,
                 boardSummary: snapshot
                     ? {
                         width: snapshot.width,
@@ -14802,6 +15713,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             role: 'system',
                             content: [
                                 '你是关卡复盘助手。',
+                                '先给出明确结论：结果判定（胜利/失败/未结束）+判定依据（基于规则）。',
+                                '规则：胜利=棋盘可消除牌清空（boardCleared=true 或 remainingCardCountAfter<=0）；失败=无可消除配对且仍有剩余牌（playFailed=true 且 remainingCardCountAfter>0）。',
                                 '请输出中文多维点评，至少覆盖：通关效率、稳定性、策略质量、趣味性、难度判断。',
                                 '每个维度1句，最后给出1句总体结论。'
                             ].join('\n')
@@ -14823,8 +15736,19 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             if (!sessionSignature) return;
             if (agentUiState.playSessionReviewSignature === sessionSignature) return;
             agentUiState.playSessionReviewSignature = sessionSignature;
-            const reviewText = await requestAgentSessionReview(finalResult);
-            pushAgentChatMessage('assistant', `本局整体点评：\n${reviewText}`);
+            const outcome = resolveAgentFinalOutcome(finalResult);
+            const reviewText = await requestAgentSessionReview(finalResult, {
+                forceLocal: agentUiState.quickModeEnabled
+            });
+            const explicitOutcomeBlock = [
+                `结果判定：${outcome.label}。`,
+                `判定依据：${outcome.ruleText}`
+            ].join('\n');
+            const safeReview = String(reviewText || '').trim();
+            const mergedReview = /^结果判定：/m.test(safeReview)
+                ? safeReview
+                : `${explicitOutcomeBlock}\n${safeReview}`;
+            pushAgentChatMessage('assistant', `本局整体点评：\n${mergedReview}`);
         }
 
         async function runAgentStepInternal(triggerLabel = 'step') {
@@ -14835,7 +15759,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 return;
             }
             const currentProfile = getCurrentAgentProfile();
-            if (!currentProfile && !agentUiState.humanModeEnabled) {
+            if (!currentProfile && !agentUiState.humanModeEnabled && !agentUiState.quickModeEnabled) {
                 pushAgentChatMessage('assistant', '请先在“配置”里读取并保存本地 API 配置文件。');
                 updateAgentRunStatus('状态：缺少 API 配置', true);
                 return;
@@ -14856,7 +15780,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             try {
                 let decision = null;
                 if (agentUiState.humanModeEnabled) {
-                    decision = await requestHumanModeDecision(snapshot, currentProfile);
+                    decision = await requestHumanModeDecision(
+                        snapshot,
+                        agentUiState.quickModeEnabled ? null : currentProfile
+                    );
+                } else if (agentUiState.quickModeEnabled) {
+                    decision = buildLocalStandardAgentDecision(snapshot);
                 } else {
                     const decisionMessages = buildAgentDecisionMessages(snapshot);
                     const decisionText = await callAgentModel(decisionMessages, { temperature: 0.15 });
@@ -14865,10 +15794,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 if (!decision.ok) {
                     agentUiState.lastActionResult = { ok: false, error: decision.error };
                     const errorPrefix = agentUiState.humanModeEnabled ? '人类模式决策失败' : '思考结果解析失败';
-                    pushAgentChatMessage('assistant', `${errorPrefix}：${decision.error}`);
+                    pushCollapsedAssistantMessage(`${errorPrefix}：${decision.error}`, 'agent-decision-failure');
                     updateAgentRunStatus('状态：决策解析失败');
                     return;
                 }
+                decision.thought = ensureDecisionThoughtStartsWithObservation(decision.thought, {
+                    directionRule: snapshot.directionRule,
+                    mechanismSummary: snapshot.mechanismSummary
+                });
                 if (!decision.move) {
                     const err = 'Agent 未给出合法 move。';
                     agentUiState.lastActionResult = { ok: false, error: err };
@@ -14879,10 +15812,42 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 updateAgentRunStatus('状态：执行操作中');
                 const result = await executeAgentMove(decision.move, decision);
                 updateAgentRunStatus('状态：等待结算反馈');
-                const feeling = await requestAgentPostStepFeeling(decision, result);
+                const feeling = await requestAgentPostStepFeeling(decision, result, {
+                    forceLocal: agentUiState.quickModeEnabled
+                });
                 const latestStep = Array.isArray(agentUiState.stepMemory)
                     ? agentUiState.stepMemory[agentUiState.stepMemory.length - 1]
                     : null;
+                const mergedHumanMetrics = latestStep?.humanMetrics && typeof latestStep.humanMetrics === 'object'
+                    ? latestStep.humanMetrics
+                    : (result?.humanMetrics && typeof result.humanMetrics === 'object'
+                        ? result.humanMetrics
+                        : (decision?.humanMetrics && typeof decision.humanMetrics === 'object'
+                            ? decision.humanMetrics
+                            : null));
+                const stepComplexity = feeling?.complexity && typeof feeling.complexity === 'object'
+                    ? feeling.complexity
+                    : buildAgentStepDifficultyComplexity(decision, result, {
+                        humanMode: Boolean(decision.humanMode || agentUiState.humanModeEnabled),
+                        humanMetrics: mergedHumanMetrics
+                    });
+                const carryFailuresFromPrevious = Number(stepComplexity?.preSuccessFailCount) || 0;
+                const stepTrialErrorCount = computeAgentStepTrialErrorCount({
+                    trialErrorCount: latestStep?.trialErrorCount,
+                    humanMetrics: mergedHumanMetrics,
+                    success: Boolean(result?.ok)
+                }, {
+                    carryFailures: carryFailuresFromPrevious
+                });
+                if (latestStep && typeof latestStep === 'object') {
+                    latestStep.thinkingComplexity = Number(stepComplexity?.thinkingComplexity) || 0;
+                    latestStep.trialErrorComplexity = Number(stepComplexity?.trialErrorComplexity) || 0;
+                    latestStep.totalComplexity = Number(stepComplexity?.totalComplexity) || 0;
+                    latestStep.trialErrorCount = Number(stepTrialErrorCount) || 0;
+                    latestStep.preSuccessFailCount = carryFailuresFromPrevious;
+                    latestStep.availableChoiceCount = Number(stepComplexity?.availableChoiceCount) || 0;
+                    renderAgentMemoryPanel();
+                }
                 pushAgentStepCard({
                     stepIndex: Number(latestStep?.step) || Number(result?.memoryStep) || 0,
                     success: Boolean(result?.ok),
@@ -14894,6 +15859,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     turnCount: Number(result?.turnCount),
                     remainingPairsBefore: Number(result?.remainingPairsBefore),
                     remainingPairsAfter: Number(result?.remainingPairsAfter),
+                    remainingCardCountBefore: Number(result?.remainingCardCountBefore),
+                    remainingCardCountAfter: Number(result?.remainingCardCountAfter),
+                    clearedCardCountBefore: Number(result?.clearedCardCountBefore),
+                    clearedCardCountAfter: Number(result?.clearedCardCountAfter),
+                    gameOutcome: String(result?.gameOutcome || ''),
                     feelingLevel: String(feeling?.level || '正常'),
                     feelingDetail: String(feeling?.detail || ''),
                     thought: String(decision.thought || ''),
@@ -14903,11 +15873,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         ? latestStep.boardSnapshotBefore
                         : null
                 });
-                if (result.boardCleared) {
+                if (result.gameOutcome === 'victory') {
                     updateAgentRunStatus('状态：已通关');
                     agentUiState.isRunning = false;
                     await maybePushAgentSessionReview(result);
-                } else if (result.playFailed) {
+                } else if (result.gameOutcome === 'failure') {
                     updateAgentRunStatus('状态：局面失败（无可消除配对）');
                     agentUiState.isRunning = false;
                     await maybePushAgentSessionReview(result);
@@ -14948,17 +15918,25 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 if (agentUiState.runMode !== 'continuous') break;
                 await waitForMs(120);
             }
-            const boardCleared = Boolean(playModeState && playModeState.active && isPlayBoardCleared(playModeState.boardData));
+            const boardNow = Array.isArray(playModeState?.boardData) ? playModeState.boardData : [];
+            const boardCleared = Boolean(playModeState && playModeState.active && isPlayBoardCleared(boardNow));
             const playFailed = Boolean(playModeState && playModeState.active && playModeState.failed);
-            if (!agentUiState.stopRequested && (boardCleared || playFailed)) {
-                const boardNow = Array.isArray(playModeState?.boardData) ? playModeState.boardData : [];
+            const remainingCardCountAfter = boardNow.length > 0 ? countRemovableCellCount(boardNow) : null;
+            const failedWithCardsLeft = playFailed && Number.isFinite(Number(remainingCardCountAfter)) && Number(remainingCardCountAfter) > 0;
+            if (!agentUiState.stopRequested && (boardCleared || failedWithCardsLeft)) {
                 const remainingAfter = boardCleared
                     ? 0
                     : (boardNow.length > 0 ? countRemainingPairCountByBoard(boardNow) : null);
+                const initialCardCount = getAgentSessionInitialRemovableCount(boardNow);
+                const clearedCardCountAfter = Number.isFinite(Number(remainingCardCountAfter))
+                    ? Math.max(0, initialCardCount - Number(remainingCardCountAfter))
+                    : null;
                 await maybePushAgentSessionReview({
                     boardCleared,
-                    playFailed,
-                    remainingPairsAfter: remainingAfter
+                    playFailed: failedWithCardsLeft,
+                    remainingPairsAfter: remainingAfter,
+                    remainingCardCountAfter,
+                    clearedCardCountAfter
                 });
             }
             agentUiState.isRunning = false;
@@ -14966,6 +15944,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 updateAgentRunStatus('状态：已终止');
             } else if (boardCleared) {
                 updateAgentRunStatus('状态：已通关');
+            } else if (failedWithCardsLeft) {
+                updateAgentRunStatus('状态：局面失败（无可消除配对）');
             } else {
                 updateAgentRunStatus('状态：已停止');
             }
@@ -14995,7 +15975,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             }
             if (!agentUiState.isRunning) return;
             await runAgentStepInternal('manual-step');
-            if (playModeState && playModeState.active && (isPlayBoardCleared(playModeState.boardData) || playModeState.failed)) {
+            const latestOutcome = String(agentUiState.lastActionResult?.gameOutcome || '').trim().toLowerCase();
+            if (
+                latestOutcome === 'victory' ||
+                latestOutcome === 'failure' ||
+                (playModeState && playModeState.active && isPlayBoardCleared(playModeState.boardData))
+            ) {
                 agentUiState.isRunning = false;
             }
             updateAgentRunControls();
@@ -15041,6 +16026,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     model: currentProfile.model
                 },
                 humanModeEnabled: Boolean(agentUiState.humanModeEnabled),
+                quickModeEnabled: Boolean(agentUiState.quickModeEnabled),
                 playModeActive: Boolean(playModeState && playModeState.active),
                 boardSummary: snapshot
                     ? {
@@ -15177,8 +16163,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 chatList: document.getElementById('agentChatList'),
                 chatInput: document.getElementById('agentChatInput'),
                 sendBtn: document.getElementById('agentSendBtn'),
+                runSettingsBtn: document.getElementById('agentRunSettingsBtn'),
+                runSettingsOverlay: document.getElementById('agentRunSettingsOverlay'),
+                runSettingsPanel: document.getElementById('agentRunSettingsPanel'),
+                runSettingsCloseBtn: document.getElementById('agentRunSettingsCloseBtn'),
                 runModeSelect: document.getElementById('agentRunModeSelect'),
                 humanModeToggle: document.getElementById('agentHumanModeToggle'),
+                quickModeToggle: document.getElementById('agentQuickModeToggle'),
                 modelSelect: document.getElementById('agentModelSelect'),
                 validateApiBtn: document.getElementById('agentValidateApiBtn'),
                 runStartBtn: document.getElementById('agentRunStartBtn'),
@@ -15210,8 +16201,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 !elements.chatList ||
                 !elements.chatInput ||
                 !elements.sendBtn ||
+                !elements.runSettingsBtn ||
+                !elements.runSettingsOverlay ||
+                !elements.runSettingsPanel ||
+                !elements.runSettingsCloseBtn ||
                 !elements.runModeSelect ||
                 !elements.humanModeToggle ||
+                !elements.quickModeToggle ||
                 !elements.modelSelect ||
                 !elements.validateApiBtn ||
                 !elements.runStartBtn ||
@@ -15237,11 +16233,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             agentUiState.elements = elements;
             loadAgentApiConfig();
             loadAgentHumanModePreference();
+            loadAgentQuickModePreference();
             renderAgentModelSelectOptions();
             setActiveAgentProfile(agentUiState.activeProfileId, { persist: false, silent: true });
             renderAgentChatMessages();
             renderAgentMemoryPanel();
             elements.humanModeToggle.checked = Boolean(agentUiState.humanModeEnabled);
+            elements.quickModeToggle.checked = Boolean(agentUiState.quickModeEnabled);
 
             const iconDefaultLeft = Math.max(8, window.innerWidth - 84);
             const iconDefaultTop = Math.max(8, window.innerHeight - 100);
@@ -15270,6 +16268,17 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             elements.newChatBtn.addEventListener('click', () => {
                 clearAgentChatMessages();
             });
+            elements.runSettingsBtn.addEventListener('click', () => {
+                openAgentRunSettingsPanel();
+            });
+            elements.runSettingsCloseBtn.addEventListener('click', () => {
+                closeAgentRunSettingsPanel();
+            });
+            elements.runSettingsOverlay.addEventListener('click', (event) => {
+                if (event.target === elements.runSettingsOverlay) {
+                    closeAgentRunSettingsPanel();
+                }
+            });
             elements.runModeSelect.addEventListener('change', () => {
                 const nextMode = elements.runModeSelect.value === 'step' ? 'step' : 'continuous';
                 if (nextMode !== agentUiState.runMode && agentUiState.isRunning && agentUiState.runMode === 'continuous') {
@@ -15289,13 +16298,35 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 persistAgentHumanModePreference();
                 if (enabled) {
                     pushAgentChatMessage('assistant', '已开启人类模式：采用局部观察 + 概率策略，不做全盘穷举。');
-                    if (!getCurrentAgentProfile()) {
+                    if (!getCurrentAgentProfile() && !agentUiState.quickModeEnabled) {
                         updateAgentRunStatus('状态：人类模式已开启（可直接运行）');
                     }
                 } else {
                     pushAgentChatMessage('assistant', '已关闭人类模式：恢复标准策略。');
-                    if (!getCurrentAgentProfile()) {
+                    if (!getCurrentAgentProfile() && !agentUiState.quickModeEnabled) {
                         updateAgentRunStatus('状态：未配置模型', true);
+                    }
+                }
+                updateAgentRunControls();
+            });
+            elements.quickModeToggle.addEventListener('change', () => {
+                const enabled = Boolean(elements.quickModeToggle.checked);
+                agentUiState.quickModeEnabled = enabled;
+                persistAgentQuickModePreference();
+                if (enabled) {
+                    pushAgentChatMessage('assistant', '已开启快速模式：每步决策、难度反馈与复盘点评改为本地计算。');
+                    updateAgentRunStatus('状态：快速模式（全本地）');
+                } else {
+                    pushAgentChatMessage('assistant', '已关闭快速模式：恢复模型参与决策链路。');
+                    const currentProfile = getCurrentAgentProfile();
+                    if (currentProfile) {
+                        updateAgentRunStatus(
+                            `状态：当前模型 ${currentProfile.name}，验证：${getAgentValidationText(currentProfile.id)}`
+                        );
+                    } else if (!agentUiState.humanModeEnabled) {
+                        updateAgentRunStatus('状态：未配置模型', true);
+                    } else {
+                        updateAgentRunStatus('状态：人类模式已开启（可直接运行）');
                     }
                 }
                 updateAgentRunControls();
@@ -15381,7 +16412,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 }
             });
             const initProfile = getCurrentAgentProfile();
-            if (initProfile) {
+            if (agentUiState.quickModeEnabled) {
+                updateAgentRunStatus('状态：快速模式（全本地）');
+            } else if (initProfile) {
                 updateAgentRunStatus(
                     `状态：当前模型 ${initProfile.name}，验证：${getAgentValidationText(initProfile.id)}`
                 );
