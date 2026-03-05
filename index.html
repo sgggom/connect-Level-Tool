@@ -457,6 +457,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-height: calc(1.34em * 2);
         }
 
         .board-bg-control {
@@ -753,6 +754,14 @@
             transition: color 0.15s ease;
             flex: 1;
             min-width: 0;
+            line-height: 1.34;
+            height: calc(1.34em * 2);
+            max-height: calc(1.34em * 2);
+            overflow: hidden;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .btn-play-retry {
@@ -1036,6 +1045,22 @@
             color: #e7f0ff;
         }
 
+        .play-step-log-item.replayable {
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .play-step-log-item.replayable:hover {
+            background: rgba(147, 197, 253, 0.14);
+            border-color: rgba(147, 197, 253, 0.46);
+        }
+
+        .play-step-log-item.active-step {
+            background: rgba(37, 99, 235, 0.28);
+            border-color: rgba(147, 197, 253, 0.7);
+            box-shadow: inset 0 0 0 1px rgba(191, 219, 254, 0.45);
+        }
+
         .play-step-log-index {
             flex: 0 0 auto;
             min-width: 42px;
@@ -1048,6 +1073,16 @@
             min-width: 0;
             font-weight: 600;
             letter-spacing: 0.2px;
+        }
+
+        .play-step-log-hint {
+            flex: 0 0 auto;
+            font-size: 0.72em;
+            color: rgba(191, 219, 254, 0.92);
+            white-space: nowrap;
+            border: 1px dashed rgba(191, 219, 254, 0.5);
+            border-radius: 999px;
+            padding: 1px 7px;
         }
 
         .board-editor-panel {
@@ -1292,7 +1327,7 @@
 
         .saved-level-preview {
             position: fixed;
-            z-index: 10010;
+            z-index: 13050;
             display: none;
             min-width: 180px;
             max-width: 320px;
@@ -1371,6 +1406,15 @@
             transform-origin: top center;
         }
 
+        .saved-level-preview-guide {
+            z-index: 2;
+            transform: scale(1.05);
+            transform-origin: top center;
+            object-position: top center;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+
         .saved-level-preview-face-bomb {
             transform: scale(0.8);
             transform-origin: top center;
@@ -1397,6 +1441,16 @@
         .saved-level-preview-obstacle-scale130 {
             transform: translateY(calc(5px * var(--preview-scale))) scale(1.2);
             transform-origin: top center;
+        }
+
+        .saved-level-preview-cell.agent-step-selected {
+            box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.95) inset, 0 0 6px rgba(251, 191, 36, 0.65);
+            transform: translateY(calc(-3px * var(--preview-scale)));
+            z-index: 2;
+        }
+
+        .saved-level-preview-cell.agent-step-selected .saved-level-preview-guide {
+            opacity: 1;
         }
 
         .stats-line {
@@ -1450,6 +1504,537 @@
 
         .stats-sim-count input[type="number"] {
             width: 96px;
+        }
+
+        .agent-float-icon {
+            position: fixed;
+            left: calc(100vw - 84px);
+            top: calc(100vh - 100px);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.35);
+            background: radial-gradient(circle at 30% 30%, #67e8f9 0%, #2563eb 80%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.34);
+            z-index: 12000;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .agent-float-icon.hidden {
+            display: none;
+        }
+
+        .agent-float-icon.dragging {
+            cursor: grabbing;
+        }
+
+        .agent-float-icon-mark {
+            font-size: 2.5em;
+            font-weight: 500;
+            letter-spacing: 0;
+            line-height: 1;
+        }
+
+        .agent-dialog {
+            position: fixed;
+            left: calc(100vw - 620px);
+            top: 15px;
+            width: 570px;
+            height: calc(100vh - 30px);
+            max-width: calc(100vw - 16px);
+            max-height: calc(100vh - 16px);
+            display: none;
+            flex-direction: column;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(10, 15, 30, 0.95);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.38);
+            overflow: hidden;
+            z-index: 12010;
+        }
+
+        .agent-dialog.visible {
+            display: flex;
+        }
+
+        .agent-dialog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(56, 189, 248, 0.18);
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .agent-dialog-header.dragging {
+            cursor: grabbing;
+        }
+
+        .agent-dialog-title {
+            font-size: 0.92em;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .agent-dialog-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .agent-btn {
+            padding: 6px 10px;
+            border-radius: 7px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 0.78em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .agent-btn:hover {
+            transform: none;
+            box-shadow: none;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .agent-chat-body {
+            flex: 1;
+            min-height: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .agent-memory-panel {
+            flex: 0 0 auto;
+            border: 1px solid rgba(125, 211, 252, 0.32);
+            background: rgba(15, 23, 42, 0.86);
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .agent-memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-memory-title {
+            font-size: 0.8em;
+            font-weight: 700;
+            color: #cde8ff;
+            letter-spacing: 0.02em;
+        }
+
+        .agent-memory-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-left: auto;
+            justify-content: flex-end;
+        }
+
+        .agent-memory-summary-item {
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.72em;
+            line-height: 1.4;
+            color: #dbeafe;
+            background: rgba(30, 41, 59, 0.72);
+            white-space: nowrap;
+        }
+
+        .agent-memory-trend {
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            background: rgba(2, 6, 23, 0.65);
+            height: 86px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .agent-memory-trend-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .agent-memory-trend-axis {
+            stroke: rgba(148, 163, 184, 0.22);
+            stroke-width: 1;
+        }
+
+        .agent-memory-trend-line {
+            fill: none;
+            stroke: #38bdf8;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .agent-memory-trend-point {
+            fill: #7dd3fc;
+        }
+
+        .agent-memory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 138px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .agent-memory-row {
+            display: grid;
+            grid-template-columns: 60px 72px 66px minmax(0, 1fr);
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 8px;
+            padding: 5px 6px;
+            font-size: 0.74em;
+            background: rgba(15, 23, 42, 0.65);
+            color: #e2e8f0;
+        }
+
+        .agent-memory-row strong {
+            color: #f8fafc;
+        }
+
+        .agent-memory-empty {
+            font-size: 0.78em;
+            line-height: 1.45;
+            color: rgba(226, 232, 240, 0.78);
+            padding: 2px 0;
+        }
+
+        .agent-run-controls {
+            display: grid;
+            grid-template-columns: auto minmax(92px, 1fr) auto auto minmax(140px, 1fr) repeat(4, auto);
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .agent-run-controls label {
+            font-size: 0.78em;
+            opacity: 0.85;
+        }
+
+        .agent-run-controls select {
+            width: 100%;
+            min-width: 0;
+            text-align: left;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .agent-model-select {
+            min-width: 150px;
+        }
+
+        .agent-human-mode-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78em;
+            white-space: nowrap;
+            opacity: 0.95;
+            user-select: none;
+        }
+
+        .agent-human-mode-toggle input {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .agent-run-status {
+            padding: 0 10px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            font-size: 0.78em;
+            color: #cfe5ff;
+            min-height: 18px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .agent-run-status.error {
+            color: #fca5a5;
+        }
+
+        .agent-chat-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 2px;
+        }
+
+        .agent-chat-empty {
+            opacity: 0.75;
+            font-size: 0.84em;
+            line-height: 1.45;
+            padding: 6px 4px;
+        }
+
+        .agent-chat-msg {
+            max-width: 92%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            line-height: 1.4;
+            font-size: 0.84em;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .agent-chat-msg-user {
+            align-self: flex-end;
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(147, 197, 253, 0.4);
+        }
+
+        .agent-chat-msg-assistant {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .agent-chat-step-card {
+            align-self: stretch;
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(2, 6, 23, 0.84) 100%);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .agent-step-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-step-title {
+            font-size: 0.88em;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .agent-step-result {
+            font-size: 0.74em;
+            border-radius: 999px;
+            padding: 3px 8px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .agent-step-result.previewable {
+            cursor: pointer;
+            border-style: dashed;
+        }
+
+        .agent-step-result.ok {
+            color: #86efac;
+            border-color: rgba(74, 222, 128, 0.4);
+            background: rgba(20, 83, 45, 0.3);
+        }
+
+        .agent-step-result.fail {
+            color: #fca5a5;
+            border-color: rgba(248, 113, 113, 0.4);
+            background: rgba(127, 29, 29, 0.3);
+        }
+
+        .agent-step-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+        }
+
+        .agent-step-cell {
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 8px;
+            padding: 6px;
+            background: rgba(30, 41, 59, 0.46);
+            min-height: 42px;
+        }
+
+        .agent-step-label {
+            font-size: 0.7em;
+            opacity: 0.82;
+            margin-bottom: 3px;
+        }
+
+        .agent-step-value {
+            font-size: 0.8em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .agent-step-value.feeling-hard {
+            color: #fde68a;
+        }
+
+        .agent-step-thought {
+            border: 1px dashed rgba(148, 163, 184, 0.38);
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: rgba(15, 23, 42, 0.45);
+        }
+
+        .agent-step-thought summary {
+            cursor: pointer;
+            font-size: 0.76em;
+            color: #bae6fd;
+            user-select: none;
+        }
+
+        .agent-step-thought-content {
+            margin-top: 6px;
+            font-size: 0.78em;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #e2e8f0;
+        }
+
+        .agent-chat-input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .agent-chat-input-row input[type="text"] {
+            width: 100%;
+            text-align: left;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .agent-send-btn {
+            min-width: 64px;
+            padding: 8px 12px;
+        }
+
+        .agent-config-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 12030;
+            padding: 10px;
+        }
+
+        .agent-config-overlay.visible {
+            display: flex;
+        }
+
+        .agent-config-modal {
+            width: min(440px, calc(100vw - 20px));
+            background: rgba(13, 20, 36, 0.97);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        .agent-config-title {
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #d5e7ff;
+            margin-bottom: 10px;
+        }
+
+        .agent-config-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .agent-config-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+            opacity: 0.88;
+        }
+
+        .agent-config-file-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-config-status {
+            margin-top: 8px;
+            font-size: 0.8em;
+            line-height: 1.4;
+            opacity: 0.9;
+            color: #d6e8ff;
+        }
+
+        .agent-config-status.error {
+            color: #fca5a5;
+        }
+
+        .agent-config-preview {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+            display: grid;
+            gap: 5px;
+        }
+
+        .agent-config-profile-select {
+            width: 100%;
+            text-align: left;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .agent-config-preview-item {
+            font-size: 0.8em;
+            line-height: 1.45;
+            word-break: break-all;
+        }
+
+        .agent-config-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
         }
 
         @media (max-width: 1500px) {
@@ -1576,6 +2161,26 @@
             .board-bg-option-thumb {
                 width: 48px;
                 height: 27px;
+            }
+
+            .agent-dialog {
+                width: calc(100vw - 16px);
+                left: 8px;
+                top: 8px;
+                height: calc(100vh - 16px);
+            }
+
+            .agent-run-controls {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .agent-memory-row {
+                grid-template-columns: 54px 64px 58px minmax(0, 1fr);
+                font-size: 0.7em;
+            }
+
+            .agent-step-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -2017,6 +2622,92 @@
         <button type="button" onclick="handleSavedLevelContextAction('delete')">删除</button>
     </div>
     <div class="saved-level-preview" id="savedLevelPreview"></div>
+    <button
+        type="button"
+        class="agent-float-icon"
+        id="agentFloatIcon"
+        title="打开 Agent 对话框"
+        aria-label="打开 Agent 对话框"
+    >
+        <span class="agent-float-icon-mark">🤖</span>
+    </button>
+    <section class="agent-dialog" id="agentDialog" aria-label="Agent 对话框">
+        <div class="agent-dialog-header" id="agentDialogHeader">
+            <div class="agent-dialog-title">Agent 助手</div>
+            <div class="agent-dialog-controls">
+                <button type="button" class="agent-btn" id="agentNewChatBtn">新对话</button>
+                <button type="button" class="agent-btn" id="agentConfigBtn">配置</button>
+                <button type="button" class="agent-btn" id="agentMinimizeBtn">最小化</button>
+            </div>
+        </div>
+        <div class="agent-run-controls">
+            <label for="agentRunModeSelect">模式</label>
+            <select id="agentRunModeSelect">
+                <option value="continuous">持续操作</option>
+                <option value="step">单步操作</option>
+            </select>
+            <label class="agent-human-mode-toggle">
+                <input type="checkbox" id="agentHumanModeToggle">
+                <span>人类模式</span>
+            </label>
+            <label for="agentModelSelect">模型</label>
+            <select id="agentModelSelect" class="agent-model-select"></select>
+            <button type="button" class="agent-btn" id="agentValidateApiBtn">验证</button>
+            <button type="button" class="agent-btn" id="agentRunStartBtn">开始</button>
+            <button type="button" class="agent-btn" id="agentRunStepBtn">下一步</button>
+            <button type="button" class="agent-btn" id="agentRunStopBtn">终止</button>
+        </div>
+        <div class="agent-run-status" id="agentRunStatus">状态：空闲</div>
+        <div class="agent-chat-body">
+            <div class="agent-memory-panel" id="agentMemoryPanel">
+                <div class="agent-memory-empty">每步记忆会在这里显示（摘要与趋势）。</div>
+            </div>
+            <div class="agent-chat-list" id="agentChatList">
+                <div class="agent-chat-empty">这里会显示对话消息。先读取本地 API 配置文件，再开始聊天。</div>
+            </div>
+            <div class="agent-chat-input-row">
+                <input type="text" id="agentChatInput" placeholder="输入消息，按 Enter 发送">
+                <button type="button" class="agent-btn agent-send-btn" id="agentSendBtn">发送</button>
+            </div>
+        </div>
+    </section>
+    <div class="agent-config-overlay" id="agentConfigOverlay">
+        <div class="agent-config-modal" id="agentConfigModal">
+            <div class="agent-config-title">Agent API 配置（本地文件）</div>
+            <div class="agent-config-grid">
+                <div class="agent-config-field">
+                    <label>配置文件</label>
+                    <div class="agent-config-file-row">
+                        <button type="button" class="agent-btn" id="agentConfigLoadFileBtn">选择本地配置文件</button>
+                        <input
+                            type="file"
+                            id="agentConfigFileInput"
+                            accept=".json,application/json"
+                            style="display: none;"
+                        >
+                    </div>
+                    <div class="agent-config-status" id="agentConfigFileStatus">
+                        未加载配置文件
+                    </div>
+                </div>
+                <div class="agent-config-preview">
+                    <div class="agent-config-preview-item">
+                        配置项：
+                        <select id="agentConfigProfileSelect" class="agent-config-profile-select"></select>
+                    </div>
+                    <div class="agent-config-preview-item">名称：<span id="agentConfigPreviewName">-</span></div>
+                    <div class="agent-config-preview-item">Base URL：<span id="agentConfigPreviewBaseUrl">-</span></div>
+                    <div class="agent-config-preview-item">API Key：<span id="agentConfigPreviewApiKey">-</span></div>
+                    <div class="agent-config-preview-item">Model：<span id="agentConfigPreviewModel">-</span></div>
+                    <div class="agent-config-preview-item">验证：<span id="agentConfigPreviewValidation">未验证</span></div>
+                </div>
+            </div>
+            <div class="agent-config-actions">
+                <button type="button" class="agent-btn" id="agentConfigCancelBtn">取消</button>
+                <button type="button" class="agent-btn" id="agentConfigSaveBtn">保存并关闭</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let currentPool = [];
@@ -2051,6 +2742,8 @@
         };
         let savedConfigGroups = [];
         const CONFIG_GROUP_STORAGE_KEY = 'levelmake.configGroups.v1';
+        const AGENT_API_CONFIG_STORAGE_KEY = 'levelmake.agentApiConfig.v1';
+        const AGENT_HUMAN_MODE_STORAGE_KEY = 'levelmake.agentHumanMode.v1';
         const BOARD_BACKGROUND_MIN_INDEX = 1;
         const BOARD_BACKGROUND_MAX_INDEX = 9;
         const ROW_BASE_DIRECTIONS = [3, 4, 6, 8];
@@ -2118,6 +2811,29 @@
             'ice2',
             'ice3'
         ]);
+        const agentUiState = {
+            elements: null,
+            drag: null,
+            suppressIconClick: false,
+            chatMessages: [],
+            apiProfiles: [],
+            activeProfileId: '',
+            profileValidation: {},
+            pendingApiConfigData: null,
+            pendingApiConfigSource: '',
+            pendingSelectedProfileId: '',
+            runMode: 'continuous',
+            humanModeEnabled: false,
+            isRunning: false,
+            isExecutingStep: false,
+            stopRequested: false,
+            activeFetchAbortController: null,
+            playSessionSignature: '',
+            playSessionReviewSignature: '',
+            stepMemory: [],
+            lastActionResult: null,
+            userConversation: []
+        };
 
         function getObstacleImagePath(baseId) {
             const imageMap = {
@@ -2519,6 +3235,24 @@
                 8: '左右向外'
             };
             return directionTitles[directionId] || '无规则';
+        }
+
+        function getDirectionShiftRuleDescription(directionId) {
+            const safeDirection = Number.isFinite(Number(directionId))
+                ? Math.max(0, Math.min(8, Math.round(Number(directionId))))
+                : 0;
+            const descriptions = {
+                0: '无位移规则，消除后棋盘不移动。',
+                1: '整列向上压缩，受磁铁锁定和不可移动障碍影响。',
+                2: '整列向下压缩，受磁铁锁定和不可移动障碍影响。',
+                3: '整行向左压缩，受磁铁锁定和不可移动障碍影响。',
+                4: '整行向右压缩，受磁铁锁定和不可移动障碍影响。',
+                5: '上下向内：上半区向下、下半区向上。',
+                6: '左右向内：左半区向右、右半区向左。',
+                7: '上下向外：上半区向上、下半区向下。',
+                8: '左右向外：左半区向左、右半区向右。'
+            };
+            return descriptions[safeDirection] || descriptions[0];
         }
 
         function getDirectionIconPath(directionId) {
@@ -3179,6 +3913,154 @@
                 `反向2拐：${playStepTypeCounts['3']}`;
         }
 
+        function getCurrentPlayStepLogs() {
+            if (!playModeState || !playModeState.active) return [];
+            if (!Array.isArray(playModeState.stepLogs)) {
+                playModeState.stepLogs = [];
+            }
+            return playModeState.stepLogs;
+        }
+
+        function recalculatePlayStepTypeCountsByLogs() {
+            const logs = getCurrentPlayStepLogs();
+            const nextCounts = createEmptyPlayStepTypeCounts();
+            for (const record of logs) {
+                const key = PLAY_CONNECTION_TYPE_KEY_MAP[String(record?.connectionType || '')];
+                if (!key) continue;
+                nextCounts[key] = (nextCounts[key] || 0) + 1;
+            }
+            playStepTypeCounts = nextCounts;
+            updatePlayStepTypeCountsText();
+        }
+
+        function markActivePlayStepLog(stepIndex = null) {
+            const logList = document.getElementById('playStepLogList');
+            if (!logList) return;
+            const items = logList.querySelectorAll('.play-step-log-item');
+            for (const item of items) {
+                const itemStep = Number(item.dataset.stepIndex);
+                const isActive = Number.isFinite(Number(stepIndex))
+                    && Number(stepIndex) > 0
+                    && itemStep === Number(stepIndex);
+                item.classList.toggle('active-step', isActive);
+            }
+        }
+
+        function buildPlayStepPreviewPayload(record) {
+            if (!record || typeof record !== 'object') return null;
+            const boardSnapshotBefore = Array.isArray(record.boardSnapshotBefore)
+                ? record.boardSnapshotBefore
+                : null;
+            if (!boardSnapshotBefore) return null;
+            return {
+                stepIndex: Number(record.stepIndex) || 0,
+                move: record.move && typeof record.move === 'object'
+                    ? {
+                        row1: Number(record.move.row1),
+                        col1: Number(record.move.col1),
+                        row2: Number(record.move.row2),
+                        col2: Number(record.move.col2)
+                    }
+                    : null,
+                boardSnapshotBefore
+            };
+        }
+
+        function restorePlayBoardToStep(stepIndex) {
+            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
+            const logs = getCurrentPlayStepLogs();
+            const safeStep = Number.isFinite(Number(stepIndex))
+                ? Math.max(1, Math.floor(Number(stepIndex)))
+                : 0;
+            if (!safeStep || safeStep > logs.length) return;
+            const record = logs[safeStep - 1];
+            if (!record || !Array.isArray(record.boardSnapshotBefore)) return;
+            hideSavedLevelPreview();
+
+            clearPlaySelectionVisual();
+            clearPlayLinkPath();
+
+            playModeState.boardData = cloneBoardData(record.boardSnapshotBefore);
+            playModeState.tokenBoard = createTokenBoardFromBoard(playModeState.boardData);
+            playModeState.selected = null;
+            playModeState.isResolving = false;
+            playModeState.failed = false;
+            playModeState.clearedPairs = Math.max(0, safeStep - 1);
+            playModeState.currentStepIndex = Math.max(0, safeStep - 1);
+
+            syncBoardDisplayWithoutTransition(playModeState.boardData);
+            markActivePlayStepLog(safeStep);
+            updatePlayAutoPairButton();
+
+            const cleared = isPlayBoardCleared(playModeState.boardData);
+            if (cleared) {
+                updatePlayRetryButton(false);
+                setInfoText(`试玩模式：已回到第${safeStep}步操作前（当前棋盘已清空）`);
+                return;
+            }
+
+            const failed = checkAndHandlePlayFailure(playModeState.boardData);
+            if (!failed) {
+                updatePlayRetryButton(false);
+                const remainingPairsNow = countRemainingPairCountByBoard(playModeState.boardData);
+                setInfoText(`试玩模式：已回到第${safeStep}步操作前，当前可配对 ${remainingPairsNow} 对`);
+            }
+        }
+
+        function createPlayStepLogItemElement(record) {
+            const item = document.createElement('div');
+            item.className = 'play-step-log-item replayable';
+            const safeStep = Number.isFinite(Number(record?.stepIndex))
+                ? Math.max(1, Math.round(Number(record.stepIndex)))
+                : 1;
+            item.dataset.stepIndex = String(safeStep);
+
+            const stepText = document.createElement('span');
+            stepText.className = 'play-step-log-index';
+            stepText.textContent = `第${safeStep}步`;
+
+            const typeText = document.createElement('span');
+            typeText.className = 'play-step-log-type';
+            const safeRemainingPairCount = Number.isFinite(Number(record?.remainingPairCount))
+                ? Math.max(0, Math.round(Number(record.remainingPairCount)))
+                : null;
+            const connectionType = String(record?.connectionType || '未知连接');
+            typeText.textContent = safeRemainingPairCount === null
+                ? connectionType
+                : `${connectionType}（可配对：${safeRemainingPairCount}对）`;
+
+            const hint = document.createElement('span');
+            hint.className = 'play-step-log-hint';
+            hint.textContent = '悬停预览/点击回放';
+
+            const previewPayload = buildPlayStepPreviewPayload(record);
+            if (previewPayload) {
+                item.title = '悬停查看该步操作前棋盘，点击回到该步';
+                item.addEventListener('mouseenter', (event) => {
+                    showAgentStepBoardPreview(
+                        previewPayload,
+                        event?.clientX ?? (item.getBoundingClientRect().left + 12),
+                        event?.clientY ?? (item.getBoundingClientRect().bottom + 8)
+                    );
+                });
+                item.addEventListener('mousemove', (event) => {
+                    moveSavedLevelPreview(event.clientX, event.clientY);
+                });
+                item.addEventListener('mouseleave', () => {
+                    hideSavedLevelPreview();
+                });
+            }
+
+            item.addEventListener('click', () => {
+                restorePlayBoardToStep(safeStep);
+            });
+
+            item.appendChild(stepText);
+            item.appendChild(typeText);
+            item.appendChild(hint);
+            return item;
+        }
+
         function increasePlayStepTypeCount(connectionType) {
             if (!playStepTypeCounts) {
                 playStepTypeCounts = createEmptyPlayStepTypeCounts();
@@ -3192,8 +4074,13 @@
         function resetPlayStepLog(message = '进入试玩后会在这里按步骤记录消除连接类型') {
             const logList = document.getElementById('playStepLogList');
             if (!logList) return;
+            hideSavedLevelPreview();
             playStepTypeCounts = createEmptyPlayStepTypeCounts();
             updatePlayStepTypeCountsText();
+            if (playModeState && playModeState.active) {
+                playModeState.stepLogs = [];
+                playModeState.currentStepIndex = 0;
+            }
             logList.innerHTML = '';
             const empty = document.createElement('div');
             empty.className = 'play-step-log-empty';
@@ -3201,33 +4088,55 @@
             logList.appendChild(empty);
         }
 
-        function appendPlayStepLog(stepIndex, connectionType, remainingPairCount = null) {
+        function appendPlayStepLog(stepIndex, connectionType, remainingPairCount = null, meta = null) {
             const logList = document.getElementById('playStepLogList');
             if (!logList) return;
 
+            const logs = getCurrentPlayStepLogs();
             const empty = logList.querySelector('.play-step-log-empty');
             if (empty) empty.remove();
 
             const safeStep = Number.isFinite(Number(stepIndex))
                 ? Math.max(1, Math.round(Number(stepIndex)))
-                : (logList.children.length + 1);
-            const item = document.createElement('div');
-            item.className = 'play-step-log-item';
-            const stepText = document.createElement('span');
-            stepText.className = 'play-step-log-index';
-            stepText.textContent = `第${safeStep}步`;
-            const typeText = document.createElement('span');
-            typeText.className = 'play-step-log-type';
+                : (logs.length + 1);
             const safeRemainingPairCount = Number.isFinite(Number(remainingPairCount))
                 ? Math.max(0, Math.round(Number(remainingPairCount)))
                 : null;
-            typeText.textContent = safeRemainingPairCount === null
-                ? (connectionType || '未知连接')
-                : `${connectionType || '未知连接'}（可配对：${safeRemainingPairCount}对）`;
-            item.appendChild(stepText);
-            item.appendChild(typeText);
+            if (logs.length >= safeStep) {
+                logs.splice(safeStep - 1);
+                while (logList.children.length >= safeStep) {
+                    logList.removeChild(logList.lastElementChild);
+                }
+            }
+
+            const record = {
+                stepIndex: safeStep,
+                connectionType: String(connectionType || '未知连接'),
+                remainingPairCount: safeRemainingPairCount,
+                move: meta?.move && typeof meta.move === 'object'
+                    ? {
+                        row1: Number(meta.move.row1),
+                        col1: Number(meta.move.col1),
+                        row2: Number(meta.move.row2),
+                        col2: Number(meta.move.col2)
+                    }
+                    : null,
+                boardSnapshotBefore: Array.isArray(meta?.boardSnapshotBefore)
+                    ? cloneBoardData(meta.boardSnapshotBefore)
+                    : null,
+                boardSnapshotAfter: Array.isArray(meta?.boardSnapshotAfter)
+                    ? cloneBoardData(meta.boardSnapshotAfter)
+                    : null
+            };
+            logs.push(record);
+
+            const item = createPlayStepLogItemElement(record);
             logList.appendChild(item);
-            increasePlayStepTypeCount(connectionType);
+            recalculatePlayStepTypeCountsByLogs();
+            if (playModeState && playModeState.active) {
+                playModeState.currentStepIndex = safeStep;
+            }
+            markActivePlayStepLog(safeStep);
             logList.scrollTop = logList.scrollHeight;
         }
 
@@ -3257,6 +4166,7 @@
                 enterPlayMode();
                 return;
             }
+            stopAgentRun({ silent: true });
             if (!Array.isArray(playModeState.originalBoard)) return;
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-shifting');
@@ -3273,6 +4183,7 @@
             updatePlayAutoPairButton();
             resetPlayStepLog('试玩模式：已重玩，等待新的消除步骤');
             setInfoText('试玩模式：已重玩，请继续选择可消除牌');
+            ensureAgentPlaySession(true);
         }
 
         async function autoMatchPlayPair() {
@@ -3940,6 +4851,13 @@
                 col
             );
             const connectionType = getPlayConnectionTypeByPath(linkPath);
+            const boardSnapshotBefore = cloneBoardData(boardData);
+            const move = {
+                row1: selected.row,
+                col1: selected.col,
+                row2: row,
+                col2: col
+            };
 
             playModeState.isResolving = true;
             updatePlayAutoPairButton();
@@ -3993,7 +4911,12 @@
                 appendPlayStepLog(
                     playModeState.clearedPairs,
                     connectionType,
-                    remainingPairsNow
+                    remainingPairsNow,
+                    {
+                        move,
+                        boardSnapshotBefore,
+                        boardSnapshotAfter: cloneBoardData(boardData)
+                    }
                 );
 
                 if (isPlayBoardCleared(boardData)) {
@@ -4024,6 +4947,7 @@
         function exitPlayMode(options = {}) {
             const { restoreBoard = true, silent = false } = options;
             if (!playModeState || !playModeState.active) return;
+            stopAgentRun({ silent: true });
 
             if (restoreBoard && Array.isArray(playModeState.originalBoard)) {
                 syncBoardDisplayByData(playModeState.originalBoard);
@@ -4033,10 +4957,12 @@
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-mode');
             clearPlayLinkPath();
+            hideSavedLevelPreview();
             updatePlayRetryButton(false);
             resetPlayStepLog();
 
             playModeState = null;
+            ensureAgentPlaySession(true);
             updatePlayModeButton();
 
             if (!silent) {
@@ -4046,6 +4972,7 @@
 
         function enterPlayMode() {
             if (playModeState && playModeState.active) return;
+            stopAgentRun({ silent: true });
             if (!hasFilledCells(filledCells)) {
                 alert('请先生成关卡，再进入试玩模式。');
                 return;
@@ -4059,6 +4986,8 @@
                 originalBoard: sourceBoard,
                 boardData: cloneBoardData(sourceBoard),
                 tokenBoard: createTokenBoardFromBoard(sourceBoard),
+                stepLogs: [],
+                currentStepIndex: 0,
                 selected: null,
                 isResolving: false,
                 failed: false,
@@ -4075,6 +5004,7 @@
             const info = document.getElementById('info');
             if (info) info.textContent = '试玩模式：点击两张相同且可连通的牌进行消除';
             checkAndHandlePlayFailure(playModeState.boardData);
+            ensureAgentPlaySession(true);
         }
 
         function togglePlayMode() {
@@ -4803,6 +5733,128 @@
                 }
             }
             return count;
+        }
+
+        function summarizeBoardMechanismState(boardData) {
+            const summary = {
+                removableCount: 0,
+                attachmentsTotal: 0,
+                attachmentFanpaiCount: 0,
+                attachmentIceshellCount: 0,
+                obstacleStoneCount: 0,
+                obstacleWoodCount: 0,
+                obstacleMagnetCount: 0,
+                obstacleIce1Count: 0,
+                obstacleIce2Count: 0,
+                obstacleIce3Count: 0,
+                obstacleTotal: 0,
+                iceHp: 0,
+                magnetLockCount: 0
+            };
+            if (!Array.isArray(boardData) || boardData.length === 0) return summary;
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    if (isRemovableBaseId(parsed.baseId)) {
+                        summary.removableCount++;
+                    }
+                    if (parsed.hasAttachment) {
+                        summary.attachmentsTotal++;
+                        if (parsed.attachmentId === ATTACHMENT_FANPAI_ID) {
+                            summary.attachmentFanpaiCount++;
+                        } else if (parsed.attachmentId === ATTACHMENT_ICESHELL_ID) {
+                            summary.attachmentIceshellCount++;
+                        }
+                    }
+                    if (parsed.baseId === STONE_CELL_ID) summary.obstacleStoneCount++;
+                    if (parsed.baseId === WOOD_CELL_ID) summary.obstacleWoodCount++;
+                    if (parsed.baseId === MAGNET_CELL_ID) summary.obstacleMagnetCount++;
+                    if (parsed.baseId === ICE_LEVEL_1_CELL_ID) summary.obstacleIce1Count++;
+                    if (parsed.baseId === ICE_LEVEL_2_CELL_ID) summary.obstacleIce2Count++;
+                    if (parsed.baseId === ICE_LEVEL_3_CELL_ID) summary.obstacleIce3Count++;
+                }
+            }
+            summary.obstacleTotal = (
+                summary.obstacleStoneCount +
+                summary.obstacleWoodCount +
+                summary.obstacleMagnetCount +
+                summary.obstacleIce1Count +
+                summary.obstacleIce2Count +
+                summary.obstacleIce3Count
+            );
+            summary.iceHp = (
+                summary.obstacleIce1Count +
+                (summary.obstacleIce2Count * 2) +
+                (summary.obstacleIce3Count * 3)
+            );
+            summary.magnetLockCount = buildMagnetLockSet(boardData).size;
+            return summary;
+        }
+
+        function buildMechanismEffectSummary(beforeState, afterState) {
+            const safeBefore = beforeState && typeof beforeState === 'object' ? beforeState : {};
+            const safeAfter = afterState && typeof afterState === 'object' ? afterState : {};
+            return {
+                releasedAttachment: Math.max(
+                    0,
+                    (Number(safeBefore.attachmentsTotal) || 0) - (Number(safeAfter.attachmentsTotal) || 0)
+                ),
+                iceHpReduction: Math.max(
+                    0,
+                    (Number(safeBefore.iceHp) || 0) - (Number(safeAfter.iceHp) || 0)
+                ),
+                obstacleReduction: Math.max(
+                    0,
+                    (Number(safeBefore.obstacleTotal) || 0) - (Number(safeAfter.obstacleTotal) || 0)
+                ),
+                magnetLockReduction: Math.max(
+                    0,
+                    (Number(safeBefore.magnetLockCount) || 0) - (Number(safeAfter.magnetLockCount) || 0)
+                ),
+                removableReduction: Math.max(
+                    0,
+                    (Number(safeBefore.removableCount) || 0) - (Number(safeAfter.removableCount) || 0)
+                )
+            };
+        }
+
+        function simulateAgentMoveOutcome(snapshot, move) {
+            if (!snapshot || !Array.isArray(snapshot.boardData) || !move) return null;
+            const boardBefore = cloneBoardData(snapshot.boardData);
+            if (!Array.isArray(boardBefore) || boardBefore.length === 0) return null;
+            const boardAfter = cloneBoardData(boardBefore);
+            const firstValue = boardAfter[move.row1]?.[move.col1];
+            const selectedBaseId = getMatchableBaseId(firstValue);
+            if (selectedBaseId === null) return null;
+
+            const beforeRemainingPairs = Number.isFinite(Number(snapshot.remainingPairs))
+                ? Number(snapshot.remainingPairs)
+                : countRemainingPairCountByBoard(boardBefore);
+            const beforeState = summarizeBoardMechanismState(boardBefore);
+            const removedPositions = removePairFromBoard(boardAfter, null, move);
+            triggerAdjacentMechanisms(boardAfter, null, removedPositions);
+            if (selectedBaseId === BOMB_CELL_ID) {
+                triggerBombEffect(boardAfter, null);
+            }
+
+            const direction = Number.isFinite(Number(snapshot.direction))
+                ? Number(snapshot.direction)
+                : 0;
+            applyDirectionShiftUntilStable(boardAfter, direction, null);
+            const afterRemainingPairs = countRemainingPairCountByBoard(boardAfter);
+            const afterState = summarizeBoardMechanismState(boardAfter);
+            const mechanismEffects = buildMechanismEffectSummary(beforeState, afterState);
+            const extraRemovedByMechanism = Math.max(0, mechanismEffects.removableReduction - 2);
+            return {
+                beforeRemainingPairs,
+                afterRemainingPairs,
+                remainingPairsDelta: beforeRemainingPairs - afterRemainingPairs,
+                beforeState,
+                afterState,
+                mechanismEffects,
+                extraRemovedByMechanism
+            };
         }
 
         function simulateSingleGame(baseBoardData, direction, initialRemovableCount = null) {
@@ -9419,6 +10471,157 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             moveSavedLevelPreview(clientX, clientY);
         }
 
+        function buildAgentStepPreviewSelectedKeys(move) {
+            const keys = new Set();
+            if (!move || typeof move !== 'object') return keys;
+            const pushKey = (row, col) => {
+                if (!Number.isInteger(row) || !Number.isInteger(col)) return;
+                keys.add(`${row}-${col}`);
+            };
+            pushKey(Number(move.row1), Number(move.col1));
+            pushKey(Number(move.row2), Number(move.col2));
+            return keys;
+        }
+
+        function getAgentStepPreviewFacePath(baseId) {
+            if (baseId === BOMB_CELL_ID) return 'img/zhadan.png';
+            if (!Number.isInteger(baseId) || baseId <= 0 || baseId === PLACEHOLDER_CELL_ID) return '';
+            return `img/${getImageForNumber(baseId)}.png`;
+        }
+
+        function showAgentStepBoardPreview(stepItem, clientX, clientY) {
+            const preview = document.getElementById('savedLevelPreview');
+            const boardData = Array.isArray(stepItem?.boardSnapshotBefore)
+                ? stepItem.boardSnapshotBefore
+                : null;
+            if (!preview || !boardData || boardData.length === 0) return;
+            const rowCount = boardData.length;
+            const colCount = boardData[0]?.length || 0;
+            if (!rowCount || !colCount) return;
+
+            preview.innerHTML = '';
+            const header = document.createElement('div');
+            header.className = 'saved-level-preview-header';
+            const stepText = Number(stepItem?.stepIndex) > 0
+                ? `第 ${Number(stepItem.stepIndex)} 步`
+                : '当前步';
+            header.textContent = `${stepText} 操作前棋盘预览`;
+            preview.appendChild(header);
+
+            const board = document.createElement('div');
+            board.className = 'saved-level-preview-board';
+            const safeColCount = Math.max(1, colCount);
+            const safeRowCount = Math.max(1, rowCount);
+            const maxPreviewBoardWidth = 260;
+            const maxPreviewBoardHeight = 220;
+            const boardCellSize = getBoardCellAspectRatioForPreview();
+            const ratio = boardCellSize.ratio > 0 ? boardCellSize.ratio : (162 / 150);
+            const widthByCols = Math.floor((maxPreviewBoardWidth / safeColCount) - 1);
+            const widthByRows = Math.floor((maxPreviewBoardHeight / safeRowCount) / ratio);
+            const cellWidth = Math.max(10, Math.min(18, Math.min(widthByCols, widthByRows)));
+            const cellHeight = Math.max(10, Math.round(cellWidth * ratio));
+            board.style.gridTemplateColumns = `repeat(${safeColCount}, ${cellWidth}px)`;
+            const previewScale = Math.min(cellWidth / 150, cellHeight / 162);
+            board.style.setProperty('--preview-scale', previewScale.toFixed(4));
+
+            const selectedKeys = buildAgentStepPreviewSelectedKeys(stepItem?.move);
+            for (let row = 0; row < rowCount; row++) {
+                const line = Array.isArray(boardData[row]) ? boardData[row] : [];
+                for (let col = 0; col < colCount; col++) {
+                    const rawId = line[col];
+                    const parsed = decodeCellId(rawId);
+                    const cell = document.createElement('div');
+                    cell.className = 'saved-level-preview-cell';
+                    cell.style.width = `${cellWidth}px`;
+                    cell.style.height = `${cellHeight}px`;
+
+                    if (selectedKeys.has(`${row}-${col}`)) {
+                        cell.classList.add('agent-step-selected');
+                    }
+
+                    if (isEmptyCellId(parsed.baseId)) {
+                        cell.classList.add('is-empty');
+                        board.appendChild(cell);
+                        continue;
+                    }
+
+                    if (isObstacleBaseId(parsed.baseId)) {
+                        const obstaclePath = getObstacleImagePath(parsed.baseId);
+                        if (obstaclePath) {
+                            const obstacleImage = document.createElement('img');
+                            obstacleImage.className = 'saved-level-preview-obstacle';
+                            if (
+                                parsed.baseId === STONE_CELL_ID ||
+                                parsed.baseId === WOOD_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_1_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_2_CELL_ID ||
+                                parsed.baseId === ICE_LEVEL_3_CELL_ID
+                            ) {
+                                obstacleImage.classList.add('saved-level-preview-obstacle-scale130');
+                            }
+                            obstacleImage.src = obstaclePath;
+                            obstacleImage.alt = '';
+                            cell.appendChild(obstacleImage);
+                        }
+                        board.appendChild(cell);
+                        continue;
+                    }
+
+                    const stack = document.createElement('div');
+                    stack.className = 'saved-level-preview-stack';
+
+                    const baseImage = document.createElement('img');
+                    baseImage.className = 'saved-level-preview-base';
+                    baseImage.src = 'img/base.png';
+                    baseImage.alt = '';
+                    stack.appendChild(baseImage);
+
+                    const guideImage = document.createElement('img');
+                    guideImage.className = 'saved-level-preview-guide';
+                    guideImage.src = 'img/GuideTips.png';
+                    guideImage.alt = '';
+                    stack.appendChild(guideImage);
+
+                    if (parsed.baseId !== PLACEHOLDER_CELL_ID) {
+                        const facePath = getAgentStepPreviewFacePath(parsed.baseId);
+                        if (facePath) {
+                            const faceImage = document.createElement('img');
+                            faceImage.className = 'saved-level-preview-face';
+                            if (parsed.baseId === BOMB_CELL_ID) {
+                                faceImage.classList.add('saved-level-preview-face-bomb');
+                            }
+                            faceImage.src = facePath;
+                            faceImage.alt = '';
+                            stack.appendChild(faceImage);
+                        }
+                    }
+
+                    if (parsed.hasAttachment && ATTACHMENT_IDS.has(parsed.attachmentId)) {
+                        const attachmentPath = getAttachmentImagePath(parsed.attachmentId);
+                        if (attachmentPath) {
+                            const attachmentImage = document.createElement('img');
+                            attachmentImage.className = 'saved-level-preview-attachment';
+                            if (parsed.attachmentId === ATTACHMENT_FANPAI_ID) {
+                                attachmentImage.classList.add('saved-level-preview-attachment-fanpai');
+                            } else if (parsed.attachmentId === ATTACHMENT_ICESHELL_ID) {
+                                attachmentImage.classList.add('saved-level-preview-attachment-iceshell');
+                            }
+                            attachmentImage.src = attachmentPath;
+                            attachmentImage.alt = '';
+                            stack.appendChild(attachmentImage);
+                        }
+                    }
+
+                    cell.appendChild(stack);
+                    board.appendChild(cell);
+                }
+            }
+
+            preview.appendChild(board);
+            preview.classList.add('visible');
+            moveSavedLevelPreview(clientX, clientY);
+        }
+
         function updateSaveCurrentLevelButtonState() {
             const saveButton = document.getElementById('btnSaveCurrentLevel');
             if (!saveButton) return;
@@ -11360,10 +12563,2841 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             input.click();
         }
 
+        function clampAgentValue(value, min, max) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return min;
+            return Math.max(min, Math.min(max, numeric));
+        }
+
+        function setAgentElementPosition(element, left, top) {
+            if (!element) return;
+            element.style.left = `${Math.round(left)}px`;
+            element.style.top = `${Math.round(top)}px`;
+        }
+
+        function keepAgentElementInViewport(element) {
+            if (!element) return;
+            const rect = element.getBoundingClientRect();
+            const maxLeft = Math.max(0, window.innerWidth - rect.width);
+            const maxTop = Math.max(0, window.innerHeight - rect.height);
+            const nextLeft = clampAgentValue(rect.left, 0, maxLeft);
+            const nextTop = clampAgentValue(rect.top, 0, maxTop);
+            setAgentElementPosition(element, nextLeft, nextTop);
+        }
+
+        function formatAgentMoveText(move) {
+            if (!move || !Number.isInteger(move.row1) || !Number.isInteger(move.col1)
+                || !Number.isInteger(move.row2) || !Number.isInteger(move.col2)) {
+                return '未给出';
+            }
+            return `(${move.row1}, ${move.col1}) -> (${move.row2}, ${move.col2})`;
+        }
+
+        function createAgentTextMessageElement(item) {
+            const role = item.role === 'assistant' ? 'assistant' : 'user';
+            const msg = document.createElement('div');
+            msg.className = `agent-chat-msg agent-chat-msg-${role}`;
+            msg.textContent = item.text;
+            return msg;
+        }
+
+        function createAgentStepCardElement(item) {
+            const card = document.createElement('div');
+            card.className = 'agent-chat-step-card';
+
+            const head = document.createElement('div');
+            head.className = 'agent-step-head';
+            const title = document.createElement('div');
+            title.className = 'agent-step-title';
+            title.textContent = `第 ${Number(item.stepIndex) || 0} 步`;
+            const status = document.createElement('div');
+            status.className = `agent-step-result ${item.success ? 'ok' : 'fail'}`;
+            status.textContent = item.success ? '操作结果：正确' : `操作结果：错误${item.error ? `（${item.error}）` : ''}`;
+            const hasBoardPreview = Array.isArray(item.boardSnapshotBefore) && item.boardSnapshotBefore.length > 0;
+            if (hasBoardPreview) {
+                status.classList.add('previewable');
+                status.title = '悬停查看该步操作前棋盘';
+                status.addEventListener('mouseenter', (event) => {
+                    const fallbackX = status.getBoundingClientRect().left + 12;
+                    const fallbackY = status.getBoundingClientRect().bottom + 8;
+                    showAgentStepBoardPreview(item, event?.clientX ?? fallbackX, event?.clientY ?? fallbackY);
+                });
+                status.addEventListener('mousemove', (event) => {
+                    moveSavedLevelPreview(event.clientX, event.clientY);
+                });
+                status.addEventListener('mouseleave', () => {
+                    hideSavedLevelPreview();
+                });
+            }
+            head.appendChild(title);
+            head.appendChild(status);
+            card.appendChild(head);
+
+            const grid = document.createElement('div');
+            grid.className = 'agent-step-grid';
+            const remainingText = item.humanMode
+                ? '未知（人类模式）'
+                : `${Number.isFinite(Number(item.remainingPairsBefore)) ? Number(item.remainingPairsBefore) : '-'} -> ${Number.isFinite(Number(item.remainingPairsAfter)) ? Number(item.remainingPairsAfter) : '-'}`;
+            const cellEntries = [
+                ['操作坐标', item.moveText || '未给出'],
+                ['候选数', Number.isFinite(Number(item.candidateCount)) ? String(Math.max(0, Number(item.candidateCount))) : '-'],
+                ['连接/拐点', `${item.connectionType || '-'} / ${Number.isFinite(Number(item.turnCount)) ? Number(item.turnCount) : '-'}`],
+                ['剩余可配对', remainingText],
+                ['选择原因', String(item.reason || '未提供')],
+                ['感受评级', String(item.feelingLevel || '-')]
+            ];
+            for (const [label, value] of cellEntries) {
+                const cell = document.createElement('div');
+                cell.className = 'agent-step-cell';
+                const labelEl = document.createElement('div');
+                labelEl.className = 'agent-step-label';
+                labelEl.textContent = label;
+                const valueEl = document.createElement('div');
+                valueEl.className = 'agent-step-value';
+                valueEl.textContent = value;
+                if (label === '感受评级' && item.feelingLevel === '困难') {
+                    valueEl.classList.add('feeling-hard');
+                    valueEl.textContent = item.feelingDetail
+                        ? `困难：${item.feelingDetail}`
+                        : '困难';
+                }
+                cell.appendChild(labelEl);
+                cell.appendChild(valueEl);
+                grid.appendChild(cell);
+            }
+            card.appendChild(grid);
+
+            const thoughtText = String(item.thought || '').trim();
+            const reasonText = String(item.reason || '').trim();
+            if (thoughtText || reasonText) {
+                const thoughtDetails = document.createElement('details');
+                thoughtDetails.className = 'agent-step-thought';
+                const summary = document.createElement('summary');
+                summary.textContent = '思考过程（默认折叠）';
+                thoughtDetails.appendChild(summary);
+                const content = document.createElement('div');
+                content.className = 'agent-step-thought-content';
+                const thoughtLines = [];
+                if (thoughtText) thoughtLines.push(`思考：${thoughtText}`);
+                if (reasonText) thoughtLines.push(`依据：${reasonText}`);
+                content.textContent = thoughtLines.join('\n');
+                thoughtDetails.appendChild(content);
+                card.appendChild(thoughtDetails);
+            }
+            return card;
+        }
+
+        function renderAgentChatMessages() {
+            const elements = agentUiState.elements;
+            if (!elements?.chatList) return;
+            elements.chatList.innerHTML = '';
+            if (!Array.isArray(agentUiState.chatMessages) || agentUiState.chatMessages.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'agent-chat-empty';
+                empty.textContent = '这里会显示对话消息。先读取本地 API 配置文件，再开始聊天。';
+                elements.chatList.appendChild(empty);
+                return;
+            }
+            for (const item of agentUiState.chatMessages) {
+                if (!item || typeof item !== 'object') continue;
+                if (item.kind === 'step') {
+                    elements.chatList.appendChild(createAgentStepCardElement(item));
+                    continue;
+                }
+                if (typeof item.text !== 'string') continue;
+                elements.chatList.appendChild(createAgentTextMessageElement(item));
+            }
+            elements.chatList.scrollTop = elements.chatList.scrollHeight;
+        }
+
+        function pushAgentChatMessage(role, text, meta = null) {
+            const safeText = typeof text === 'string' ? text.trim() : '';
+            if (!safeText) return;
+            const safeRole = role === 'assistant' ? 'assistant' : 'user';
+            if (!Array.isArray(agentUiState.chatMessages)) {
+                agentUiState.chatMessages = [];
+            }
+            const payload = {
+                role: safeRole,
+                text: safeText
+            };
+            if (meta && typeof meta === 'object') {
+                Object.assign(payload, meta);
+            }
+            agentUiState.chatMessages.push(payload);
+            renderAgentChatMessages();
+        }
+
+        function pushAgentStepCard(stepPayload) {
+            if (!stepPayload || typeof stepPayload !== 'object') return;
+            if (!Array.isArray(agentUiState.chatMessages)) {
+                agentUiState.chatMessages = [];
+            }
+            agentUiState.chatMessages.push({
+                kind: 'step',
+                role: 'assistant',
+                stepIndex: Number(stepPayload.stepIndex) || 0,
+                success: Boolean(stepPayload.success),
+                move: stepPayload?.move && typeof stepPayload.move === 'object'
+                    ? {
+                        row1: Number(stepPayload.move.row1),
+                        col1: Number(stepPayload.move.col1),
+                        row2: Number(stepPayload.move.row2),
+                        col2: Number(stepPayload.move.col2)
+                    }
+                    : null,
+                moveText: String(stepPayload.moveText || '未给出'),
+                candidateCount: Number(stepPayload.candidateCount),
+                reason: String(stepPayload.reason || ''),
+                connectionType: String(stepPayload.connectionType || ''),
+                turnCount: Number(stepPayload.turnCount),
+                remainingPairsBefore: Number(stepPayload.remainingPairsBefore),
+                remainingPairsAfter: Number(stepPayload.remainingPairsAfter),
+                feelingLevel: String(stepPayload.feelingLevel || ''),
+                feelingDetail: String(stepPayload.feelingDetail || ''),
+                thought: String(stepPayload.thought || ''),
+                error: String(stepPayload.error || ''),
+                humanMode: Boolean(stepPayload.humanMode),
+                boardSnapshotBefore: Array.isArray(stepPayload.boardSnapshotBefore)
+                    ? cloneBoardData(stepPayload.boardSnapshotBefore)
+                    : null
+            });
+            renderAgentChatMessages();
+        }
+
+        function clearAgentChatMessages() {
+            agentUiState.chatMessages = [];
+            agentUiState.userConversation = [];
+            renderAgentChatMessages();
+        }
+
+        function normalizeSingleApiCandidate(rawConfig) {
+            if (!rawConfig || typeof rawConfig !== 'object') return null;
+            const baseUrl = String(
+                rawConfig.baseUrl ??
+                rawConfig.apiBaseUrl ??
+                rawConfig.url ??
+                ''
+            ).trim();
+            const apiKey = String(
+                rawConfig.apiKey ??
+                rawConfig.key ??
+                rawConfig.token ??
+                ''
+            ).trim();
+            const model = String(
+                rawConfig.model ??
+                rawConfig.modelName ??
+                ''
+            ).trim();
+            if (!baseUrl || !apiKey || !model) return null;
+            const rawName = String(
+                rawConfig.name ??
+                rawConfig.profileName ??
+                ''
+            ).trim();
+            const name = rawName || model;
+            const id = String(rawConfig.id || '').trim();
+            return { id, name, baseUrl, apiKey, model };
+        }
+
+        function normalizeAgentApiConfigPayload(rawConfig) {
+            if (!rawConfig || typeof rawConfig !== 'object') {
+                return { profiles: [], activeProfileId: '' };
+            }
+            const profileCandidates = [];
+            const pushNormalized = (item) => {
+                const normalized = normalizeSingleApiCandidate(item);
+                if (normalized) profileCandidates.push(normalized);
+            };
+
+            if (Array.isArray(rawConfig.profiles)) {
+                for (const profile of rawConfig.profiles) {
+                    pushNormalized(profile);
+                }
+            }
+
+            if (
+                profileCandidates.length === 0 &&
+                Array.isArray(rawConfig.models) &&
+                rawConfig.models.length > 0
+            ) {
+                const sharedCandidate = normalizeSingleApiCandidate(rawConfig);
+                if (sharedCandidate) {
+                    for (const modelItem of rawConfig.models) {
+                        const model = typeof modelItem === 'string'
+                            ? modelItem.trim()
+                            : String(modelItem?.model || modelItem?.name || '').trim();
+                        if (!model) continue;
+                        profileCandidates.push({
+                            id: '',
+                            name: model,
+                            baseUrl: sharedCandidate.baseUrl,
+                            apiKey: sharedCandidate.apiKey,
+                            model
+                        });
+                    }
+                }
+            }
+
+            if (profileCandidates.length === 0) {
+                const fallbackCandidates = [rawConfig];
+                if (rawConfig.api && typeof rawConfig.api === 'object') {
+                    fallbackCandidates.push(rawConfig.api);
+                }
+                if (rawConfig.agentApi && typeof rawConfig.agentApi === 'object') {
+                    fallbackCandidates.push(rawConfig.agentApi);
+                }
+                if (rawConfig.agent && typeof rawConfig.agent === 'object') {
+                    fallbackCandidates.push(rawConfig.agent);
+                }
+                for (const candidate of fallbackCandidates) {
+                    const normalized = normalizeSingleApiCandidate(candidate);
+                    if (normalized) {
+                        profileCandidates.push(normalized);
+                        break;
+                    }
+                }
+            }
+
+            const usedIds = new Set();
+            const profiles = [];
+            for (let index = 0; index < profileCandidates.length; index++) {
+                const item = profileCandidates[index];
+                const fallbackId = `profile_${index + 1}`;
+                let id = String(item.id || fallbackId).replace(/[^a-zA-Z0-9_-]/g, '_');
+                if (!id) id = fallbackId;
+                while (usedIds.has(id)) {
+                    id = `${id}_${index + 1}`;
+                }
+                usedIds.add(id);
+                profiles.push({
+                    id,
+                    name: String(item.name || item.model || `模型${index + 1}`),
+                    baseUrl: item.baseUrl,
+                    apiKey: item.apiKey,
+                    model: item.model
+                });
+            }
+
+            const rawActiveProfileId = String(
+                rawConfig.activeProfileId ??
+                rawConfig.defaultProfileId ??
+                rawConfig.selectedProfileId ??
+                ''
+            ).trim();
+            const activeProfileId = profiles.some((profile) => profile.id === rawActiveProfileId)
+                ? rawActiveProfileId
+                : (profiles[0]?.id || '');
+            return { profiles, activeProfileId };
+        }
+
+        function cloneAgentApiConfigData(configData) {
+            const profiles = Array.isArray(configData?.profiles)
+                ? configData.profiles.map((profile) => ({ ...profile }))
+                : [];
+            const activeProfileId = String(configData?.activeProfileId || '').trim();
+            return { profiles, activeProfileId };
+        }
+
+        function getAgentProfileById(profileId) {
+            const safeProfileId = String(profileId || '').trim();
+            if (!safeProfileId) return null;
+            const profiles = Array.isArray(agentUiState.apiProfiles) ? agentUiState.apiProfiles : [];
+            return profiles.find((profile) => profile.id === safeProfileId) || null;
+        }
+
+        function getCurrentAgentProfile() {
+            const activeProfile = getAgentProfileById(agentUiState.activeProfileId);
+            if (activeProfile) return activeProfile;
+            const profiles = Array.isArray(agentUiState.apiProfiles) ? agentUiState.apiProfiles : [];
+            return profiles[0] || null;
+        }
+
+        function persistAgentApiConfig() {
+            const payload = {
+                profiles: Array.isArray(agentUiState.apiProfiles)
+                    ? agentUiState.apiProfiles.map((profile) => ({ ...profile }))
+                    : [],
+                activeProfileId: String(agentUiState.activeProfileId || '').trim()
+            };
+            try {
+                localStorage.setItem(AGENT_API_CONFIG_STORAGE_KEY, JSON.stringify(payload));
+            } catch (error) {
+                console.error('Save agent config failed:', error);
+            }
+        }
+
+        function loadAgentApiConfig() {
+            try {
+                const raw = localStorage.getItem(AGENT_API_CONFIG_STORAGE_KEY);
+                if (!raw) {
+                    agentUiState.apiProfiles = [];
+                    agentUiState.activeProfileId = '';
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                const normalized = normalizeAgentApiConfigPayload(parsed);
+                agentUiState.apiProfiles = normalized.profiles;
+                agentUiState.activeProfileId = normalized.activeProfileId;
+            } catch (error) {
+                console.error('Load agent config failed:', error);
+                agentUiState.apiProfiles = [];
+                agentUiState.activeProfileId = '';
+            }
+        }
+
+        function persistAgentHumanModePreference() {
+            try {
+                localStorage.setItem(
+                    AGENT_HUMAN_MODE_STORAGE_KEY,
+                    agentUiState.humanModeEnabled ? '1' : '0'
+                );
+            } catch (error) {
+                console.error('Save agent human mode failed:', error);
+            }
+        }
+
+        function loadAgentHumanModePreference() {
+            try {
+                const raw = String(localStorage.getItem(AGENT_HUMAN_MODE_STORAGE_KEY) || '').trim();
+                agentUiState.humanModeEnabled = raw === '1' || /^true$/i.test(raw);
+            } catch (error) {
+                console.error('Load agent human mode failed:', error);
+                agentUiState.humanModeEnabled = false;
+            }
+        }
+
+        function getMaskedAgentApiKey(apiKey) {
+            const safeKey = String(apiKey || '');
+            if (!safeKey) return '-';
+            if (safeKey.length <= 6) return `${safeKey.slice(0, 2)}***`;
+            return `${safeKey.slice(0, 3)}***${safeKey.slice(-3)}`;
+        }
+
+        function getAgentValidationInfo(profileId) {
+            const safeProfileId = String(profileId || '').trim();
+            if (!safeProfileId) return null;
+            return agentUiState.profileValidation?.[safeProfileId] || null;
+        }
+
+        function getAgentValidationText(profileId) {
+            const validation = getAgentValidationInfo(profileId);
+            if (!validation) return '未验证';
+            return validation.ok
+                ? `可用（${validation.reason || '验证成功'}）`
+                : `不可用（${validation.reason || '未知原因'}）`;
+        }
+
+        function setAgentProfileValidation(profileId, ok, reason) {
+            const safeProfileId = String(profileId || '').trim();
+            if (!safeProfileId) return;
+            if (!agentUiState.profileValidation || typeof agentUiState.profileValidation !== 'object') {
+                agentUiState.profileValidation = {};
+            }
+            agentUiState.profileValidation[safeProfileId] = {
+                ok: Boolean(ok),
+                reason: String(reason || '').trim(),
+                checkedAt: Date.now()
+            };
+        }
+
+        function getPendingSelectedProfile() {
+            const pendingData = agentUiState.pendingApiConfigData || { profiles: [], activeProfileId: '' };
+            const profiles = Array.isArray(pendingData.profiles) ? pendingData.profiles : [];
+            if (profiles.length === 0) return null;
+            return profiles.find((profile) => profile.id === agentUiState.pendingSelectedProfileId) || profiles[0];
+        }
+
+        function renderAgentPendingProfileOptions() {
+            const elements = agentUiState.elements;
+            if (!elements?.configProfileSelect) return;
+            const select = elements.configProfileSelect;
+            const pendingData = agentUiState.pendingApiConfigData || { profiles: [], activeProfileId: '' };
+            const profiles = Array.isArray(pendingData.profiles) ? pendingData.profiles : [];
+            const preferredValue = profiles.some((profile) => profile.id === agentUiState.pendingSelectedProfileId)
+                ? agentUiState.pendingSelectedProfileId
+                : (pendingData.activeProfileId || profiles[0]?.id || '');
+            agentUiState.pendingSelectedProfileId = preferredValue;
+            select.innerHTML = '';
+            if (profiles.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '未读取配置项';
+                select.appendChild(option);
+                select.value = '';
+                return;
+            }
+            for (const profile of profiles) {
+                const option = document.createElement('option');
+                option.value = profile.id;
+                option.textContent = `${profile.name} (${profile.model})`;
+                select.appendChild(option);
+            }
+            select.value = preferredValue;
+        }
+
+        function renderAgentModelSelectOptions() {
+            const elements = agentUiState.elements;
+            if (!elements?.modelSelect) return;
+            const select = elements.modelSelect;
+            const profiles = Array.isArray(agentUiState.apiProfiles) ? agentUiState.apiProfiles : [];
+            const previousValue = String(select.value || '');
+            select.innerHTML = '';
+            if (profiles.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '未配置';
+                select.appendChild(option);
+                select.value = '';
+                return;
+            }
+            for (const profile of profiles) {
+                const option = document.createElement('option');
+                option.value = profile.id;
+                option.textContent = `${profile.name} (${profile.model})`;
+                select.appendChild(option);
+            }
+            const preferredValue = profiles.some((item) => item.id === agentUiState.activeProfileId)
+                ? agentUiState.activeProfileId
+                : (profiles.some((item) => item.id === previousValue) ? previousValue : profiles[0].id);
+            select.value = preferredValue;
+            agentUiState.activeProfileId = preferredValue;
+        }
+
+        function setActiveAgentProfile(profileId, options = {}) {
+            const { persist = true, silent = false } = options;
+            const targetProfile = getAgentProfileById(profileId) || getCurrentAgentProfile();
+            agentUiState.activeProfileId = targetProfile?.id || '';
+            if (persist) {
+                persistAgentApiConfig();
+            }
+            renderAgentModelSelectOptions();
+            if (!silent) {
+                if (targetProfile) {
+                    updateAgentRunStatus(
+                        `状态：当前模型 ${targetProfile.name}，验证：${getAgentValidationText(targetProfile.id)}`
+                    );
+                } else {
+                    updateAgentRunStatus('状态：未配置模型', true);
+                }
+            }
+            updateAgentRunControls();
+        }
+
+        function renderAgentConfigPreview(statusText = '', isError = false) {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            const preview = getPendingSelectedProfile() || {
+                id: '',
+                name: '',
+                baseUrl: '',
+                apiKey: '',
+                model: ''
+            };
+            renderAgentPendingProfileOptions();
+            elements.configPreviewName.textContent = preview.name || '-';
+            elements.configPreviewBaseUrl.textContent = preview.baseUrl || '-';
+            elements.configPreviewApiKey.textContent = getMaskedAgentApiKey(preview.apiKey);
+            elements.configPreviewModel.textContent = preview.model || '-';
+            elements.configPreviewValidation.textContent = preview.id
+                ? getAgentValidationText(preview.id)
+                : '未验证';
+            const status = typeof statusText === 'string' && statusText.trim()
+                ? statusText.trim()
+                : (agentUiState.pendingApiConfigSource
+                    ? `已加载：${agentUiState.pendingApiConfigSource}`
+                    : '未加载配置文件');
+            elements.configFileStatus.textContent = status;
+            elements.configFileStatus.classList.toggle('error', Boolean(isError));
+        }
+
+        function openAgentDialog() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            elements.icon.classList.add('hidden');
+            elements.dialog.classList.add('visible');
+            keepAgentElementInViewport(elements.dialog);
+            elements.chatInput.focus();
+            updateAgentRunControls();
+        }
+
+        function minimizeAgentDialog() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            elements.dialog.classList.remove('visible');
+            elements.icon.classList.remove('hidden');
+            keepAgentElementInViewport(elements.icon);
+        }
+
+        function openAgentConfigModal() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            agentUiState.pendingApiConfigData = cloneAgentApiConfigData({
+                profiles: agentUiState.apiProfiles,
+                activeProfileId: agentUiState.activeProfileId
+            });
+            agentUiState.pendingSelectedProfileId = agentUiState.pendingApiConfigData.activeProfileId;
+            agentUiState.pendingApiConfigSource = Array.isArray(agentUiState.apiProfiles) && agentUiState.apiProfiles.length > 0
+                ? '当前已保存配置'
+                : '';
+            renderAgentConfigPreview();
+            elements.configOverlay.classList.add('visible');
+        }
+
+        function closeAgentConfigModal() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            elements.configOverlay.classList.remove('visible');
+        }
+
+        async function importAgentApiConfigFromFile(file) {
+            if (!file) return;
+            let fileText = '';
+            try {
+                fileText = await file.text();
+            } catch (error) {
+                console.error('Read agent config file failed:', error);
+                renderAgentConfigPreview('读取配置文件失败，请重试。', true);
+                return;
+            }
+            let parsed = null;
+            try {
+                parsed = JSON.parse(fileText);
+            } catch (error) {
+                renderAgentConfigPreview('配置文件不是有效 JSON。', true);
+                return;
+            }
+            const normalized = normalizeAgentApiConfigPayload(parsed);
+            if (!normalized || !Array.isArray(normalized.profiles) || normalized.profiles.length === 0) {
+                renderAgentConfigPreview(
+                    '配置缺少可用模型项。请提供 profiles 或 baseUrl/apiKey/model。',
+                    true
+                );
+                return;
+            }
+            agentUiState.pendingApiConfigData = cloneAgentApiConfigData(normalized);
+            agentUiState.pendingSelectedProfileId = normalized.activeProfileId || normalized.profiles[0]?.id || '';
+            agentUiState.pendingApiConfigSource = file.name || '本地文件';
+            renderAgentConfigPreview();
+        }
+
+        function updateAgentRunStatus(text, isError = false) {
+            const elements = agentUiState.elements;
+            if (!elements?.runStatus) return;
+            elements.runStatus.textContent = String(text || '状态：空闲');
+            elements.runStatus.classList.toggle('error', Boolean(isError));
+        }
+
+        function updateAgentRunControls() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            const stepMode = agentUiState.runMode === 'step';
+            const runningContinuous = agentUiState.isRunning && !stepMode;
+            const hasProfiles = Array.isArray(agentUiState.apiProfiles) && agentUiState.apiProfiles.length > 0;
+            const canRunAgent = hasProfiles || Boolean(agentUiState.humanModeEnabled);
+            if (elements.runModeSelect) {
+                elements.runModeSelect.value = stepMode ? 'step' : 'continuous';
+                elements.runModeSelect.disabled = agentUiState.isExecutingStep || runningContinuous;
+            }
+            if (elements.humanModeToggle) {
+                elements.humanModeToggle.checked = Boolean(agentUiState.humanModeEnabled);
+                elements.humanModeToggle.disabled = agentUiState.isExecutingStep || agentUiState.isRunning;
+            }
+            if (elements.modelSelect) {
+                renderAgentModelSelectOptions();
+                elements.modelSelect.disabled = agentUiState.isExecutingStep || agentUiState.isRunning || !hasProfiles;
+            }
+            if (elements.validateApiBtn) {
+                elements.validateApiBtn.disabled = agentUiState.isExecutingStep || !hasProfiles;
+            }
+            if (elements.runStartBtn) {
+                elements.runStartBtn.disabled = agentUiState.isExecutingStep || runningContinuous || !canRunAgent;
+            }
+            if (elements.runStepBtn) {
+                elements.runStepBtn.disabled = !stepMode || agentUiState.isExecutingStep || !canRunAgent;
+            }
+            if (elements.runStopBtn) {
+                elements.runStopBtn.disabled = !agentUiState.isRunning && !agentUiState.isExecutingStep;
+            }
+        }
+
+        function buildAgentPlaySessionSignature() {
+            if (!playModeState || !playModeState.active) return '';
+            const board = Array.isArray(playModeState.originalBoard)
+                ? playModeState.originalBoard
+                : playModeState.boardData;
+            const direction = Number.isInteger(playModeState.direction) ? playModeState.direction : 0;
+            return `${JSON.stringify(board)}|${direction}`;
+        }
+
+        function ensureAgentPlaySession(forceReset = false) {
+            const signature = buildAgentPlaySessionSignature();
+            if (!signature) {
+                agentUiState.playSessionSignature = '';
+                agentUiState.playSessionReviewSignature = '';
+                agentUiState.stepMemory = [];
+                agentUiState.lastActionResult = null;
+                renderAgentMemoryPanel();
+                return;
+            }
+            if (forceReset || signature !== agentUiState.playSessionSignature) {
+                agentUiState.playSessionSignature = signature;
+                agentUiState.playSessionReviewSignature = '';
+                agentUiState.stepMemory = [];
+                agentUiState.lastActionResult = null;
+                renderAgentMemoryPanel();
+                pushAgentChatMessage('assistant', '已创建新关卡记忆会话。');
+            }
+        }
+
+        function getAgentApiEndpoint(profile = null) {
+            const targetProfile = profile || getCurrentAgentProfile();
+            const baseUrl = String(targetProfile?.baseUrl || '').trim().replace(/\/+$/, '');
+            if (!baseUrl) return '';
+            return `${baseUrl}/chat/completions`;
+        }
+
+        function normalizeAgentTextContent(rawContent) {
+            if (typeof rawContent === 'string') return rawContent;
+            if (Array.isArray(rawContent)) {
+                return rawContent.map((item) => {
+                    if (typeof item === 'string') return item;
+                    if (item && typeof item === 'object' && typeof item.text === 'string') return item.text;
+                    return '';
+                }).join('\n');
+            }
+            return '';
+        }
+
+        async function callAgentModel(messages, options = {}) {
+            const targetProfile = options.profile || getCurrentAgentProfile();
+            const endpoint = getAgentApiEndpoint(targetProfile);
+            const apiKey = String(targetProfile?.apiKey || '').trim();
+            const model = String(targetProfile?.model || '').trim();
+            if (!endpoint || !apiKey || !model) {
+                throw new Error('API 配置不完整');
+            }
+            const controller = new AbortController();
+            agentUiState.activeFetchAbortController = controller;
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${apiKey}`
+                    },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        model,
+                        temperature: Number.isFinite(Number(options.temperature))
+                            ? Number(options.temperature)
+                            : 0.2,
+                        max_tokens: Number.isFinite(Number(options.maxTokens))
+                            ? Math.max(1, Math.floor(Number(options.maxTokens)))
+                            : undefined,
+                        messages
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`模型请求失败(${response.status})：${errorText || '未知错误'}`);
+                }
+                const data = await response.json();
+                const rawContent = data?.choices?.[0]?.message?.content;
+                const content = normalizeAgentTextContent(rawContent).trim();
+                if (!content) {
+                    throw new Error('模型返回内容为空');
+                }
+                return content;
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    throw new Error('请求已终止');
+                }
+                throw error;
+            } finally {
+                if (agentUiState.activeFetchAbortController === controller) {
+                    agentUiState.activeFetchAbortController = null;
+                }
+            }
+        }
+
+        function normalizeAgentValidationReason(rawMessage, profile = null) {
+            const text = String(rawMessage || '').replace(/\s+/g, ' ').trim();
+            const endpoint = getAgentApiEndpoint(profile);
+            if (
+                /failed to fetch/i.test(text) ||
+                /networkerror/i.test(text) ||
+                /load failed/i.test(text)
+            ) {
+                const baseUrl = String(profile?.baseUrl || '').trim();
+                if (!/^https?:\/\//i.test(baseUrl)) {
+                    return 'Base URL 缺少 http/https 协议头。';
+                }
+                if (location.protocol === 'https:' && /^http:\/\//i.test(baseUrl)) {
+                    return '当前页面是 HTTPS，但配置了 HTTP API，浏览器会拦截混合内容。';
+                }
+                if (/cloud\.siliconflow\.cn/i.test(baseUrl)) {
+                    return '当前像是控制台域名（cloud.*），请改为 API 域名（例如 https://api.siliconflow.cn/v1）。';
+                }
+                return `浏览器无法连通该接口（可能是 CORS/网络/域名错误）。请检查：${endpoint}`;
+            }
+            if (!text) return '未知原因';
+            if (text.length <= 160) return text;
+            return `${text.slice(0, 160)}...`;
+        }
+
+        async function validateCurrentAgentProfile(showInChat = true) {
+            const profile = getCurrentAgentProfile();
+            if (!profile) {
+                updateAgentRunStatus('状态：验证失败，未选择模型', true);
+                if (showInChat) {
+                    pushAgentChatMessage('assistant', '验证失败：当前没有可用模型配置。');
+                }
+                return;
+            }
+            updateAgentRunStatus(`状态：正在验证 ${profile.name}...`);
+            updateAgentRunControls();
+            try {
+                await callAgentModel(
+                    [
+                        { role: 'system', content: '你是连通性测试助手。' },
+                        { role: 'user', content: '请仅回复：pong' }
+                    ],
+                    {
+                        temperature: 0,
+                        maxTokens: 8,
+                        profile
+                    }
+                );
+                setAgentProfileValidation(profile.id, true, '请求成功');
+                const okMessage = `模型 ${profile.name} 验证通过`;
+                updateAgentRunStatus(`状态：${okMessage}`);
+                if (showInChat) {
+                    pushAgentChatMessage('assistant', `${okMessage}。`);
+                }
+            } catch (error) {
+                const reason = normalizeAgentValidationReason(error?.message || '请求失败', profile);
+                setAgentProfileValidation(profile.id, false, reason);
+                updateAgentRunStatus(`状态：模型 ${profile.name} 不可用，原因：${reason}`, true);
+                if (showInChat) {
+                    pushAgentChatMessage('assistant', `验证失败：模型 ${profile.name} 不可用。原因：${reason}`);
+                }
+            } finally {
+                renderAgentConfigPreview();
+                updateAgentRunControls();
+            }
+        }
+
+        function getAgentBoardSnapshot() {
+            if (!playModeState || !playModeState.active || !Array.isArray(playModeState.boardData)) {
+                return null;
+            }
+            const boardData = cloneBoardData(playModeState.boardData);
+            const removablePairs = getRemovablePairsForBoard(boardData);
+            const direction = Number.isInteger(playModeState.direction) ? playModeState.direction : 0;
+            return {
+                boardData,
+                width: boardData[0]?.length || 0,
+                height: boardData.length,
+                direction,
+                directionRule: getDirectionShiftRuleDescription(direction),
+                mechanismSummary: summarizeBoardMechanismState(boardData),
+                remainingPairs: Array.isArray(removablePairs) ? removablePairs.length : 0,
+                removablePairs: Array.isArray(removablePairs) ? removablePairs : []
+            };
+        }
+
+        function renderAgentMemoryPanel() {
+            const panel = agentUiState.elements?.memoryPanel;
+            if (!panel) return;
+            panel.innerHTML = '';
+            const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
+            if (history.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'agent-memory-empty';
+                empty.textContent = '每步记忆会在这里显示（摘要与趋势）。';
+                panel.appendChild(empty);
+                return;
+            }
+
+            const header = document.createElement('div');
+            header.className = 'agent-memory-header';
+            const title = document.createElement('div');
+            title.className = 'agent-memory-title';
+            title.textContent = '每步记忆面板';
+            const summary = document.createElement('div');
+            summary.className = 'agent-memory-summary';
+            const stepCount = history.length;
+            const lastRemaining = Number(history[history.length - 1]?.remainingPairsAfter);
+            const candidateAvg = history
+                .map((item) => Number(item?.candidateCountBefore))
+                .filter((value) => Number.isFinite(value) && value >= 0);
+            const turnAvg = history
+                .map((item) => Number(item?.turnCount))
+                .filter((value) => Number.isFinite(value) && value >= 0);
+            const avgCandidate = candidateAvg.length > 0
+                ? (candidateAvg.reduce((sum, value) => sum + value, 0) / candidateAvg.length)
+                : 0;
+            const avgTurn = turnAvg.length > 0
+                ? (turnAvg.reduce((sum, value) => sum + value, 0) / turnAvg.length)
+                : 0;
+            const summaryTexts = [
+                `步数 ${stepCount}`,
+                `均候选 ${avgCandidate.toFixed(1)}`,
+                `均拐点 ${avgTurn.toFixed(2)}`,
+                `当前剩余 ${Number.isFinite(lastRemaining) ? Math.max(0, lastRemaining) : '-'}`
+            ];
+            for (const text of summaryTexts) {
+                const chip = document.createElement('div');
+                chip.className = 'agent-memory-summary-item';
+                chip.textContent = text;
+                summary.appendChild(chip);
+            }
+            header.appendChild(title);
+            header.appendChild(summary);
+            panel.appendChild(header);
+
+            const trendWrap = document.createElement('div');
+            trendWrap.className = 'agent-memory-trend';
+            const trendSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            trendSvg.classList.add('agent-memory-trend-svg');
+            trendSvg.setAttribute('viewBox', '0 0 320 86');
+            const axis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axis.classList.add('agent-memory-trend-axis');
+            axis.setAttribute('x1', '8');
+            axis.setAttribute('y1', '78');
+            axis.setAttribute('x2', '312');
+            axis.setAttribute('y2', '78');
+            trendSvg.appendChild(axis);
+            const trendRecords = history.slice(-24);
+            const values = trendRecords.map((item) => Number(item?.remainingPairsAfter));
+            const finiteValues = values.filter((value) => Number.isFinite(value));
+            if (finiteValues.length > 0) {
+                const minValue = Math.min(...finiteValues);
+                const maxValue = Math.max(...finiteValues);
+                const range = Math.max(1, maxValue - minValue);
+                const pathPoints = [];
+                for (let index = 0; index < values.length; index++) {
+                    const value = Number(values[index]);
+                    if (!Number.isFinite(value)) continue;
+                    const x = values.length <= 1
+                        ? 160
+                        : 8 + ((304 * index) / Math.max(1, values.length - 1));
+                    const y = 8 + (((maxValue - value) / range) * 66);
+                    pathPoints.push({ x, y, value, step: Number(trendRecords[index]?.step) || index + 1 });
+                }
+                if (pathPoints.length > 0) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.classList.add('agent-memory-trend-line');
+                    path.setAttribute('d', pathPoints
+                        .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+                        .join(' '));
+                    trendSvg.appendChild(path);
+                    for (const point of pathPoints) {
+                        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        dot.classList.add('agent-memory-trend-point');
+                        dot.setAttribute('cx', point.x.toFixed(2));
+                        dot.setAttribute('cy', point.y.toFixed(2));
+                        dot.setAttribute('r', '2.2');
+                        const tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                        tip.textContent = `第${point.step}步：剩余可配对 ${point.value}`;
+                        dot.appendChild(tip);
+                        trendSvg.appendChild(dot);
+                    }
+                }
+            }
+            trendWrap.appendChild(trendSvg);
+            panel.appendChild(trendWrap);
+        }
+
+        function pushAgentStepMemory(record) {
+            if (!record || typeof record !== 'object') return null;
+            const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
+            const normalized = { ...record };
+            const safeStep = Number(normalized.step);
+            normalized.step = Number.isFinite(safeStep) && safeStep > 0
+                ? Math.floor(safeStep)
+                : (history.length + 1);
+            history.push(normalized);
+            agentUiState.stepMemory = history.length > 200
+                ? history.slice(-200)
+                : history;
+            renderAgentMemoryPanel();
+            return normalized;
+        }
+
+        function summarizeAgentStepMemory(limit = 8, options = {}) {
+            const safeLimit = Math.max(1, Math.floor(Number(limit) || 8));
+            const includeRemaining = options?.includeRemaining !== false;
+            const includeHumanMetrics = options?.includeHumanMetrics !== false;
+            const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
+            const recent = history.slice(-safeLimit);
+            return recent.map((item) => {
+                const base = {
+                    step: item.step,
+                    move: item.move,
+                    success: item.success,
+                    connectionType: item.connectionType,
+                    turnCount: item.turnCount,
+                    pathNodeCount: item.pathNodeCount,
+                    candidateCountBefore: item.candidateCountBefore
+                };
+                if (includeRemaining) {
+                    base.remainingPairsAfter = item.remainingPairsAfter;
+                }
+                if (includeHumanMetrics && item?.humanMetrics && typeof item.humanMetrics === 'object') {
+                    base.humanMetrics = { ...item.humanMetrics };
+                }
+                return base;
+            });
+        }
+
+        function extractJsonFromAgentText(text) {
+            const raw = String(text || '').trim();
+            if (!raw) return null;
+            const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+            const candidates = [];
+            if (fenced && fenced[1]) candidates.push(fenced[1].trim());
+            candidates.push(raw);
+            const firstBraceIndex = raw.indexOf('{');
+            const lastBraceIndex = raw.lastIndexOf('}');
+            if (firstBraceIndex >= 0 && lastBraceIndex > firstBraceIndex) {
+                candidates.push(raw.slice(firstBraceIndex, lastBraceIndex + 1));
+            }
+            for (const candidate of candidates) {
+                try {
+                    const parsed = JSON.parse(candidate);
+                    if (parsed && typeof parsed === 'object') return parsed;
+                } catch (error) {
+                    continue;
+                }
+            }
+            return null;
+        }
+
+        function parseAgentDecision(text) {
+            const parsed = extractJsonFromAgentText(text);
+            if (!parsed) {
+                return {
+                    ok: false,
+                    error: '未解析到有效 JSON，请求返回格式错误。'
+                };
+            }
+            const moveRaw = parsed.move && typeof parsed.move === 'object' ? parsed.move : null;
+            const move = moveRaw
+                ? {
+                    row1: Number(moveRaw.row1),
+                    col1: Number(moveRaw.col1),
+                    row2: Number(moveRaw.row2),
+                    col2: Number(moveRaw.col2)
+                }
+                : null;
+            const moveValid = move
+                && Number.isInteger(move.row1)
+                && Number.isInteger(move.col1)
+                && Number.isInteger(move.row2)
+                && Number.isInteger(move.col2);
+            return {
+                ok: true,
+                thought: String(parsed.thought || parsed.analysis || '').trim(),
+                reason: String(parsed.reason || parsed.why || '').trim(),
+                currentFeeling: String(parsed.current_feeling || parsed.feeling || '').trim(),
+                move: moveValid ? move : null
+            };
+        }
+
+        function clamp01(value) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return 0;
+            if (numeric <= 0) return 0;
+            if (numeric >= 1) return 1;
+            return numeric;
+        }
+
+        function buildHumanModeVisibleTiles(snapshot) {
+            const board = Array.isArray(snapshot?.boardData) ? snapshot.boardData : [];
+            const tiles = [];
+            const typeBuckets = new Map();
+            for (let row = 0; row < board.length; row++) {
+                const line = board[row];
+                if (!Array.isArray(line)) continue;
+                for (let col = 0; col < line.length; col++) {
+                    const baseId = getMatchableBaseId(line[col]);
+                    if (baseId === null) continue;
+                    const tile = { row, col, baseId };
+                    tiles.push(tile);
+                    if (!typeBuckets.has(baseId)) {
+                        typeBuckets.set(baseId, []);
+                    }
+                    const bucket = typeBuckets.get(baseId);
+                    if (bucket.length < 36) {
+                        bucket.push(tile);
+                    }
+                }
+            }
+            return { tiles, typeBuckets };
+        }
+
+        function buildHumanModeAnchorKey(tile) {
+            if (!tile) return '';
+            return `${tile.row}_${tile.col}_${tile.baseId}`;
+        }
+
+        function pickHumanModeAnchor(tiles, typeBuckets, usedAnchorKeys, blockedBaseIds = null) {
+            if (!Array.isArray(tiles) || tiles.length === 0) return null;
+            const candidates = [];
+            for (const tile of tiles) {
+                if (!tile) continue;
+                const key = buildHumanModeAnchorKey(tile);
+                if (usedAnchorKeys.has(key)) continue;
+                if (blockedBaseIds instanceof Set && blockedBaseIds.has(tile.baseId)) continue;
+                const bucket = Array.isArray(typeBuckets.get(tile.baseId)) ? typeBuckets.get(tile.baseId) : [];
+                if (bucket.length <= 1) continue;
+                let nearestDistance = Infinity;
+                for (const other of bucket) {
+                    if (!other || (other.row === tile.row && other.col === tile.col)) continue;
+                    const distance = Math.abs(other.row - tile.row) + Math.abs(other.col - tile.col);
+                    if (distance < nearestDistance) nearestDistance = distance;
+                }
+                if (!Number.isFinite(nearestDistance)) continue;
+                let salience = 0;
+                if (nearestDistance <= 2) salience += 3.2;
+                else if (nearestDistance <= 4) salience += 2.4;
+                else if (nearestDistance <= 6) salience += 1.5;
+                else salience += 0.8;
+                if (tile.row <= 1 || tile.col <= 1) salience += 0.35;
+                salience += (Math.random() - 0.5) * 0.9;
+                candidates.push({ tile, salience });
+            }
+            if (candidates.length === 0) return null;
+            candidates.sort((a, b) => b.salience - a.salience);
+            const obviousTake = Math.max(1, Math.min(6, candidates.length));
+            const obviousPool = candidates.slice(0, obviousTake);
+            if (Math.random() < 0.78) {
+                const pick = obviousPool[Math.floor(Math.random() * obviousPool.length)];
+                return pick?.tile || null;
+            }
+            const randomPick = candidates[Math.floor(Math.random() * candidates.length)];
+            return randomPick?.tile || null;
+        }
+
+        function collectHumanModeSameTypeCandidates(anchor, typeBuckets, maxCandidateCount = 36) {
+            if (!anchor || !(typeBuckets instanceof Map)) {
+                return { candidates: [], inspectedCount: 0 };
+            }
+            const limit = Math.max(2, Math.floor(Number(maxCandidateCount) || 36));
+            const bucket = Array.isArray(typeBuckets.get(anchor.baseId))
+                ? typeBuckets.get(anchor.baseId)
+                : [];
+            const candidates = [];
+            let inspectedCount = 0;
+            for (const tile of bucket) {
+                if (!tile) continue;
+                if (tile.row === anchor.row && tile.col === anchor.col) continue;
+                inspectedCount++;
+                const distance = Math.abs(tile.row - anchor.row) + Math.abs(tile.col - anchor.col);
+                candidates.push({
+                    row: tile.row,
+                    col: tile.col,
+                    baseId: tile.baseId,
+                    distance
+                });
+                if (candidates.length >= limit) {
+                    break;
+                }
+            }
+            return { candidates, inspectedCount };
+        }
+
+        function estimateHumanModePostMoveQuality(snapshot, move) {
+            const board = Array.isArray(snapshot?.boardData) ? cloneBoardData(snapshot.boardData) : [];
+            if (!Array.isArray(board) || board.length === 0 || !move) return 0;
+            const { row1, col1, row2, col2 } = move;
+            if (!board[row1] || !board[row2]) return 0;
+            board[row1][col1] = 0;
+            board[row2][col2] = 0;
+            const evaluateLane = (row, col) => {
+                let score = 0;
+                const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                for (const [dr, dc] of dirs) {
+                    let steps = 0;
+                    let r = row + dr;
+                    let c = col + dc;
+                    while (r >= 0 && r < board.length && c >= 0 && c < (board[0]?.length || 0) && steps < 6) {
+                        const raw = board[r]?.[c];
+                        if (raw !== 0) break;
+                        score += 0.6;
+                        steps++;
+                        r += dr;
+                        c += dc;
+                    }
+                }
+                return score;
+            };
+            const centerRow = (board.length - 1) / 2;
+            const centerCol = ((board[0]?.length || 1) - 1) / 2;
+            const centerBias = (
+                (4 - Math.min(4, Math.abs(row1 - centerRow) + Math.abs(col1 - centerCol))) +
+                (4 - Math.min(4, Math.abs(row2 - centerRow) + Math.abs(col2 - centerCol)))
+            ) * 0.12;
+            return evaluateLane(row1, col1) + evaluateLane(row2, col2) + centerBias;
+        }
+
+        function evaluateHumanModeMoveForecast(snapshot, move) {
+            const geometryScore = estimateHumanModePostMoveQuality(snapshot, move);
+            const simulated = simulateAgentMoveOutcome(snapshot, move);
+            if (!simulated) {
+                return {
+                    score: geometryScore,
+                    summary: {
+                        remainingPairsDelta: 0,
+                        releasedAttachment: 0,
+                        iceHpReduction: 0,
+                        obstacleReduction: 0,
+                        magnetLockReduction: 0,
+                        extraRemovedByMechanism: 0
+                    }
+                };
+            }
+            const effects = simulated.mechanismEffects || {};
+            const score = (
+                (Number(simulated.remainingPairsDelta) || 0) * 1.25 +
+                (Number(effects.releasedAttachment) || 0) * 0.95 +
+                (Number(effects.iceHpReduction) || 0) * 0.58 +
+                (Number(effects.obstacleReduction) || 0) * 0.78 +
+                (Number(effects.magnetLockReduction) || 0) * 0.36 +
+                (Number(simulated.extraRemovedByMechanism) || 0) * 0.82 +
+                (geometryScore * 0.52)
+            );
+            return {
+                score,
+                summary: {
+                    remainingPairsDelta: Number(simulated.remainingPairsDelta) || 0,
+                    releasedAttachment: Number(effects.releasedAttachment) || 0,
+                    iceHpReduction: Number(effects.iceHpReduction) || 0,
+                    obstacleReduction: Number(effects.obstacleReduction) || 0,
+                    magnetLockReduction: Number(effects.magnetLockReduction) || 0,
+                    extraRemovedByMechanism: Number(simulated.extraRemovedByMechanism) || 0
+                },
+                simulated
+            };
+        }
+
+        function computeHumanModeComplexity(snapshot, tiles, typeBuckets) {
+            const board = Array.isArray(snapshot?.boardData) ? snapshot.boardData : [];
+            const width = board[0]?.length || 0;
+            const height = board.length;
+            const clickableTileCount = Array.isArray(tiles) ? tiles.length : 0;
+            const visibleTypeCount = typeBuckets instanceof Map ? typeBuckets.size : 0;
+            const counts = typeBuckets instanceof Map
+                ? Array.from(typeBuckets.values()).map((bucket) => Array.isArray(bucket) ? bucket.length : 0)
+                : [];
+            const total = counts.reduce((sum, value) => sum + (Number(value) || 0), 0);
+            let entropy = 0;
+            if (total > 0) {
+                for (const count of counts) {
+                    const value = Number(count);
+                    if (!Number.isFinite(value) || value <= 0) continue;
+                    const p = value / total;
+                    entropy += (-p * Math.log2(p));
+                }
+                const maxEntropy = Math.log2(Math.max(2, visibleTypeCount));
+                entropy = maxEntropy > 0 ? (entropy / maxEntropy) : 0;
+            }
+            const uniqueNorm = clamp01(visibleTypeCount / 12);
+            const typeComplexityScore = clamp01((entropy * 0.6) + (uniqueNorm * 0.4));
+
+            let blockedSum = 0;
+            let blockedSamples = 0;
+            const inRange = (row, col) => row >= 0 && row < height && col >= 0 && col < width;
+            for (const tile of tiles) {
+                if (!tile) continue;
+                const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                let blocked = 0;
+                for (const [dr, dc] of dirs) {
+                    const nr = tile.row + dr;
+                    const nc = tile.col + dc;
+                    if (!inRange(nr, nc)) {
+                        blocked++;
+                        continue;
+                    }
+                    if ((Number(board[nr]?.[nc]) || 0) !== 0) {
+                        blocked++;
+                    }
+                }
+                blockedSum += blocked / 4;
+                blockedSamples++;
+            }
+            const spaceComplexityScore = blockedSamples > 0
+                ? clamp01(blockedSum / blockedSamples)
+                : 0;
+            return {
+                clickableTileCount,
+                visibleTypeCount,
+                typeComplexityScore,
+                spaceComplexityScore
+            };
+        }
+
+        function getConnectionDifficultyRank(connectionType, turnCount = null) {
+            if (connectionType === '直线连接') return 0;
+            if (connectionType === '1拐连接') return 1;
+            if (connectionType === '同向2拐') return 2;
+            if (connectionType === '反向2拐') return 3;
+            const numericTurn = Number(turnCount);
+            if (!Number.isFinite(numericTurn) || numericTurn <= 0) return 0;
+            if (numericTurn === 1) return 1;
+            return 3;
+        }
+
+        function pickHumanModeMoveByScore(scoredMoves) {
+            if (!Array.isArray(scoredMoves) || scoredMoves.length === 0) return null;
+            const sorted = scoredMoves.slice().sort((a, b) => b.score - a.score);
+            const topPool = sorted.slice(0, Math.max(1, Math.min(4, sorted.length)));
+            const bestScore = Number(topPool[0]?.score) || 0;
+            const temperature = 0.75 + (Math.random() * 0.85);
+            const weights = topPool.map((item) => {
+                const value = Number(item?.score);
+                if (!Number.isFinite(value)) return 0.05;
+                return Math.max(0.03, Math.exp((value - bestScore) / Math.max(0.25, temperature)));
+            });
+            const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+            if (!(totalWeight > 0)) return topPool[0] || null;
+            let randomValue = Math.random() * totalWeight;
+            for (let index = 0; index < topPool.length; index++) {
+                randomValue -= weights[index];
+                if (randomValue <= 0) return topPool[index];
+            }
+            return topPool[topPool.length - 1] || null;
+        }
+
+        function buildHumanModePlanningContext(snapshot) {
+            const { tiles, typeBuckets } = buildHumanModeVisibleTiles(snapshot);
+            if (!Array.isArray(tiles) || tiles.length === 0) {
+                return {
+                    ok: false,
+                    error: '人类模式：未观察到可点击的普通牌。'
+                };
+            }
+            const mechanismSummary = summarizeBoardMechanismState(snapshot?.boardData);
+            const directionRule = getDirectionShiftRuleDescription(snapshot?.direction);
+            const complexity = computeHumanModeComplexity(snapshot, tiles, typeBuckets);
+            const usedAnchorKeys = new Set();
+            const rejectedBaseIds = new Set();
+            const scoredMoves = [];
+            const anchorSummaries = [];
+            const failedBaseSummaries = [];
+            let anchorsTried = 0;
+            let inspectedCount = 0;
+            let sameTypeChecked = 0;
+            const distanceSamples = [];
+            const anchorTryLimit = Math.max(
+                2,
+                Math.min(
+                    Math.max(2, typeBuckets.size || 0),
+                    1 + Math.floor(Math.random() * 4)
+                )
+            );
+
+            while (anchorsTried < anchorTryLimit) {
+                const anchor = pickHumanModeAnchor(tiles, typeBuckets, usedAnchorKeys, rejectedBaseIds);
+                if (!anchor) break;
+                usedAnchorKeys.add(buildHumanModeAnchorKey(anchor));
+                anchorsTried++;
+                if (anchorSummaries.length < 5) {
+                    anchorSummaries.push({
+                        row: anchor.row,
+                        col: anchor.col,
+                        baseId: anchor.baseId
+                    });
+                }
+
+                const sameTypeResult = collectHumanModeSameTypeCandidates(anchor, typeBuckets, 36);
+                inspectedCount += Number(sameTypeResult?.inspectedCount) || 0;
+                const candidateList = Array.isArray(sameTypeResult?.candidates)
+                    ? sameTypeResult.candidates.slice()
+                    : [];
+                candidateList.sort((a, b) => (a.distance - b.distance) + ((Math.random() - 0.5) * 0.35));
+                const toEvaluate = candidateList;
+                const anchorMoveStartIndex = scoredMoves.length;
+                let legalCandidateCount = 0;
+                for (const target of toEvaluate) {
+                    sameTypeChecked++;
+                    const distance = Math.abs(anchor.row - target.row) + Math.abs(anchor.col - target.col);
+                    distanceSamples.push(distance);
+                    const move = {
+                        row1: anchor.row,
+                        col1: anchor.col,
+                        row2: target.row,
+                        col2: target.col
+                    };
+                    if (!canConnectByLianliankan(snapshot.boardData, move.row1, move.col1, move.row2, move.col2)) {
+                        continue;
+                    }
+                    const path = findConnectionPathByLianliankan(snapshot.boardData, move.row1, move.col1, move.row2, move.col2);
+                    const pathNodeCount = Array.isArray(path) ? path.length : 0;
+                    const turnCount = Math.max(0, pathNodeCount - 2);
+                    const connectionType = getPlayConnectionTypeByPath(path);
+                    const connectionDifficultyRank = getConnectionDifficultyRank(connectionType, turnCount);
+                    legalCandidateCount++;
+                    const obviousScore = (
+                        (distance <= 2 ? 2.4 : (distance <= 4 ? 1.8 : 1.2)) +
+                        (connectionDifficultyRank === 0
+                            ? 1.35
+                            : (connectionDifficultyRank === 1
+                                ? 0.78
+                                : (connectionDifficultyRank === 2 ? 0.35 : 0.12)))
+                    );
+                    const forecastResult = evaluateHumanModeMoveForecast(snapshot, move);
+                    const forecastScore = Number(forecastResult?.score) || 0;
+                    const obviousBias = 0.6 + (Math.random() * 0.35);
+                    const forecastBias = 0.35 + (Math.random() * 0.45);
+                    const randomNoise = (Math.random() - 0.5) * 1.2;
+                    const difficultyPenalty = connectionDifficultyRank * 0.2;
+                    const score = (obviousScore * obviousBias) + (forecastScore * forecastBias) + randomNoise - difficultyPenalty;
+                    scoredMoves.push({
+                        move,
+                        score,
+                        turnCount,
+                        connectionType,
+                        connectionDifficultyRank,
+                        distance,
+                        obviousScore,
+                        forecastScore,
+                        forecastSummary: forecastResult?.summary || null,
+                        anchor,
+                        target,
+                        sameTypeCandidateCount: candidateList.length,
+                        legalCandidateCount: 0
+                    });
+                }
+                if (legalCandidateCount <= 0) {
+                    rejectedBaseIds.add(anchor.baseId);
+                    if (failedBaseSummaries.length < 6) {
+                        failedBaseSummaries.push({
+                            baseId: anchor.baseId,
+                            anchorRow: anchor.row,
+                            anchorCol: anchor.col,
+                            checkedCount: candidateList.length
+                        });
+                    }
+                } else {
+                    for (let idx = anchorMoveStartIndex; idx < scoredMoves.length; idx++) {
+                        scoredMoves[idx].legalCandidateCount = legalCandidateCount;
+                    }
+                }
+                if (scoredMoves.length > 0 && Math.random() < 0.8) {
+                    break;
+                }
+            }
+            const avgDistance = distanceSamples.length > 0
+                ? (distanceSamples.reduce((sum, value) => sum + value, 0) / distanceSamples.length)
+                : 0;
+            return {
+                ok: true,
+                anchorsTried,
+                inspectedCount,
+                sameTypeChecked,
+                avgDistance,
+                anchorSummaries,
+                failedBaseSummaries,
+                rejectedBaseCount: rejectedBaseIds.size,
+                scoredMoves,
+                mechanismSummary,
+                directionRule,
+                ...complexity
+            };
+        }
+
+        function buildHumanModeMetrics(planningContext, pickedMove = null) {
+            const avgDistance = Number.isFinite(Number(planningContext?.avgDistance))
+                ? Number(planningContext.avgDistance)
+                : Number(pickedMove?.distance) || 0;
+            return {
+                anchorsTried: Number(planningContext?.anchorsTried) || 0,
+                searchAttempts: Number(planningContext?.sameTypeChecked) || 0,
+                localObservedCells: Number(planningContext?.inspectedCount) || 0,
+                avgDistance,
+                typeComplexityScore: clamp01(planningContext?.typeComplexityScore),
+                spaceComplexityScore: clamp01(planningContext?.spaceComplexityScore),
+                visibleTypeCount: Number(planningContext?.visibleTypeCount) || 0,
+                clickableTileCount: Number(planningContext?.clickableTileCount) || 0,
+                successfulCandidateCount: Array.isArray(planningContext?.scoredMoves)
+                    ? planningContext.scoredMoves.length
+                    : 0
+            };
+        }
+
+        function sanitizeLastActionResultForHumanMode(lastResult) {
+            if (!lastResult || typeof lastResult !== 'object') return null;
+            return {
+                ok: Boolean(lastResult.ok),
+                error: String(lastResult.error || ''),
+                connectionType: String(lastResult.connectionType || ''),
+                turnCount: Number.isFinite(Number(lastResult.turnCount)) ? Number(lastResult.turnCount) : null,
+                pathNodeCount: Number.isFinite(Number(lastResult.pathNodeCount)) ? Number(lastResult.pathNodeCount) : null
+            };
+        }
+
+        function isSameAgentMove(a, b) {
+            if (!a || !b) return false;
+            const a1 = Number(a.row1);
+            const a2 = Number(a.col1);
+            const a3 = Number(a.row2);
+            const a4 = Number(a.col2);
+            const b1 = Number(b.row1);
+            const b2 = Number(b.col1);
+            const b3 = Number(b.row2);
+            const b4 = Number(b.col2);
+            const forward = a1 === b1 && a2 === b2 && a3 === b3 && a4 === b4;
+            const reverse = a1 === b3 && a2 === b4 && a3 === b1 && a4 === b2;
+            return forward || reverse;
+        }
+
+        function findHumanScoredMoveByMove(scoredMoves, move) {
+            if (!Array.isArray(scoredMoves) || !move) return null;
+            for (const item of scoredMoves) {
+                if (isSameAgentMove(item?.move, move)) {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        function buildHumanModeProcessThought(planningContext, picked) {
+            const anchor = picked?.anchor;
+            const move = picked?.move;
+            if (!anchor || !move) {
+                const failedBase = Array.isArray(planningContext?.failedBaseSummaries) && planningContext.failedBaseSummaries.length > 0
+                    ? planningContext.failedBaseSummaries[planningContext.failedBaseSummaries.length - 1]
+                    : null;
+                if (failedBase) {
+                    return `观察锚点(${failedBase.anchorRow},${failedBase.anchorCol})后，核对同花色候选 ${failedBase.checkedCount} 个，均无法与该锚点合法连通。`;
+                }
+                return `本轮观察了 ${Number(planningContext?.anchorsTried) || 0} 个锚点，同花色检查 ${Number(planningContext?.sameTypeChecked) || 0} 次，暂未找到可连通配对。`;
+            }
+            const sameTypeCount = Number(picked?.sameTypeCandidateCount) || 0;
+            const legalCount = Number(picked?.legalCandidateCount) || 0;
+            const connectionType = String(picked?.connectionType || '-');
+            const forecast = picked?.forecastSummary && typeof picked.forecastSummary === 'object'
+                ? picked.forecastSummary
+                : null;
+            const mechanismLine = forecast
+                ? (
+                    `模拟消除后，剩余可配对变化 ${Number(forecast.remainingPairsDelta) || 0}，` +
+                    `机关变化：翻牌/冰壳释放 ${Number(forecast.releasedAttachment) || 0}，` +
+                    `冰层削减 ${Number(forecast.iceHpReduction) || 0}，磁铁锁定减少 ${Number(forecast.magnetLockReduction) || 0}。`
+                )
+                : '';
+            return [
+                `先观察到锚点牌(${anchor.row},${anchor.col})，同花色候选共 ${sameTypeCount} 张。`,
+                `逐个检查连通后，可合法连线 ${legalCount} 组。`,
+                `本步执行 (${move.row1},${move.col1}) -> (${move.row2},${move.col2})，连法 ${connectionType}。`,
+                mechanismLine
+            ].join('');
+        }
+
+        function buildHumanModeDecisionFromPlanning(planningContext) {
+            if (!planningContext?.ok) {
+                return {
+                    ok: false,
+                    error: String(planningContext?.error || '人类模式：无法构建观察上下文。'),
+                    humanMode: true
+                };
+            }
+            const scoredMoves = Array.isArray(planningContext.scoredMoves) ? planningContext.scoredMoves : [];
+            if (scoredMoves.length === 0) {
+                const processThought = buildHumanModeProcessThought(planningContext, null);
+                return {
+                    ok: false,
+                    error: '该花色无可连接配对',
+                    thought: processThought,
+                    reason: `已尝试锚点 ${planningContext.anchorsTried} 个，同花色检查 ${planningContext.sameTypeChecked} 次，已切换到其他花色继续观察。当前位移规则：${planningContext.directionRule || '无规则'}`,
+                    candidateCountBefore: Number(planningContext.sameTypeChecked) || 0,
+                    humanMode: true,
+                    humanMetrics: buildHumanModeMetrics(planningContext)
+                };
+            }
+            const picked = pickHumanModeMoveByScore(scoredMoves) || scoredMoves[0];
+            const thought = buildHumanModeProcessThought(planningContext, picked);
+            const difficultyRank = getConnectionDifficultyRank(picked.connectionType, picked.turnCount);
+            const reason = [
+                `锚点尝试 ${planningContext.anchorsTried}，同花色检查 ${planningContext.sameTypeChecked} 个。`,
+                `本步连法 ${picked.connectionType}（难度级别 ${difficultyRank}），拐点 ${picked.turnCount}，并结合机关触发与位移后局面偏好选择。`,
+                `当前位移规则：${planningContext.directionRule || '无规则'}`
+            ].join(' ');
+            return {
+                ok: true,
+                thought,
+                reason,
+                currentFeeling: '',
+                move: picked.move,
+                candidateCountBefore: Number(planningContext.sameTypeChecked) || 0,
+                humanMode: true,
+                humanMetrics: buildHumanModeMetrics(planningContext, picked)
+            };
+        }
+
+        function buildHumanModeDecisionMessages(snapshot, planningContext) {
+            const scoredMoves = Array.isArray(planningContext?.scoredMoves)
+                ? planningContext.scoredMoves
+                : [];
+            const candidateSample = scoredMoves
+                .slice(0, 8)
+                .map((item) => ({
+                    move: item.move,
+                    distance: item.distance,
+                    connectionType: item.connectionType,
+                    connectionDifficultyRank: Number(item.connectionDifficultyRank),
+                    turnCount: item.turnCount,
+                    forecastSummary: item.forecastSummary || null,
+                    obviousScore: Number(item.obviousScore?.toFixed(3)),
+                    forecastScore: Number(item.forecastScore?.toFixed(3)),
+                    score: Number(item.score?.toFixed(3))
+                }));
+            const contextPayload = {
+                goal: '通关本关卡（人类模式）',
+                mode: agentUiState.runMode,
+                board: snapshot?.boardData || [],
+                boardWidth: snapshot?.width || 0,
+                boardHeight: snapshot?.height || 0,
+                direction: snapshot?.direction || 0,
+                directionRule: planningContext?.directionRule || getDirectionShiftRuleDescription(snapshot?.direction),
+                observation: {
+                    anchorsTried: Number(planningContext?.anchorsTried) || 0,
+                    localObservedCells: Number(planningContext?.inspectedCount) || 0,
+                    sameTypeChecked: Number(planningContext?.sameTypeChecked) || 0,
+                    avgDistance: Number(planningContext?.avgDistance?.toFixed?.(3) || planningContext?.avgDistance || 0),
+                    clickableTileCount: Number(planningContext?.clickableTileCount) || 0,
+                    visibleTypeCount: Number(planningContext?.visibleTypeCount) || 0,
+                    typeComplexityScore: Number(clamp01(planningContext?.typeComplexityScore).toFixed(3)),
+                    spaceComplexityScore: Number(clamp01(planningContext?.spaceComplexityScore).toFixed(3)),
+                    mechanismSummary: planningContext?.mechanismSummary || summarizeBoardMechanismState(snapshot?.boardData),
+                    anchorSample: Array.isArray(planningContext?.anchorSummaries)
+                        ? planningContext.anchorSummaries.slice(0, 5)
+                        : [],
+                    candidateMovesSample: candidateSample
+                },
+                lastActionResult: sanitizeLastActionResultForHumanMode(agentUiState.lastActionResult),
+                memory: summarizeAgentStepMemory(10, { includeRemaining: false, includeHumanMetrics: true })
+            };
+            return [
+                {
+                    role: 'system',
+                    content: [
+                        '你是连连看试玩智能体，当前必须以人类思路操作。',
+                        '限制：你只能根据棋盘数据与局部观察进行决策，不能使用“剩余配对数”等全局计数捷径。',
+                        '流程：先选显眼锚点牌A1 -> 找出同花色A2/A3/A4... -> 逐个判断是否与A1合法连通 -> 结合消除后局面预估选步。',
+                        '你必须考虑机关影响（翻牌/冰壳/冰块/磁铁等）和方向位移规则对后续局面的改变。',
+                        '不要全盘穷举，不要固定每次选同类最优，要保留人类式概率偏好。',
+                        'thought 字段只写本步实际观察与比对过程，不要写“方法、规则、策略说明”。',
+                        '必须严格输出 JSON，不要输出其他文本。',
+                        'JSON格式：{"thought":"...","reason":"...","move":{"row1":0,"col1":0,"row2":0,"col2":0}}。',
+                        '如果无法决定合法步，move 设为 null，并解释原因。'
+                    ].join('\n')
+                },
+                {
+                    role: 'user',
+                    content: `请按人类模式给出下一步：\n${JSON.stringify(contextPayload)}`
+                }
+            ];
+        }
+
+        async function requestHumanModeDecision(snapshot, currentProfile = null) {
+            const planningContext = buildHumanModePlanningContext(snapshot);
+            const localDecision = buildHumanModeDecisionFromPlanning(planningContext);
+            if (!planningContext?.ok) {
+                return localDecision;
+            }
+            if (!currentProfile) {
+                return localDecision;
+            }
+            try {
+                const messages = buildHumanModeDecisionMessages(snapshot, planningContext);
+                const responseText = await callAgentModel(messages, {
+                    temperature: 0.55,
+                    maxTokens: 240,
+                    profile: currentProfile
+                });
+                const parsed = parseAgentDecision(responseText);
+                if (!parsed.ok || !parsed.move) {
+                    return localDecision;
+                }
+                const parsedValidation = validateAgentMove(snapshot, parsed.move, { humanMode: true });
+                if (!parsedValidation.ok) {
+                    return localDecision;
+                }
+                const scoredMoves = Array.isArray(planningContext.scoredMoves) ? planningContext.scoredMoves : [];
+                const matchedMove = findHumanScoredMoveByMove(scoredMoves, parsed.move);
+                let picked = matchedMove;
+                if (!picked) {
+                    const connectionType = String(parsedValidation.connectionType || '');
+                    const turnCount = Number(parsedValidation.turnCount);
+                    picked = {
+                        move: parsed.move,
+                        anchor: { row: Number(parsed.move.row1), col: Number(parsed.move.col1) },
+                        target: { row: Number(parsed.move.row2), col: Number(parsed.move.col2) },
+                        sameTypeCandidateCount: 0,
+                        legalCandidateCount: 1,
+                        connectionType,
+                        turnCount,
+                        connectionDifficultyRank: getConnectionDifficultyRank(connectionType, turnCount),
+                        distance: Math.abs(Number(parsed.move.row1) - Number(parsed.move.row2)) + Math.abs(Number(parsed.move.col1) - Number(parsed.move.col2))
+                    };
+                }
+                const thought = buildHumanModeProcessThought(planningContext, picked);
+                const difficultyRank = getConnectionDifficultyRank(picked.connectionType, picked.turnCount);
+                const reason = [
+                    `锚点尝试 ${planningContext.anchorsTried}，同花色检查 ${planningContext.sameTypeChecked} 个。`,
+                    `本步连法 ${picked.connectionType || '-'}（难度级别 ${difficultyRank}），拐点 ${Number.isFinite(Number(picked.turnCount)) ? Number(picked.turnCount) : '-'}。`,
+                    `位移规则：${planningContext.directionRule || '无规则'}，并已纳入机关结算影响。`
+                ].join(' ');
+                return {
+                    ok: true,
+                    thought,
+                    reason,
+                    currentFeeling: '',
+                    move: parsed.move,
+                    candidateCountBefore: Number(planningContext?.sameTypeChecked) || 0,
+                    humanMode: true,
+                    humanMetrics: buildHumanModeMetrics(planningContext, picked)
+                };
+            } catch (error) {
+                return localDecision;
+            }
+        }
+
+        function buildAgentLegalPairEvaluationSample(snapshot, limit = 24) {
+            const legalPairs = Array.isArray(snapshot?.removablePairs)
+                ? snapshot.removablePairs
+                : [];
+            const safeLimit = Math.max(1, Math.min(48, Math.floor(Number(limit) || 24)));
+            const sample = [];
+            for (const pair of legalPairs.slice(0, safeLimit)) {
+                if (!pair) continue;
+                const path = findConnectionPathByLianliankan(
+                    snapshot.boardData,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                );
+                const pathNodeCount = Array.isArray(path) ? path.length : 0;
+                const turnCount = Math.max(0, pathNodeCount - 2);
+                const connectionType = getPlayConnectionTypeByPath(path);
+                const simulated = simulateAgentMoveOutcome(snapshot, pair);
+                const effects = simulated?.mechanismEffects || {};
+                sample.push({
+                    move: {
+                        row1: pair.row1,
+                        col1: pair.col1,
+                        row2: pair.row2,
+                        col2: pair.col2
+                    },
+                    connectionType,
+                    turnCount,
+                    remainingPairsDelta: Number(simulated?.remainingPairsDelta) || 0,
+                    effects: {
+                        releasedAttachment: Number(effects.releasedAttachment) || 0,
+                        iceHpReduction: Number(effects.iceHpReduction) || 0,
+                        obstacleReduction: Number(effects.obstacleReduction) || 0,
+                        magnetLockReduction: Number(effects.magnetLockReduction) || 0,
+                        extraRemovedByMechanism: Number(simulated?.extraRemovedByMechanism) || 0
+                    }
+                });
+            }
+            return sample;
+        }
+
+        function buildAgentDecisionMessages(snapshot) {
+            const legalPairs = Array.isArray(snapshot?.removablePairs)
+                ? snapshot.removablePairs.slice(0, 180)
+                : [];
+            const mechanismSummary = summarizeBoardMechanismState(snapshot?.boardData);
+            const directionRule = getDirectionShiftRuleDescription(snapshot?.direction);
+            const contextPayload = {
+                goal: '通关本关卡',
+                humanMode: Boolean(agentUiState.humanModeEnabled),
+                mode: agentUiState.runMode,
+                board: snapshot?.boardData || [],
+                boardWidth: snapshot?.width || 0,
+                boardHeight: snapshot?.height || 0,
+                direction: snapshot?.direction || 0,
+                directionRule,
+                mechanismSummary,
+                lastActionResult: agentUiState.lastActionResult,
+                memory: summarizeAgentStepMemory(10, { includeRemaining: true, includeHumanMetrics: true })
+            };
+            contextPayload.remainingPairCount = snapshot?.remainingPairs || 0;
+            contextPayload.legalPairsSample = legalPairs;
+            contextPayload.legalPairsTotal = snapshot?.remainingPairs || 0;
+            contextPayload.evaluatedMovesSample = buildAgentLegalPairEvaluationSample(snapshot, 24);
+            return [
+                {
+                    role: 'system',
+                    content: [
+                        '你是连连看试玩智能体。',
+                        '规则：只能消除两张“可点击且数字相同”的牌，且两牌路径最多2个拐点。',
+                        '棋盘ID说明：0=空格，1-99=可消除普通牌，>=1000含附着层不可直接消除，501/502/503/504/505/506是障碍。',
+                        '你必须考虑机关触发（翻牌/冰壳/冰块层级/磁铁锁定等）与方向位移规则对消除后局面的影响。',
+                        '请优先选择“当前合法且消除后局面更优”的一步，而不是只看当前连通。 ',
+                        '坐标从0开始，row是行，col是列。',
+                        '必须严格输出 JSON，不要输出其他内容。',
+                        'JSON格式：{"thought":"...","reason":"...","current_feeling":"...","move":{"row1":0,"col1":0,"row2":0,"col2":0}}。',
+                        '如果无法决定合法步，move 设为 null，并解释原因。'
+                    ].join('\n')
+                },
+                {
+                    role: 'user',
+                    content: `请根据当前局面给出下一步：\n${JSON.stringify(contextPayload)}`
+                }
+            ];
+        }
+
+        function validateAgentMove(snapshot, move, options = {}) {
+            if (!snapshot || !Array.isArray(snapshot.boardData)) {
+                return { ok: false, error: '棋盘数据不可用' };
+            }
+            const humanMode = Boolean(options?.humanMode);
+            if (!move) {
+                return { ok: false, error: 'Agent 未给出 move' };
+            }
+            const { row1, col1, row2, col2 } = move;
+            const height = snapshot.boardData.length;
+            const width = snapshot.boardData[0]?.length || 0;
+            const inRange = (row, col) => row >= 0 && row < height && col >= 0 && col < width;
+            if (!inRange(row1, col1) || !inRange(row2, col2)) {
+                return { ok: false, error: '坐标越界' };
+            }
+            if (row1 === row2 && col1 === col2) {
+                return { ok: false, error: '不能选择同一张牌两次' };
+            }
+            const firstValue = snapshot.boardData[row1]?.[col1];
+            const secondValue = snapshot.boardData[row2]?.[col2];
+            if (!isCellClickableInPlay(firstValue) || !isCellClickableInPlay(secondValue)) {
+                return { ok: false, error: '目标包含不可点击牌' };
+            }
+            const firstBaseId = getMatchableBaseId(firstValue);
+            const secondBaseId = getMatchableBaseId(secondValue);
+            if (firstBaseId === null || secondBaseId === null) {
+                return { ok: false, error: '目标包含不可配对牌' };
+            }
+            if (firstBaseId !== secondBaseId) {
+                return { ok: false, error: humanMode ? '该花色无可连接配对' : '两张牌数字不一致' };
+            }
+            if (!canConnectByLianliankan(snapshot.boardData, row1, col1, row2, col2)) {
+                return { ok: false, error: '路径不满足连连看规则（超过2拐或被阻挡）' };
+            }
+            const path = findConnectionPathByLianliankan(snapshot.boardData, row1, col1, row2, col2);
+            const pathNodeCount = Array.isArray(path) ? path.length : 0;
+            const turnCount = Math.max(0, pathNodeCount - 2);
+            const connectionType = getPlayConnectionTypeByPath(path);
+            return {
+                ok: true,
+                connectionType,
+                turnCount,
+                pathNodeCount
+            };
+        }
+
+        async function executeAgentMove(move, decisionMeta = null) {
+            const snapshot = getAgentBoardSnapshot();
+            if (!snapshot) {
+                return { ok: false, error: '当前不在试玩模式，无法执行。' };
+            }
+            const boardSnapshotBefore = cloneBoardData(snapshot.boardData);
+            const humanMetrics = decisionMeta?.humanMetrics && typeof decisionMeta.humanMetrics === 'object'
+                ? { ...decisionMeta.humanMetrics }
+                : null;
+            const decisionCandidateCount = Number(decisionMeta?.candidateCountBefore);
+            const candidateCountBefore = Number.isFinite(decisionCandidateCount)
+                ? Math.max(0, Math.floor(decisionCandidateCount))
+                : Math.max(0, Number(snapshot.remainingPairs) || 0);
+            const validated = validateAgentMove(snapshot, move, {
+                humanMode: Boolean(decisionMeta?.humanMode || agentUiState.humanModeEnabled)
+            });
+            if (!validated.ok) {
+                const invalidResult = {
+                    ok: false,
+                    error: validated.error,
+                    move,
+                    remainingPairsBefore: snapshot.remainingPairs,
+                    remainingPairsAfter: snapshot.remainingPairs,
+                    boardCleared: false,
+                    playFailed: false,
+                    connectionType: '',
+                    turnCount: null,
+                    pathNodeCount: null,
+                    candidateCountBefore,
+                    humanMetrics,
+                    boardSnapshotBefore
+                };
+                const stepRecord = pushAgentStepMemory({
+                    step: (agentUiState.stepMemory.length || 0) + 1,
+                    success: false,
+                    move: invalidResult.move,
+                    connectionType: '',
+                    turnCount: null,
+                    pathNodeCount: null,
+                    candidateCountBefore,
+                    remainingPairsBefore: snapshot.remainingPairs,
+                    remainingPairsAfter: snapshot.remainingPairs,
+                    thought: String(decisionMeta?.thought || ''),
+                    reason: String(decisionMeta?.reason || ''),
+                    error: validated.error,
+                    humanMode: Boolean(decisionMeta?.humanMode || agentUiState.humanModeEnabled),
+                    humanMetrics,
+                    boardSnapshotBefore
+                });
+                invalidResult.memoryStep = Number(stepRecord?.step) || (agentUiState.stepMemory.length || 0);
+                agentUiState.lastActionResult = invalidResult;
+                return invalidResult;
+            }
+            const clearedPairsBefore = Number(playModeState?.clearedPairs) || 0;
+            const remainingPairsBefore = snapshot.remainingPairs;
+            await processPlayCellSelection(move.row1, move.col1);
+            if (!playModeState || !playModeState.active) {
+                const interrupted = { ok: false, error: '执行中已退出试玩模式。', move };
+                agentUiState.lastActionResult = interrupted;
+                return interrupted;
+            }
+            await processPlayCellSelection(move.row2, move.col2);
+            if (!playModeState || !playModeState.active) {
+                const interrupted = { ok: false, error: '执行中已退出试玩模式。', move };
+                agentUiState.lastActionResult = interrupted;
+                return interrupted;
+            }
+            const clearedPairsAfter = Number(playModeState?.clearedPairs) || 0;
+            const success = clearedPairsAfter > clearedPairsBefore;
+            const boardNow = playModeState.boardData;
+            const boardCleared = isPlayBoardCleared(boardNow);
+            const remainingPairsAfter = boardCleared ? 0 : countRemainingPairCountByBoard(boardNow);
+            const result = {
+                ok: success,
+                move,
+                step: clearedPairsAfter,
+                remainingPairsBefore,
+                remainingPairsAfter,
+                boardCleared,
+                playFailed: Boolean(playModeState.failed),
+                connectionType: validated.connectionType,
+                turnCount: validated.turnCount,
+                pathNodeCount: validated.pathNodeCount,
+                candidateCountBefore,
+                humanMetrics,
+                error: success ? '' : '执行后未产生有效消除，请重新规划。'
+            };
+            agentUiState.lastActionResult = result;
+            const stepRecord = pushAgentStepMemory({
+                step: (agentUiState.stepMemory.length || 0) + 1,
+                success: result.ok,
+                move: result.move,
+                connectionType: result.connectionType,
+                turnCount: result.turnCount,
+                pathNodeCount: result.pathNodeCount,
+                candidateCountBefore: result.candidateCountBefore,
+                remainingPairsBefore: result.remainingPairsBefore,
+                remainingPairsAfter: result.remainingPairsAfter,
+                thought: String(decisionMeta?.thought || ''),
+                reason: String(decisionMeta?.reason || ''),
+                error: result.error || '',
+                humanMode: Boolean(decisionMeta?.humanMode || agentUiState.humanModeEnabled),
+                humanMetrics,
+                boardSnapshotBefore
+            });
+            result.memoryStep = Number(stepRecord?.step) || (agentUiState.stepMemory.length || 0);
+            return result;
+        }
+
+        function normalizeAgentFeelingLevel(levelText) {
+            const text = String(levelText || '').trim();
+            if (!text) return '正常';
+            if (/困难|hard|challeng|受阻|复杂|卡住/i.test(text)) return '困难';
+            if (/简单|easy|轻松|顺畅|容易/i.test(text)) return '简单';
+            return '正常';
+        }
+
+        function buildLocalAgentFeeling(result, options = {}) {
+            const humanMode = Boolean(options?.humanMode);
+            const turnCount = Number(result?.turnCount);
+            const remainingBefore = Number(result?.remainingPairsBefore);
+            const remainingAfter = Number(result?.remainingPairsAfter);
+            const noProgress = !humanMode
+                && Number.isFinite(remainingBefore) && Number.isFinite(remainingAfter)
+                && remainingAfter >= remainingBefore;
+            if (!result?.ok || noProgress || (Number.isFinite(turnCount) && turnCount >= 2)) {
+                return {
+                    level: '困难',
+                    detail: '这步推进受阻或路径复杂，后续需要优先筛选更稳定的可达配对。'
+                };
+            }
+            if (Number.isFinite(turnCount) && turnCount === 0) {
+                return {
+                    level: '简单',
+                    detail: ''
+                };
+            }
+            return {
+                level: '正常',
+                detail: ''
+            };
+        }
+
+        function extractHumanMetricsFromDecisionResult(decision, result) {
+            const fromDecision = decision?.humanMetrics && typeof decision.humanMetrics === 'object'
+                ? decision.humanMetrics
+                : null;
+            const fromResult = result?.humanMetrics && typeof result.humanMetrics === 'object'
+                ? result.humanMetrics
+                : null;
+            const lastStep = Array.isArray(agentUiState.stepMemory) && agentUiState.stepMemory.length > 0
+                ? agentUiState.stepMemory[agentUiState.stepMemory.length - 1]
+                : null;
+            const fromStep = lastStep?.humanMetrics && typeof lastStep.humanMetrics === 'object'
+                ? lastStep.humanMetrics
+                : null;
+            const merged = {
+                ...(fromStep || {}),
+                ...(fromResult || {}),
+                ...(fromDecision || {})
+            };
+            return {
+                anchorsTried: Number(merged.anchorsTried) || 0,
+                searchAttempts: Number(merged.searchAttempts) || 0,
+                localObservedCells: Number(merged.localObservedCells) || 0,
+                avgDistance: Number(merged.avgDistance) || 0,
+                typeComplexityScore: clamp01(merged.typeComplexityScore),
+                spaceComplexityScore: clamp01(merged.spaceComplexityScore),
+                visibleTypeCount: Number(merged.visibleTypeCount) || 0,
+                clickableTileCount: Number(merged.clickableTileCount) || 0,
+                successfulCandidateCount: Number(merged.successfulCandidateCount) || 0
+            };
+        }
+
+        function buildHumanModeFeelingFromMetrics(decision, result) {
+            const metrics = extractHumanMetricsFromDecisionResult(decision, result);
+            const attemptsNorm = clamp01(metrics.searchAttempts / 9);
+            const anchorNorm = clamp01(metrics.anchorsTried / 3);
+            const distanceNorm = clamp01(metrics.avgDistance / 7);
+            const observedNorm = clamp01(metrics.localObservedCells / 64);
+            const typeNorm = clamp01(metrics.typeComplexityScore);
+            const spaceNorm = clamp01(metrics.spaceComplexityScore);
+            const failPenalty = result?.ok ? 0 : 0.32;
+            const score = clamp01(
+                attemptsNorm * 0.2 +
+                anchorNorm * 0.12 +
+                distanceNorm * 0.14 +
+                observedNorm * 0.14 +
+                typeNorm * 0.2 +
+                spaceNorm * 0.2 +
+                failPenalty
+            );
+            if (score < 0.35) {
+                return { level: '简单', detail: '' };
+            }
+            if (score < 0.67) {
+                return { level: '正常', detail: '' };
+            }
+            const detail = [
+                `搜索尝试 ${metrics.searchAttempts} 次、锚点尝试 ${metrics.anchorsTried} 次，`,
+                `平均目标距离 ${metrics.avgDistance.toFixed(2)}，`,
+                `花色复杂度 ${metrics.typeComplexityScore.toFixed(2)}，空间复杂度 ${metrics.spaceComplexityScore.toFixed(2)}。`,
+                '本步决策压力偏高。'
+            ].join('');
+            return { level: '困难', detail };
+        }
+
+        function parseAgentFeelingResponse(rawText, result, options = {}) {
+            const parsed = extractJsonFromAgentText(rawText);
+            const explicitFallback = options?.fallbackFeeling && typeof options.fallbackFeeling === 'object'
+                ? options.fallbackFeeling
+                : null;
+            if (!parsed || typeof parsed !== 'object') {
+                const level = normalizeAgentFeelingLevel(rawText);
+                return {
+                    level,
+                    detail: level === '困难' ? String(rawText || '').trim() : ''
+                };
+            }
+            const level = normalizeAgentFeelingLevel(
+                parsed.level ?? parsed.difficulty ?? parsed.feeling_level ?? parsed.feeling
+            );
+            const detail = String(
+                parsed.detail ??
+                parsed.reason ??
+                parsed.analysis ??
+                parsed.comment ??
+                ''
+            ).trim();
+            if (level !== '困难') {
+                return { level, detail: '' };
+            }
+            if (detail) {
+                return { level, detail };
+            }
+            if (explicitFallback && explicitFallback.level === '困难' && explicitFallback.detail) {
+                return { level: '困难', detail: String(explicitFallback.detail) };
+            }
+            const fallback = buildLocalAgentFeeling(result, options);
+            return {
+                level,
+                detail: fallback.level === '困难' ? fallback.detail : '局面阻力较高，需要重新规划。'
+            };
+        }
+
+        async function requestAgentPostStepFeeling(decision, result) {
+            const humanMode = Boolean(agentUiState.humanModeEnabled || decision?.humanMode);
+            if (humanMode) {
+                const metrics = extractHumanMetricsFromDecisionResult(decision, result);
+                const localFallback = buildHumanModeFeelingFromMetrics(decision, result);
+                const currentProfile = getCurrentAgentProfile();
+                if (!currentProfile) {
+                    return localFallback;
+                }
+                try {
+                    const responseText = await callAgentModel(
+                        [
+                            {
+                                role: 'system',
+                                content: [
+                                    '你是人类模式下的关卡体验分析助手。',
+                                    '你只能基于给定指标做难度感受判断。',
+                                    '仅输出 JSON，格式：{"level":"简单|正常|困难","detail":"仅当困难时填写，其余留空"}。'
+                                ].join('\n')
+                            },
+                            {
+                                role: 'user',
+                                content: JSON.stringify({
+                                    metrics,
+                                    actionResult: {
+                                        ok: Boolean(result?.ok),
+                                        connectionType: String(result?.connectionType || ''),
+                                        turnCount: Number.isFinite(Number(result?.turnCount)) ? Number(result.turnCount) : null,
+                                        pathNodeCount: Number.isFinite(Number(result?.pathNodeCount)) ? Number(result.pathNodeCount) : null
+                                    }
+                                })
+                            }
+                        ],
+                        {
+                            temperature: 0.25,
+                            maxTokens: 120,
+                            profile: currentProfile
+                        }
+                    );
+                    return parseAgentFeelingResponse(responseText, result, {
+                        humanMode: true,
+                        fallbackFeeling: localFallback
+                    });
+                } catch (error) {
+                    return localFallback;
+                }
+            }
+            const snapshot = getAgentBoardSnapshot();
+            const messages = [
+                {
+                    role: 'system',
+                    content: [
+                        '你是关卡体验分析助手。',
+                        '仅输出 JSON，不要输出任何额外文本。',
+                        '格式：{"level":"简单|正常|困难","detail":"仅当level=困难时填写，其余留空"}。'
+                    ].join('\n')
+                },
+                {
+                    role: 'user',
+                    content: JSON.stringify({
+                        decision: {
+                            thought: decision?.thought || '',
+                            reason: decision?.reason || '',
+                            currentFeeling: decision?.currentFeeling || ''
+                        },
+                        actionResult: result,
+                        boardSummary: snapshot
+                            ? {
+                                remainingPairCount: snapshot.remainingPairs,
+                                width: snapshot.width,
+                                height: snapshot.height
+                            }
+                            : null,
+                        memory: summarizeAgentStepMemory(8, { includeRemaining: true, includeHumanMetrics: true })
+                    })
+                }
+            ];
+            try {
+                const responseText = await callAgentModel(messages, { temperature: 0.2 });
+                return parseAgentFeelingResponse(responseText, result, { humanMode: false });
+            } catch (error) {
+                return buildLocalAgentFeeling(result, { humanMode: false });
+            }
+        }
+
+        function buildLocalAgentSessionReview(finalResult, options = {}) {
+            const humanMode = Boolean(options?.humanMode);
+            const history = Array.isArray(agentUiState.stepMemory) ? agentUiState.stepMemory : [];
+            const totalSteps = history.length;
+            const successSteps = history.filter((item) => item?.success).length;
+            const avgTurns = totalSteps > 0
+                ? (history
+                    .map((item) => Number(item?.turnCount))
+                    .filter((value) => Number.isFinite(value) && value >= 0)
+                    .reduce((sum, value) => sum + value, 0) / Math.max(1, successSteps))
+                : 0;
+            const humanMetricsList = history
+                .map((item) => item?.humanMetrics)
+                .filter((item) => item && typeof item === 'object');
+            const averageHumanMetric = (key) => {
+                const values = humanMetricsList
+                    .map((item) => Number(item?.[key]))
+                    .filter((value) => Number.isFinite(value) && value >= 0);
+                if (values.length === 0) return 0;
+                return values.reduce((sum, value) => sum + value, 0) / values.length;
+            };
+            const lines = humanMode
+                ? [
+                    `通关结果：${finalResult?.boardCleared ? '通关' : '未通关'}，总步数 ${totalSteps}。`,
+                    `观察维度：平均搜索尝试 ${averageHumanMetric('searchAttempts').toFixed(2)} 次，平均局部观察 ${averageHumanMetric('localObservedCells').toFixed(2)} 格。`,
+                    `稳定性维度：成功步数 ${successSteps}，平均拐点 ${avgTurns.toFixed(2)}。`,
+                    `策略维度：平均目标距离 ${averageHumanMetric('avgDistance').toFixed(2)}，会先做消除后局面假设，再带概率偏好选择下一手。`,
+                    `复杂度维度：花色复杂度 ${averageHumanMetric('typeComplexityScore').toFixed(2)}，空间复杂度 ${averageHumanMetric('spaceComplexityScore').toFixed(2)}。`,
+                    `趣味维度：更接近人类试错节奏，存在波动但探索感更强。`
+                ]
+                : (() => {
+                    const firstRemaining = Number(history[0]?.remainingPairsBefore);
+                    const lastRemaining = Number(history[history.length - 1]?.remainingPairsAfter);
+                    const progressRatio = Number.isFinite(firstRemaining) && firstRemaining > 0 && Number.isFinite(lastRemaining)
+                        ? Math.max(0, Math.min(1, (firstRemaining - lastRemaining) / firstRemaining))
+                        : 0;
+                    return [
+                        `通关结果：${finalResult?.boardCleared ? '通关' : '未通关'}，总步数 ${totalSteps}。`,
+                        `效率维度：成功步数 ${successSteps}，推进比例 ${(progressRatio * 100).toFixed(1)}%。`,
+                        `稳定性维度：平均拐点 ${avgTurns.toFixed(2)}，高拐点步数越多表示决策压力越大。`,
+                        `策略维度：前期候选较多、后期候选收缩明显，说明后程更依赖路径质量与顺序规划。`,
+                        `趣味维度：局面在“可解性”和“路径博弈”之间平衡，具备持续试错与优化空间。`
+                    ];
+                })();
+            return lines.join('\n');
+        }
+
+        async function requestAgentSessionReview(finalResult) {
+            const humanMode = Boolean(agentUiState.humanModeEnabled);
+            if (humanMode) {
+                return buildLocalAgentSessionReview(finalResult, { humanMode: true });
+            }
+            const snapshot = getAgentBoardSnapshot();
+            const reviewPayload = {
+                finalResult,
+                boardSummary: snapshot
+                    ? {
+                        width: snapshot.width,
+                        height: snapshot.height,
+                        remainingPairCount: snapshot.remainingPairs
+                    }
+                    : null,
+                memory: summarizeAgentStepMemory(60)
+            };
+            try {
+                return await callAgentModel(
+                    [
+                        {
+                            role: 'system',
+                            content: [
+                                '你是关卡复盘助手。',
+                                '请输出中文多维点评，至少覆盖：通关效率、稳定性、策略质量、趣味性、难度判断。',
+                                '每个维度1句，最后给出1句总体结论。'
+                            ].join('\n')
+                        },
+                        {
+                            role: 'user',
+                            content: JSON.stringify(reviewPayload)
+                        }
+                    ],
+                    { temperature: 0.5, maxTokens: 420 }
+                );
+            } catch (error) {
+                return `${buildLocalAgentSessionReview(finalResult, { humanMode: false })}\n（模型点评失败：${error.message || '未知错误'}）`;
+            }
+        }
+
+        async function maybePushAgentSessionReview(finalResult) {
+            const sessionSignature = String(agentUiState.playSessionSignature || '').trim();
+            if (!sessionSignature) return;
+            if (agentUiState.playSessionReviewSignature === sessionSignature) return;
+            agentUiState.playSessionReviewSignature = sessionSignature;
+            const reviewText = await requestAgentSessionReview(finalResult);
+            pushAgentChatMessage('assistant', `本局整体点评：\n${reviewText}`);
+        }
+
+        async function runAgentStepInternal(triggerLabel = 'step') {
+            if (agentUiState.isExecutingStep) return;
+            if (!playModeState || !playModeState.active) {
+                pushAgentChatMessage('assistant', '请先进入试玩模式，再启动 Agent。');
+                updateAgentRunStatus('状态：等待进入试玩模式');
+                return;
+            }
+            const currentProfile = getCurrentAgentProfile();
+            if (!currentProfile && !agentUiState.humanModeEnabled) {
+                pushAgentChatMessage('assistant', '请先在“配置”里读取并保存本地 API 配置文件。');
+                updateAgentRunStatus('状态：缺少 API 配置', true);
+                return;
+            }
+            ensureAgentPlaySession();
+            const snapshot = getAgentBoardSnapshot();
+            if (!snapshot) {
+                pushAgentChatMessage('assistant', '无法获取棋盘数据。');
+                return;
+            }
+            if (snapshot.remainingPairs <= 0) {
+                pushAgentChatMessage('assistant', '当前无可消除配对，无法继续操作。');
+                return;
+            }
+            agentUiState.isExecutingStep = true;
+            updateAgentRunStatus(`状态：思考中（${triggerLabel}）`);
+            updateAgentRunControls();
+            try {
+                let decision = null;
+                if (agentUiState.humanModeEnabled) {
+                    decision = await requestHumanModeDecision(snapshot, currentProfile);
+                } else {
+                    const decisionMessages = buildAgentDecisionMessages(snapshot);
+                    const decisionText = await callAgentModel(decisionMessages, { temperature: 0.15 });
+                    decision = parseAgentDecision(decisionText);
+                }
+                if (!decision.ok) {
+                    agentUiState.lastActionResult = { ok: false, error: decision.error };
+                    const errorPrefix = agentUiState.humanModeEnabled ? '人类模式决策失败' : '思考结果解析失败';
+                    pushAgentChatMessage('assistant', `${errorPrefix}：${decision.error}`);
+                    updateAgentRunStatus('状态：决策解析失败');
+                    return;
+                }
+                if (!decision.move) {
+                    const err = 'Agent 未给出合法 move。';
+                    agentUiState.lastActionResult = { ok: false, error: err };
+                    pushAgentChatMessage('assistant', `操作结果：错误（${err}）`);
+                    updateAgentRunStatus('状态：未产出操作');
+                    return;
+                }
+                updateAgentRunStatus('状态：执行操作中');
+                const result = await executeAgentMove(decision.move, decision);
+                updateAgentRunStatus('状态：等待结算反馈');
+                const feeling = await requestAgentPostStepFeeling(decision, result);
+                const latestStep = Array.isArray(agentUiState.stepMemory)
+                    ? agentUiState.stepMemory[agentUiState.stepMemory.length - 1]
+                    : null;
+                pushAgentStepCard({
+                    stepIndex: Number(latestStep?.step) || Number(result?.memoryStep) || 0,
+                    success: Boolean(result?.ok),
+                    move: result?.move || decision?.move || null,
+                    moveText: formatAgentMoveText(result?.move),
+                    candidateCount: Number(latestStep?.candidateCountBefore ?? result?.candidateCountBefore),
+                    reason: String(decision.reason || decision.thought || '未提供'),
+                    connectionType: String(result?.connectionType || '-'),
+                    turnCount: Number(result?.turnCount),
+                    remainingPairsBefore: Number(result?.remainingPairsBefore),
+                    remainingPairsAfter: Number(result?.remainingPairsAfter),
+                    feelingLevel: String(feeling?.level || '正常'),
+                    feelingDetail: String(feeling?.detail || ''),
+                    thought: String(decision.thought || ''),
+                    error: String(result?.error || ''),
+                    humanMode: Boolean(decision.humanMode || agentUiState.humanModeEnabled),
+                    boardSnapshotBefore: Array.isArray(latestStep?.boardSnapshotBefore)
+                        ? latestStep.boardSnapshotBefore
+                        : null
+                });
+                if (result.boardCleared) {
+                    updateAgentRunStatus('状态：已通关');
+                    agentUiState.isRunning = false;
+                    await maybePushAgentSessionReview(result);
+                } else if (result.playFailed) {
+                    updateAgentRunStatus('状态：局面失败（无可消除配对）');
+                    agentUiState.isRunning = false;
+                    await maybePushAgentSessionReview(result);
+                } else {
+                    updateAgentRunStatus('状态：可继续');
+                }
+            } catch (error) {
+                if (agentUiState.stopRequested && String(error?.message || '').includes('终止')) {
+                    updateAgentRunStatus('状态：已终止');
+                    return;
+                }
+                pushAgentChatMessage('assistant', `Agent 执行失败：${error.message || '未知错误'}`);
+                updateAgentRunStatus('状态：执行失败');
+            } finally {
+                agentUiState.isExecutingStep = false;
+                updateAgentRunControls();
+            }
+        }
+
+        async function startContinuousAgentRun() {
+            if (agentUiState.isRunning) return;
+            if (!playModeState || !playModeState.active) {
+                pushAgentChatMessage('assistant', '请先进入试玩模式，再启动持续操作。');
+                updateAgentRunStatus('状态：等待进入试玩模式');
+                return;
+            }
+            ensureAgentPlaySession();
+            agentUiState.stopRequested = false;
+            agentUiState.isRunning = true;
+            updateAgentRunStatus('状态：持续操作中');
+            updateAgentRunControls();
+            while (agentUiState.isRunning && !agentUiState.stopRequested) {
+                if (!playModeState || !playModeState.active) break;
+                await runAgentStepInternal('continuous');
+                if (agentUiState.stopRequested) break;
+                if (!playModeState || !playModeState.active) break;
+                if (isPlayBoardCleared(playModeState.boardData) || playModeState.failed) break;
+                if (agentUiState.runMode !== 'continuous') break;
+                await waitForMs(120);
+            }
+            const boardCleared = Boolean(playModeState && playModeState.active && isPlayBoardCleared(playModeState.boardData));
+            const playFailed = Boolean(playModeState && playModeState.active && playModeState.failed);
+            if (!agentUiState.stopRequested && (boardCleared || playFailed)) {
+                const boardNow = Array.isArray(playModeState?.boardData) ? playModeState.boardData : [];
+                const remainingAfter = boardCleared
+                    ? 0
+                    : (boardNow.length > 0 ? countRemainingPairCountByBoard(boardNow) : null);
+                await maybePushAgentSessionReview({
+                    boardCleared,
+                    playFailed,
+                    remainingPairsAfter: remainingAfter
+                });
+            }
+            agentUiState.isRunning = false;
+            if (agentUiState.stopRequested) {
+                updateAgentRunStatus('状态：已终止');
+            } else if (boardCleared) {
+                updateAgentRunStatus('状态：已通关');
+            } else {
+                updateAgentRunStatus('状态：已停止');
+            }
+            updateAgentRunControls();
+        }
+
+        function startStepModeAgentRun() {
+            if (!playModeState || !playModeState.active) {
+                pushAgentChatMessage('assistant', '请先进入试玩模式，再启动单步模式。');
+                updateAgentRunStatus('状态：等待进入试玩模式');
+                return;
+            }
+            ensureAgentPlaySession();
+            agentUiState.stopRequested = false;
+            agentUiState.isRunning = true;
+            updateAgentRunStatus('状态：单步模式，就绪');
+            updateAgentRunControls();
+        }
+
+        async function runAgentNextStep() {
+            if (agentUiState.runMode !== 'step') {
+                pushAgentChatMessage('assistant', '请先切换到“单步操作”模式。');
+                return;
+            }
+            if (!agentUiState.isRunning) {
+                startStepModeAgentRun();
+            }
+            if (!agentUiState.isRunning) return;
+            await runAgentStepInternal('manual-step');
+            if (playModeState && playModeState.active && (isPlayBoardCleared(playModeState.boardData) || playModeState.failed)) {
+                agentUiState.isRunning = false;
+            }
+            updateAgentRunControls();
+        }
+
+        function stopAgentRun(options = {}) {
+            const silent = Boolean(options?.silent);
+            agentUiState.stopRequested = true;
+            agentUiState.isRunning = false;
+            if (agentUiState.activeFetchAbortController) {
+                try {
+                    agentUiState.activeFetchAbortController.abort();
+                } catch (error) {
+                    // ignore abort failure
+                }
+            }
+            if (!silent) {
+                pushAgentChatMessage('assistant', '已终止 Agent 操作。');
+            }
+            updateAgentRunStatus('状态：已终止');
+            updateAgentRunControls();
+        }
+
+        async function sendAgentChatMessage() {
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            const raw = elements.chatInput.value;
+            const text = typeof raw === 'string' ? raw.trim() : '';
+            if (!text) return;
+            pushAgentChatMessage('user', text);
+            elements.chatInput.value = '';
+            const currentProfile = getCurrentAgentProfile();
+            if (!currentProfile) {
+                pushAgentChatMessage('assistant', '请先点击“配置”并读取本地配置文件。');
+                return;
+            }
+            const snapshot = getAgentBoardSnapshot();
+            const hideGlobalPairCount = Boolean(agentUiState.humanModeEnabled);
+            const contextPayload = {
+                playerQuestion: text,
+                currentModel: {
+                    name: currentProfile.name,
+                    model: currentProfile.model
+                },
+                humanModeEnabled: Boolean(agentUiState.humanModeEnabled),
+                playModeActive: Boolean(playModeState && playModeState.active),
+                boardSummary: snapshot
+                    ? {
+                        width: snapshot.width,
+                        height: snapshot.height,
+                        direction: snapshot.direction,
+                        directionRule: getDirectionShiftRuleDescription(snapshot.direction),
+                        mechanismSummary: summarizeBoardMechanismState(snapshot.boardData),
+                        remainingPairCount: hideGlobalPairCount ? null : snapshot.remainingPairs,
+                        boardData: snapshot.boardData
+                    }
+                    : null,
+                memory: summarizeAgentStepMemory(10, {
+                    includeRemaining: !hideGlobalPairCount,
+                    includeHumanMetrics: true
+                }),
+                lastActionResult: agentUiState.lastActionResult
+            };
+            try {
+                const recentConversation = Array.isArray(agentUiState.userConversation)
+                    ? agentUiState.userConversation.slice(-10)
+                    : [];
+                const conversationMessages = recentConversation.map((item) => ({
+                    role: item.role === 'assistant' ? 'assistant' : 'user',
+                    content: String(item.text || '')
+                }));
+                const responseText = await callAgentModel(
+                    [
+                        {
+                            role: 'system',
+                            content: [
+                                '你是试玩助手，请结合棋盘局面、规则和历史操作回答玩家问题。',
+                                '回答使用中文，给出理解、评价和建议。'
+                            ].join('\n')
+                        },
+                        ...conversationMessages,
+                        {
+                            role: 'user',
+                            content: JSON.stringify(contextPayload)
+                        }
+                    ],
+                    { temperature: 0.6 }
+                );
+                pushAgentChatMessage('assistant', responseText);
+                agentUiState.userConversation.push({ role: 'user', text });
+                agentUiState.userConversation.push({ role: 'assistant', text: responseText });
+                if (agentUiState.userConversation.length > 24) {
+                    agentUiState.userConversation = agentUiState.userConversation.slice(-24);
+                }
+            } catch (error) {
+                pushAgentChatMessage('assistant', `对话失败：${error.message || '未知错误'}`);
+            }
+        }
+
+        function startAgentDrag(target, event) {
+            if (!event) return;
+            if (event.button !== 0) return;
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            const element = target === 'dialog' ? elements.dialog : elements.icon;
+            if (!element) return;
+            const rect = element.getBoundingClientRect();
+            agentUiState.drag = {
+                target,
+                pointerId: event.pointerId,
+                offsetX: event.clientX - rect.left,
+                offsetY: event.clientY - rect.top,
+                startX: event.clientX,
+                startY: event.clientY,
+                moved: false
+            };
+            if (target === 'dialog') {
+                elements.dialogHeader.classList.add('dragging');
+            } else {
+                elements.icon.classList.add('dragging');
+            }
+            if (typeof element.setPointerCapture === 'function') {
+                try {
+                    element.setPointerCapture(event.pointerId);
+                } catch (error) {
+                    // ignore pointer capture failures
+                }
+            }
+            event.preventDefault();
+        }
+
+        function handleAgentDragMove(event) {
+            const drag = agentUiState.drag;
+            if (!drag || !event) return;
+            if (Number.isInteger(drag.pointerId) && event.pointerId !== drag.pointerId) return;
+            const elements = agentUiState.elements;
+            if (!elements) return;
+            const element = drag.target === 'dialog' ? elements.dialog : elements.icon;
+            if (!element) return;
+            const maxLeft = Math.max(0, window.innerWidth - element.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - element.offsetHeight);
+            const nextLeft = clampAgentValue(event.clientX - drag.offsetX, 0, maxLeft);
+            const nextTop = clampAgentValue(event.clientY - drag.offsetY, 0, maxTop);
+            setAgentElementPosition(element, nextLeft, nextTop);
+            if (!drag.moved) {
+                const dx = Math.abs(event.clientX - drag.startX);
+                const dy = Math.abs(event.clientY - drag.startY);
+                if (dx > 3 || dy > 3) {
+                    drag.moved = true;
+                }
+            }
+            event.preventDefault();
+        }
+
+        function handleAgentDragEnd(event) {
+            const drag = agentUiState.drag;
+            if (!drag || !event) return;
+            if (Number.isInteger(drag.pointerId) && event.pointerId !== drag.pointerId) return;
+            const elements = agentUiState.elements;
+            if (elements) {
+                elements.icon.classList.remove('dragging');
+                elements.dialogHeader.classList.remove('dragging');
+                if (drag.target === 'icon' && drag.moved) {
+                    agentUiState.suppressIconClick = true;
+                }
+            }
+            agentUiState.drag = null;
+        }
+
+        function initAgentUi() {
+            const elements = {
+                icon: document.getElementById('agentFloatIcon'),
+                dialog: document.getElementById('agentDialog'),
+                dialogHeader: document.getElementById('agentDialogHeader'),
+                minimizeBtn: document.getElementById('agentMinimizeBtn'),
+                newChatBtn: document.getElementById('agentNewChatBtn'),
+                configBtn: document.getElementById('agentConfigBtn'),
+                memoryPanel: document.getElementById('agentMemoryPanel'),
+                chatList: document.getElementById('agentChatList'),
+                chatInput: document.getElementById('agentChatInput'),
+                sendBtn: document.getElementById('agentSendBtn'),
+                runModeSelect: document.getElementById('agentRunModeSelect'),
+                humanModeToggle: document.getElementById('agentHumanModeToggle'),
+                modelSelect: document.getElementById('agentModelSelect'),
+                validateApiBtn: document.getElementById('agentValidateApiBtn'),
+                runStartBtn: document.getElementById('agentRunStartBtn'),
+                runStepBtn: document.getElementById('agentRunStepBtn'),
+                runStopBtn: document.getElementById('agentRunStopBtn'),
+                runStatus: document.getElementById('agentRunStatus'),
+                configOverlay: document.getElementById('agentConfigOverlay'),
+                configModal: document.getElementById('agentConfigModal'),
+                configCancelBtn: document.getElementById('agentConfigCancelBtn'),
+                configSaveBtn: document.getElementById('agentConfigSaveBtn'),
+                configLoadFileBtn: document.getElementById('agentConfigLoadFileBtn'),
+                configFileInput: document.getElementById('agentConfigFileInput'),
+                configProfileSelect: document.getElementById('agentConfigProfileSelect'),
+                configFileStatus: document.getElementById('agentConfigFileStatus'),
+                configPreviewName: document.getElementById('agentConfigPreviewName'),
+                configPreviewBaseUrl: document.getElementById('agentConfigPreviewBaseUrl'),
+                configPreviewApiKey: document.getElementById('agentConfigPreviewApiKey'),
+                configPreviewModel: document.getElementById('agentConfigPreviewModel'),
+                configPreviewValidation: document.getElementById('agentConfigPreviewValidation')
+            };
+            if (
+                !elements.icon ||
+                !elements.dialog ||
+                !elements.dialogHeader ||
+                !elements.minimizeBtn ||
+                !elements.newChatBtn ||
+                !elements.configBtn ||
+                !elements.memoryPanel ||
+                !elements.chatList ||
+                !elements.chatInput ||
+                !elements.sendBtn ||
+                !elements.runModeSelect ||
+                !elements.humanModeToggle ||
+                !elements.modelSelect ||
+                !elements.validateApiBtn ||
+                !elements.runStartBtn ||
+                !elements.runStepBtn ||
+                !elements.runStopBtn ||
+                !elements.runStatus ||
+                !elements.configOverlay ||
+                !elements.configModal ||
+                !elements.configCancelBtn ||
+                !elements.configSaveBtn ||
+                !elements.configLoadFileBtn ||
+                !elements.configFileInput ||
+                !elements.configProfileSelect ||
+                !elements.configFileStatus ||
+                !elements.configPreviewName ||
+                !elements.configPreviewBaseUrl ||
+                !elements.configPreviewApiKey ||
+                !elements.configPreviewModel ||
+                !elements.configPreviewValidation
+            ) {
+                return;
+            }
+            agentUiState.elements = elements;
+            loadAgentApiConfig();
+            loadAgentHumanModePreference();
+            renderAgentModelSelectOptions();
+            setActiveAgentProfile(agentUiState.activeProfileId, { persist: false, silent: true });
+            renderAgentChatMessages();
+            renderAgentMemoryPanel();
+            elements.humanModeToggle.checked = Boolean(agentUiState.humanModeEnabled);
+
+            const iconDefaultLeft = Math.max(8, window.innerWidth - 84);
+            const iconDefaultTop = Math.max(8, window.innerHeight - 100);
+            setAgentElementPosition(elements.icon, iconDefaultLeft, iconDefaultTop);
+            const dialogDefaultLeft = Math.max(8, window.innerWidth - 594);
+            const dialogDefaultTop = 15;
+            setAgentElementPosition(elements.dialog, dialogDefaultLeft, dialogDefaultTop);
+
+            elements.icon.addEventListener('pointerdown', (event) => {
+                startAgentDrag('icon', event);
+            });
+            elements.icon.addEventListener('click', () => {
+                if (agentUiState.suppressIconClick) {
+                    agentUiState.suppressIconClick = false;
+                    return;
+                }
+                openAgentDialog();
+            });
+            elements.dialogHeader.addEventListener('pointerdown', (event) => {
+                if (event.target && event.target.closest('button')) return;
+                startAgentDrag('dialog', event);
+            });
+            elements.minimizeBtn.addEventListener('click', () => {
+                minimizeAgentDialog();
+            });
+            elements.newChatBtn.addEventListener('click', () => {
+                clearAgentChatMessages();
+            });
+            elements.runModeSelect.addEventListener('change', () => {
+                const nextMode = elements.runModeSelect.value === 'step' ? 'step' : 'continuous';
+                if (nextMode !== agentUiState.runMode && agentUiState.isRunning && agentUiState.runMode === 'continuous') {
+                    stopAgentRun({ silent: true });
+                }
+                agentUiState.runMode = nextMode;
+                if (nextMode === 'step') {
+                    updateAgentRunStatus('状态：单步模式');
+                } else {
+                    updateAgentRunStatus('状态：持续模式');
+                }
+                updateAgentRunControls();
+            });
+            elements.humanModeToggle.addEventListener('change', () => {
+                const enabled = Boolean(elements.humanModeToggle.checked);
+                agentUiState.humanModeEnabled = enabled;
+                persistAgentHumanModePreference();
+                if (enabled) {
+                    pushAgentChatMessage('assistant', '已开启人类模式：采用局部观察 + 概率策略，不做全盘穷举。');
+                    if (!getCurrentAgentProfile()) {
+                        updateAgentRunStatus('状态：人类模式已开启（可直接运行）');
+                    }
+                } else {
+                    pushAgentChatMessage('assistant', '已关闭人类模式：恢复标准策略。');
+                    if (!getCurrentAgentProfile()) {
+                        updateAgentRunStatus('状态：未配置模型', true);
+                    }
+                }
+                updateAgentRunControls();
+            });
+            elements.modelSelect.addEventListener('change', () => {
+                const nextProfileId = String(elements.modelSelect.value || '').trim();
+                setActiveAgentProfile(nextProfileId, { persist: true, silent: false });
+            });
+            elements.validateApiBtn.addEventListener('click', async () => {
+                await validateCurrentAgentProfile(true);
+            });
+            elements.runStartBtn.addEventListener('click', async () => {
+                if (agentUiState.runMode === 'step') {
+                    startStepModeAgentRun();
+                    return;
+                }
+                await startContinuousAgentRun();
+            });
+            elements.runStepBtn.addEventListener('click', async () => {
+                await runAgentNextStep();
+            });
+            elements.runStopBtn.addEventListener('click', () => {
+                stopAgentRun();
+            });
+            elements.configBtn.addEventListener('click', () => {
+                openAgentConfigModal();
+            });
+            elements.configCancelBtn.addEventListener('click', () => {
+                closeAgentConfigModal();
+            });
+            elements.configLoadFileBtn.addEventListener('click', () => {
+                elements.configFileInput.value = '';
+                elements.configFileInput.click();
+            });
+            elements.configFileInput.addEventListener('change', async (event) => {
+                const file = event?.target?.files?.[0];
+                if (!file) return;
+                await importAgentApiConfigFromFile(file);
+                elements.configFileInput.value = '';
+            });
+            elements.configProfileSelect.addEventListener('change', () => {
+                agentUiState.pendingSelectedProfileId = String(elements.configProfileSelect.value || '').trim();
+                renderAgentConfigPreview();
+            });
+            elements.configSaveBtn.addEventListener('click', () => {
+                const pendingData = agentUiState.pendingApiConfigData;
+                const pendingProfiles = Array.isArray(pendingData?.profiles) ? pendingData.profiles : [];
+                if (pendingProfiles.length === 0) {
+                    renderAgentConfigPreview('请先读取有效的本地配置文件。', true);
+                    return;
+                }
+                const selectedId = String(agentUiState.pendingSelectedProfileId || pendingData.activeProfileId || pendingProfiles[0]?.id || '').trim();
+                agentUiState.apiProfiles = pendingProfiles.map((profile) => ({ ...profile }));
+                agentUiState.activeProfileId = selectedId;
+                persistAgentApiConfig();
+                setActiveAgentProfile(agentUiState.activeProfileId, { persist: false, silent: true });
+                closeAgentConfigModal();
+                pushAgentChatMessage('assistant', `API 配置已保存，共 ${pendingProfiles.length} 个模型。`);
+            });
+            elements.configOverlay.addEventListener('click', (event) => {
+                if (event.target === elements.configOverlay) {
+                    closeAgentConfigModal();
+                }
+            });
+            elements.sendBtn.addEventListener('click', async () => {
+                await sendAgentChatMessage();
+            });
+            elements.chatInput.addEventListener('keydown', async (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    await sendAgentChatMessage();
+                }
+            });
+            document.addEventListener('pointermove', handleAgentDragMove);
+            document.addEventListener('pointerup', handleAgentDragEnd);
+            document.addEventListener('pointercancel', handleAgentDragEnd);
+            window.addEventListener('resize', () => {
+                if (!elements.icon.classList.contains('hidden')) {
+                    keepAgentElementInViewport(elements.icon);
+                }
+                if (elements.dialog.classList.contains('visible')) {
+                    keepAgentElementInViewport(elements.dialog);
+                }
+            });
+            const initProfile = getCurrentAgentProfile();
+            if (initProfile) {
+                updateAgentRunStatus(
+                    `状态：当前模型 ${initProfile.name}，验证：${getAgentValidationText(initProfile.id)}`
+                );
+            } else if (agentUiState.humanModeEnabled) {
+                updateAgentRunStatus('状态：人类模式已开启（可直接运行）');
+            } else {
+                updateAgentRunStatus('状态：未配置模型', true);
+            }
+            updateAgentRunControls();
+        }
+
         function init() {
             loadConfigGroupsFromStorage();
             renderEditorTools();
             renderSavedLevelList();
+            initAgentUi();
             initInfoMutationObserver();
             renderBoardBackgroundDropdown();
             applyBoardBackground(selectedBoardBackgroundIndex);
