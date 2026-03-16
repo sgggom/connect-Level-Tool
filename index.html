@@ -1515,6 +1515,51 @@
             justify-content: space-between;
         }
 
+        .stats-sim-controls {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stats-sim-controls input[type="number"] {
+            width: 96px;
+        }
+
+        .stats-sim-controls-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .stats-local-human-toggle {
+            width: auto !important;
+            flex: 0 0 auto;
+            padding: 7px 12px;
+            font-size: 0.82em;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            background: rgba(30, 41, 59, 0.7);
+            color: #e5edff;
+        }
+
+        .stats-local-human-toggle.active {
+            border-color: rgba(34, 197, 94, 0.7);
+            background: rgba(34, 197, 94, 0.24);
+            color: #dcfce7;
+        }
+
+        .stats-human-beside-input {
+            width: 72px !important;
+            text-align: center;
+        }
+
+        .stats-human-beside-label {
+            font-size: 0.8em;
+            opacity: 0.86;
+            white-space: nowrap;
+        }
+
         .stats-sim-count label {
             font-size: 0.85em;
             opacity: 0.9;
@@ -1585,6 +1630,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
             padding: 10px 12px;
             background: rgba(56, 189, 248, 0.18);
             border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -1606,6 +1652,15 @@
         .agent-dialog-controls {
             display: flex;
             gap: 6px;
+        }
+
+        .agent-dialog-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .agent-btn {
@@ -1682,6 +1737,8 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            margin-left: auto;
+            justify-content: flex-end;
         }
 
         .agent-memory-view-btn {
@@ -1719,6 +1776,23 @@
         .agent-memory-trend-axis {
             stroke: rgba(148, 163, 184, 0.22);
             stroke-width: 1;
+        }
+
+        .agent-memory-trend-grid {
+            stroke: rgba(148, 163, 184, 0.18);
+            stroke-width: 1;
+            stroke-dasharray: 2 2;
+        }
+
+        .agent-memory-trend-tick {
+            stroke: rgba(148, 163, 184, 0.34);
+            stroke-width: 1;
+        }
+
+        .agent-memory-trend-label {
+            fill: rgba(226, 232, 240, 0.78);
+            font-size: 7.8px;
+            font-family: inherit;
         }
 
         .agent-memory-trend-line {
@@ -1770,8 +1844,8 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 10px 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding: 0;
+            border-bottom: none;
         }
 
         .agent-run-controls .agent-btn {
@@ -2613,8 +2687,7 @@
                                 <button class="btn-primary" id="btnStepGenerate" onclick="stepGenerateOrNext()">分步生成</button>
                                 <button class="btn-secondary" id="btnPlayMode" onclick="togglePlayMode()"
                                     style="margin-top: 8px;">试玩模式</button>
-                                <div class="config-item stats-sim-count">
-                                    <label for="simulateGameCount">模拟局数：</label>
+                                <div class="stats-sim-controls">
                                     <input
                                         type="number"
                                         id="simulateGameCount"
@@ -2623,6 +2696,26 @@
                                         value="100"
                                         oninput="updateSimulateUiLabels()"
                                     >
+                                    <label class="stats-sim-controls-label" for="simulateGameCount">模拟局数</label>
+                                    <button
+                                        type="button"
+                                        class="stats-local-human-toggle"
+                                        id="btnStatsLocalHumanMode"
+                                        onclick="toggleStatsLocalHumanMode()"
+                                    >人类模式：关</button>
+                                    <input
+                                        type="number"
+                                        id="humanModeBesidePercent"
+                                        class="stats-human-beside-input"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value="70"
+                                        oninput="handleHumanModeBesidePercentInput()"
+                                    >
+                                    <label class="stats-human-beside-label" for="humanModeBesidePercent">
+                                        相邻优先%
+                                    </label>
                                 </div>
                                 <button class="btn-export hotkey-button" data-shortcut="空格"
                                     id="btnSimulatePlay" onclick="simulatePlayGames()"
@@ -2632,6 +2725,14 @@
                                 <div class="stats-item">
                                     <div class="stats-item-title" id="levelStatsSimulationTitle">模拟100局胜率</div>
                                     <div class="stats-line" id="levelStatsSimulation">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">关卡平均试错次数</div>
+                                    <div class="stats-line" id="levelStatsAvgTrialError">-</div>
+                                </div>
+                                <div class="stats-item">
+                                    <div class="stats-item-title">本局最高试错次数</div>
+                                    <div class="stats-line" id="levelStatsMaxTrialError">-</div>
                                 </div>
                             </div>
                         </div>
@@ -2761,17 +2862,19 @@
     <section class="agent-dialog" id="agentDialog" aria-label="Agent 对话框">
         <div class="agent-dialog-header" id="agentDialogHeader">
             <div class="agent-dialog-title">Agent 助手</div>
-            <div class="agent-dialog-controls">
-                <button type="button" class="agent-btn" id="agentNewChatBtn">新对话</button>
-                <button type="button" class="agent-btn" id="agentConfigBtn">配置</button>
-                <button type="button" class="agent-btn" id="agentMinimizeBtn">最小化</button>
+            <div class="agent-dialog-header-actions">
+                <div class="agent-run-controls">
+                    <button type="button" class="agent-btn" id="agentRunSettingsBtn">运行设置</button>
+                    <button type="button" class="agent-btn" id="agentRunStartBtn">开始</button>
+                    <button type="button" class="agent-btn" id="agentRunStepBtn">下一步</button>
+                    <button type="button" class="agent-btn" id="agentRunStopBtn">终止</button>
+                </div>
+                <div class="agent-dialog-controls">
+                    <button type="button" class="agent-btn" id="agentNewChatBtn">新对话</button>
+                    <button type="button" class="agent-btn" id="agentConfigBtn">配置</button>
+                    <button type="button" class="agent-btn" id="agentMinimizeBtn">最小化</button>
+                </div>
             </div>
-        </div>
-        <div class="agent-run-controls">
-            <button type="button" class="agent-btn" id="agentRunSettingsBtn">运行设置</button>
-            <button type="button" class="agent-btn" id="agentRunStartBtn">开始</button>
-            <button type="button" class="agent-btn" id="agentRunStepBtn">下一步</button>
-            <button type="button" class="agent-btn" id="agentRunStopBtn">终止</button>
         </div>
         <div class="agent-run-settings-overlay" id="agentRunSettingsOverlay">
             <div class="agent-run-settings-panel" id="agentRunSettingsPanel">
@@ -2865,6 +2968,8 @@
         let isSimulatingPlayGames = false;
         let isBatchGenerating = false;
         let isBatchCampaignRunning = false;
+        let statsLocalHumanModeEnabled = false;
+        let humanModeBesidePercent = 70;
         let savedLevels = [];
         let savedLevelFileHandle = null;
         let savedLevelSourceFileName = '';
@@ -2977,13 +3082,14 @@
             playSessionSignature: '',
             playSessionReviewSignature: '',
             playSessionInitialRemovableCount: 0,
+            pendingDecisionFailCount: 0,
             stepMemory: [],
             lastActionResult: null,
             userConversation: [],
             statusLoadingTimer: null,
             statusLoadingTick: 0,
             statusLoadingBaseText: '',
-            memoryTrendView: 'avg_candidate'
+            memoryTrendView: 'pair_count'
         };
 
         function getObstacleImagePath(baseId) {
@@ -4660,6 +4766,24 @@
             return '反向2拐';
         }
 
+        function computePathLengthByGridSteps(pathPoints) {
+            if (!Array.isArray(pathPoints) || pathPoints.length < 2) return null;
+            let length = 0;
+            for (let index = 1; index < pathPoints.length; index++) {
+                const prev = pathPoints[index - 1];
+                const current = pathPoints[index];
+                const prevRow = Number(prev?.row);
+                const prevCol = Number(prev?.col);
+                const row = Number(current?.row);
+                const col = Number(current?.col);
+                if (![prevRow, prevCol, row, col].every(Number.isFinite)) {
+                    return null;
+                }
+                length += Math.abs(row - prevRow) + Math.abs(col - prevCol);
+            }
+            return length;
+        }
+
         function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
             if (!Array.isArray(boardData) || boardData.length === 0) return null;
             const height = boardData.length;
@@ -6183,17 +6307,87 @@
             }
         }
 
+        function buildHumanModeSimulationSnapshot(boardData, direction, removablePairs) {
+            const safeBoardData = Array.isArray(boardData) ? cloneBoardData(boardData) : [];
+            const safePairs = Array.isArray(removablePairs) ? removablePairs : [];
+            return {
+                boardData: safeBoardData,
+                width: safeBoardData[0]?.length || 0,
+                height: safeBoardData.length,
+                direction,
+                directionRule: getDirectionShiftRuleDescription(direction),
+                mechanismSummary: summarizeBoardMechanismState(safeBoardData),
+                remainingPairs: safePairs.length,
+                pairCombinationTotal: countRemainingPairCombinationCountByBoard(safeBoardData),
+                removablePairs: safePairs.map((item) => ({
+                    row1: Number(item?.row1),
+                    col1: Number(item?.col1),
+                    row2: Number(item?.row2),
+                    col2: Number(item?.col2)
+                }))
+            };
+        }
+
+        function pickHumanModePairForSimulation(boardData, direction, options = {}) {
+            const besidePercent = normalizeHumanModeBesidePercent(
+                options?.besidePercent,
+                getHumanModeBesidePercent(70)
+            );
+            const removablePairs = getRemovablePairsForBoard(boardData);
+            if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
+                return { pair: null, decisionFailCount: 0 };
+            }
+            const snapshot = buildHumanModeSimulationSnapshot(boardData, direction, removablePairs);
+            const planningContext = buildHumanModePlanningContext(snapshot, { exhaustiveScan: true });
+            const planningFailCount = Array.isArray(planningContext?.failedBaseSummaries)
+                ? planningContext.failedBaseSummaries.length
+                : 0;
+            const decision = buildHumanModeDecisionFromPlanning(planningContext, {
+                besidePercent
+            });
+            if (!decision?.ok || !decision.move) {
+                return {
+                    pair: null,
+                    decisionFailCount: Math.max(1, planningFailCount || 1)
+                };
+            }
+            const validated = validateAgentMove(snapshot, decision.move, { humanMode: true });
+            if (!validated.ok) {
+                return {
+                    pair: null,
+                    decisionFailCount: Math.max(1, planningFailCount || 1)
+                };
+            }
+            return {
+                pair: {
+                    row1: Number(decision.move.row1),
+                    col1: Number(decision.move.col1),
+                    row2: Number(decision.move.row2),
+                    col2: Number(decision.move.col2)
+                },
+                decisionFailCount: Math.max(0, planningFailCount)
+            };
+        }
+
         function simulateSingleGameWithPairStats(
             baseBoardData,
             direction,
-            initialRemovableCount = null
+            initialRemovableCount = null,
+            options = {}
         ) {
+            const humanMode = Boolean(options?.humanMode);
+            const humanModeBesidePercent = normalizeHumanModeBesidePercent(
+                options?.humanModeBesidePercent,
+                getHumanModeBesidePercent(70)
+            );
             const boardData = cloneBoardData(baseBoardData);
             const baseCount = Number.isFinite(Number(initialRemovableCount))
                 ? Math.max(0, Number(initialRemovableCount))
                 : countRemovableCellCount(baseBoardData);
             const estimatedTotalSteps = Math.max(1, Math.floor(baseCount / 2));
             const connectionTypeCounts = createConnectionTypeCountSummary();
+            let totalTrialErrorCount = 0;
+            let maxTrialErrorCount = 0;
             if (!hasFilledCells(boardData)) {
                 return {
                     cleared: false,
@@ -6202,7 +6396,9 @@
                     failedStepCount: 0,
                     failedProgressPercent: 0,
                     pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
-                    connectionTypeCounts
+                    connectionTypeCounts,
+                    totalTrialErrorCount: 0,
+                    maxTrialErrorCount: 0
                 };
             }
 
@@ -6222,7 +6418,9 @@
                             failedStepCount: null,
                             failedProgressPercent: null,
                             pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-                            connectionTypeCounts
+                            connectionTypeCounts,
+                            totalTrialErrorCount,
+                            maxTrialErrorCount
                         };
                     }
                     const remainingCount = countRemovableCellCount(boardData);
@@ -6238,12 +6436,29 @@
                         failedStepCount: stepCount,
                         failedProgressPercent: failureProgressPercent,
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-                        connectionTypeCounts
+                        connectionTypeCounts,
+                        totalTrialErrorCount,
+                        maxTrialErrorCount
                     };
                 }
 
                 stepPairCounts.push(removablePairs.length);
-                const selectedPair = pickRandomPairWithPreference(removablePairs, true);
+                let selectedPair = null;
+                let stepTrialErrorCount = 0;
+                if (humanMode) {
+                    const humanPickResult = pickHumanModePairForSimulation(boardData, direction, {
+                        besidePercent: humanModeBesidePercent
+                    });
+                    selectedPair = humanPickResult?.pair || null;
+                    stepTrialErrorCount = Math.max(
+                        0,
+                        Number.isFinite(Number(humanPickResult?.decisionFailCount))
+                            ? Number(humanPickResult.decisionFailCount)
+                            : 0
+                    );
+                } else {
+                    selectedPair = pickRandomPairWithPreference(removablePairs, true);
+                }
                 if (!selectedPair) {
                     const remainingCount = countRemovableCellCount(boardData);
                     const remainingPercent = baseCount > 0 ? (remainingCount / baseCount) * 100 : 0;
@@ -6258,9 +6473,13 @@
                         failedStepCount: stepCount,
                         failedProgressPercent: failureProgressPercent,
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-                        connectionTypeCounts
+                        connectionTypeCounts,
+                        totalTrialErrorCount,
+                        maxTrialErrorCount
                     };
                 }
+                totalTrialErrorCount += stepTrialErrorCount;
+                maxTrialErrorCount = Math.max(maxTrialErrorCount, stepTrialErrorCount);
 
                 const linkPath = findConnectionPathByLianliankan(
                     boardData,
@@ -6295,7 +6514,9 @@
                     Math.min(100, (stepCount / estimatedTotalSteps) * 100)
                 ),
                 pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-                connectionTypeCounts
+                connectionTypeCounts,
+                totalTrialErrorCount,
+                maxTrialErrorCount
             };
         }
 
@@ -6309,6 +6530,11 @@
             const safeGameCount = Number.isFinite(Number(gameCount))
                 ? Math.max(1, Math.floor(Number(gameCount)))
                 : 100;
+            const humanMode = Boolean(options?.humanMode);
+            const humanModeBesidePercent = normalizeHumanModeBesidePercent(
+                options?.humanModeBesidePercent,
+                getHumanModeBesidePercent(70)
+            );
             const targetWinRange = normalizeWinRateRangeForSimulation(
                 options?.winRateRange,
                 safeGameCount
@@ -6327,6 +6553,8 @@
             let firstHalfPairCountSum = 0;
             let secondHalfStepCount = 0;
             let secondHalfPairCountSum = 0;
+            let totalTrialErrorCountSum = 0;
+            let maxTrialErrorCount = 0;
             let quartileStepCounts = [0, 0, 0, 0];
             let quartilePairCountSums = [0, 0, 0, 0];
             let usedWorkers = false;
@@ -6354,6 +6582,8 @@
                     oneTurnCount: 0,
                     sameDirTwoTurnCount: 0,
                     reverseTwoTurnCount: 0,
+                    averageTrialErrorPerStep: 0,
+                    maxTrialErrorCount: 0,
                     stoppedEarly: true,
                     unreachable: true
                 };
@@ -6379,6 +6609,10 @@
                             total,
                             targetWinRange
                         );
+                    },
+                    {
+                        humanMode,
+                        humanModeBesidePercent
                     }
                 );
                 if (workerResult && Number.isFinite(workerResult.winCount)) {
@@ -6415,6 +6649,12 @@
                         : 0;
                     secondHalfPairCountSum = Number.isFinite(Number(workerResult.secondHalfPairCountSum))
                         ? Number(workerResult.secondHalfPairCountSum)
+                        : 0;
+                    totalTrialErrorCountSum = Number.isFinite(Number(workerResult.totalTrialErrorCountSum))
+                        ? Number(workerResult.totalTrialErrorCountSum)
+                        : 0;
+                    maxTrialErrorCount = Number.isFinite(Number(workerResult.maxTrialErrorCount))
+                        ? Number(workerResult.maxTrialErrorCount)
                         : 0;
                     const toQuartileArray = (raw) => {
                         const result = [0, 0, 0, 0];
@@ -6453,7 +6693,11 @@
                     const gameResult = simulateSingleGameWithPairStats(
                         sourceBoard,
                         direction,
-                        initialRemovableCount
+                        initialRemovableCount,
+                        {
+                            humanMode,
+                            humanModeBesidePercent
+                        }
                     );
                     if (gameResult?.cleared) {
                         winCount++;
@@ -6474,6 +6718,11 @@
                     const pairSummary = gameResult?.pairSummary || {};
                     totalStepCount += Number(pairSummary.totalStepCount) || 0;
                     totalPairCountSum += Number(pairSummary.totalPairCountSum) || 0;
+                    totalTrialErrorCountSum += Number(gameResult?.totalTrialErrorCount) || 0;
+                    maxTrialErrorCount = Math.max(
+                        maxTrialErrorCount,
+                        Number(gameResult?.maxTrialErrorCount) || 0
+                    );
                     firstHalfStepCount += Number(pairSummary.firstHalfStepCount) || 0;
                     firstHalfPairCountSum += Number(pairSummary.firstHalfPairCountSum) || 0;
                     secondHalfStepCount += Number(pairSummary.secondHalfStepCount) || 0;
@@ -6537,6 +6786,9 @@
                 ? (failureProgressPercentSum / failedGameCount)
                 : null;
             const averagePairPerStep = totalStepCount > 0 ? (totalPairCountSum / totalStepCount) : 0;
+            const averageTrialErrorPerStep = totalStepCount > 0
+                ? (totalTrialErrorCountSum / totalStepCount)
+                : 0;
             const firstHalfAveragePairCount = firstHalfStepCount > 0
                 ? (firstHalfPairCountSum / firstHalfStepCount)
                 : 0;
@@ -6584,6 +6836,8 @@
                 averageOneTurnCount,
                 averageSameDirTwoTurnCount,
                 averageReverseTwoTurnCount,
+                averageTrialErrorPerStep,
+                maxTrialErrorCount,
                 stoppedEarly,
                 unreachable
             };
@@ -6646,7 +6900,9 @@
             metrics,
             initialAdjacentMatchCount,
             initialClusterCount,
-            includeLevelColumn = true
+            includeLevelColumn = true,
+            humanMode = false,
+            humanModeBesidePercent = 70
         ) {
             const safeLevelText = (() => {
                 const levelText = String(level ?? '').trim();
@@ -6667,6 +6923,17 @@
                 formatFrontBackPairCompareForExport(metrics);
             const quartilePairAverageTexts =
                 formatQuartilePairAveragesForExport(metrics);
+            const averageTrialErrorPerStep =
+                Number(metrics?.averageTrialErrorPerStep || 0).toFixed(2);
+            const maxTrialErrorCount = Math.max(
+                0,
+                Math.round(Number(metrics?.maxTrialErrorCount) || 0)
+            );
+            const humanModeFlag = humanMode ? 1 : 0;
+            const safeHumanModeBesidePercent = normalizeHumanModeBesidePercent(
+                humanModeBesidePercent,
+                70
+            );
             const completedGames = Number.isFinite(Number(metrics?.completedGames))
                 ? Math.max(0, Number(metrics.completedGames))
                 : 0;
@@ -6709,7 +6976,8 @@
                 `${safeInitialClusterCount}\t${averagePairPerStepText}\t` +
                 `${frontBackPairCompareText}\t${zeroTurnCount.toFixed(2)}\t` +
                 `${oneTurnCount.toFixed(2)}\t${sameDirTwoTurnCount.toFixed(2)}\t` +
-                `${reverseTwoTurnCount.toFixed(2)}\t${quartilePairAverageTexts.join('\t')}`;
+                `${reverseTwoTurnCount.toFixed(2)}\t${quartilePairAverageTexts.join('\t')}\t` +
+                `${averageTrialErrorPerStep}\t${maxTrialErrorCount}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
             return includeLevelColumn ? `${safeLevelText}\t${payload}` : payload;
         }
 
@@ -6741,6 +7009,57 @@
             if (button && !button.classList.contains('simulating')) {
                 button.textContent = `模拟${safeCount}局`;
             }
+        }
+
+        function normalizeHumanModeBesidePercent(rawValue, fallback = 70) {
+            const fallbackValue = Number.isFinite(Number(fallback))
+                ? Math.max(0, Math.min(100, Math.round(Number(fallback))))
+                : 70;
+            const numeric = Number(rawValue);
+            if (!Number.isFinite(numeric)) return fallbackValue;
+            return Math.max(0, Math.min(100, Math.round(numeric)));
+        }
+
+        function getHumanModeBesidePercent(fallback = 70) {
+            const input = document.getElementById('humanModeBesidePercent');
+            const normalized = normalizeHumanModeBesidePercent(
+                input ? input.value : humanModeBesidePercent,
+                fallback
+            );
+            humanModeBesidePercent = normalized;
+            if (input && input.value !== String(normalized)) {
+                input.value = String(normalized);
+            }
+            return normalized;
+        }
+
+        function setHumanModeBesidePercent(value) {
+            humanModeBesidePercent = normalizeHumanModeBesidePercent(value, 70);
+            const input = document.getElementById('humanModeBesidePercent');
+            if (input) input.value = String(humanModeBesidePercent);
+            return humanModeBesidePercent;
+        }
+
+        function handleHumanModeBesidePercentInput() {
+            getHumanModeBesidePercent(70);
+        }
+
+        function renderStatsLocalHumanModeToggle() {
+            const button = document.getElementById('btnStatsLocalHumanMode');
+            if (!button) return;
+            const enabled = Boolean(statsLocalHumanModeEnabled);
+            button.classList.toggle('active', enabled);
+            button.textContent = enabled ? '人类模式：开' : '人类模式：关';
+            button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        }
+
+        function toggleStatsLocalHumanMode(forceValue = null) {
+            if (forceValue === null || forceValue === undefined) {
+                statsLocalHumanModeEnabled = !statsLocalHumanModeEnabled;
+            } else {
+                statsLocalHumanModeEnabled = Boolean(forceValue);
+            }
+            renderStatsLocalHumanModeToggle();
         }
 
         function updateSimulateButtonProgress(progressPercent, labelText, targetButton = null) {
@@ -6776,6 +7095,7 @@ self.onmessage = function(event) {
   const games = Number.isInteger(payload.games) ? payload.games : 0;
   const boardData = Array.isArray(payload.boardData) ? payload.boardData : [];
   const direction = Number.isInteger(payload.direction) ? payload.direction : 0;
+  const options = payload && typeof payload.options === 'object' ? payload.options : {};
   if (payload.type === 'cancel') {
     if (taskId > 0) canceledTaskIds.add(taskId);
     return;
@@ -6785,7 +7105,7 @@ self.onmessage = function(event) {
     return;
   }
   if (payload.type === 'run_pair_metrics') {
-    runBatchPairMetrics(games, boardData, direction, taskId);
+    runBatchPairMetrics(games, boardData, direction, taskId, options);
     return;
   }
 };
@@ -6794,6 +7114,15 @@ const canceledTaskIds = new Set();
 
 function isTaskCanceled(taskId) {
   return Number.isInteger(taskId) && taskId > 0 && canceledTaskIds.has(taskId);
+}
+
+function normalizeHumanModeBesidePercent(value, fallbackValue) {
+  const fallback = Number.isFinite(Number(fallbackValue))
+    ? Math.max(0, Math.min(100, Math.round(Number(fallbackValue))))
+    : 70;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
 }
 
 const EMPTY_CELL_ID = 0;
@@ -7296,6 +7625,244 @@ function pickRandomPairWithPreference(pairs, preferAdjacent) {
   return pickRandomPair(pairs);
 }
 
+function buildHumanModeVisibleTiles(boardData) {
+  const tiles = [];
+  const typeBuckets = new Map();
+  if (!Array.isArray(boardData)) {
+    return { tiles, typeBuckets };
+  }
+  for (let row = 0; row < boardData.length; row++) {
+    const line = boardData[row];
+    if (!Array.isArray(line)) continue;
+    for (let col = 0; col < line.length; col++) {
+      const baseId = getMatchableBaseId(line[col]);
+      if (baseId === null) continue;
+      const tile = { row, col, baseId };
+      tiles.push(tile);
+      if (!typeBuckets.has(baseId)) typeBuckets.set(baseId, []);
+      typeBuckets.get(baseId).push(tile);
+    }
+  }
+  return { tiles, typeBuckets };
+}
+
+function buildHumanModeAnchorKey(tile) {
+  if (!tile) return '';
+  return tile.row + '_' + tile.col + '_' + tile.baseId;
+}
+
+function pickHumanModeAnchor(tiles, typeBuckets, usedAnchorKeys, blockedBaseIds) {
+  if (!Array.isArray(tiles) || tiles.length === 0) return null;
+  const candidates = [];
+  for (const tile of tiles) {
+    if (!tile) continue;
+    const key = buildHumanModeAnchorKey(tile);
+    if (usedAnchorKeys instanceof Set && usedAnchorKeys.has(key)) continue;
+    if (blockedBaseIds instanceof Set && blockedBaseIds.has(tile.baseId)) continue;
+    const bucket = Array.isArray(typeBuckets.get(tile.baseId)) ? typeBuckets.get(tile.baseId) : [];
+    if (bucket.length <= 1) continue;
+    let nearestDistance = Infinity;
+    for (const other of bucket) {
+      if (!other || (other.row === tile.row && other.col === tile.col)) continue;
+      const distance = Math.abs(other.row - tile.row) + Math.abs(other.col - tile.col);
+      if (distance < nearestDistance) nearestDistance = distance;
+    }
+    if (!Number.isFinite(nearestDistance)) continue;
+    let salience = 0;
+    if (nearestDistance <= 2) salience += 3.2;
+    else if (nearestDistance <= 4) salience += 2.4;
+    else if (nearestDistance <= 6) salience += 1.5;
+    else salience += 0.8;
+    if (tile.row <= 1 || tile.col <= 1) salience += 0.35;
+    salience += (Math.random() - 0.5) * 0.9;
+    candidates.push({ tile, salience });
+  }
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b.salience - a.salience);
+  const obviousTake = Math.max(1, Math.min(6, candidates.length));
+  const obviousPool = candidates.slice(0, obviousTake);
+  if (Math.random() < 0.78) {
+    const pick = obviousPool[Math.floor(Math.random() * obviousPool.length)];
+    return pick ? pick.tile : null;
+  }
+  const randomPick = candidates[Math.floor(Math.random() * candidates.length)];
+  return randomPick ? randomPick.tile : null;
+}
+
+function pickHumanModeMoveByScore(scoredMoves) {
+  if (!Array.isArray(scoredMoves) || scoredMoves.length === 0) return null;
+  const sorted = scoredMoves.slice().sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+  const topPool = sorted.slice(0, Math.max(1, Math.min(4, sorted.length)));
+  const bestScore = Number(topPool[0] ? topPool[0].score : 0) || 0;
+  const temperature = 0.75 + (Math.random() * 0.85);
+  const weights = topPool.map((item) => {
+    const value = Number(item && item.score);
+    if (!Number.isFinite(value)) return 0.05;
+    return Math.max(0.03, Math.exp((value - bestScore) / Math.max(0.25, temperature)));
+  });
+  const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+  if (!(totalWeight > 0)) return topPool[0] || null;
+  let randomValue = Math.random() * totalWeight;
+  for (let index = 0; index < topPool.length; index++) {
+    randomValue -= weights[index];
+    if (randomValue <= 0) return topPool[index];
+  }
+  return topPool[topPool.length - 1] || null;
+}
+
+function getHumanModeAdjacentScoredMoves(scoredMoves) {
+  if (!Array.isArray(scoredMoves)) return [];
+  return scoredMoves.filter((item) => Number(item && item.distance) === 1);
+}
+
+function shouldPreferAdjacentMoveByProbability(besidePercent) {
+  const probability = normalizeHumanModeBesidePercent(besidePercent, 70);
+  if (probability <= 0) return false;
+  if (probability >= 100) return true;
+  return Math.random() < (probability / 100);
+}
+
+function getConnectionDifficultyRank(connectionType, turnCount) {
+  if (connectionType === '直线连接') return 0;
+  if (connectionType === '1拐连接') return 1;
+  if (connectionType === '同向2拐') return 2;
+  if (connectionType === '反向2拐') return 3;
+  const numericTurn = Number(turnCount);
+  if (!Number.isFinite(numericTurn) || numericTurn <= 0) return 0;
+  if (numericTurn === 1) return 1;
+  return 3;
+}
+
+function estimateHumanModePairScore(boardData, pair, direction) {
+  if (!Array.isArray(boardData) || !pair) return 0;
+  const distance = Math.abs(pair.row1 - pair.row2) + Math.abs(pair.col1 - pair.col2);
+  const path = findConnectionPathByLianliankan(
+    boardData,
+    pair.row1,
+    pair.col1,
+    pair.row2,
+    pair.col2
+  );
+  const pathNodeCount = Array.isArray(path) ? path.length : 0;
+  const turnCount = Math.max(0, pathNodeCount - 2);
+  const connectionType = getPlayConnectionTypeByPath(path);
+  const connectionDifficultyRank = getConnectionDifficultyRank(connectionType, turnCount);
+  const simulatedBoard = cloneBoardData(boardData);
+  const firstValue = simulatedBoard[pair.row1] ? simulatedBoard[pair.row1][pair.col1] : 0;
+  const selectedBaseId = getMatchableBaseId(firstValue);
+  const removedPositions = removePairFromBoard(simulatedBoard, pair);
+  triggerAdjacentMechanisms(simulatedBoard, removedPositions);
+  if (selectedBaseId === BOMB_CELL_ID) {
+    triggerBombEffect(simulatedBoard);
+  }
+  applyDirectionShiftUntilStable(simulatedBoard, direction);
+  const nextRemovablePairs = getRemovablePairsForBoard(simulatedBoard);
+  const nextPairCount = Array.isArray(nextRemovablePairs) ? nextRemovablePairs.length : 0;
+  const centerRow = (simulatedBoard.length - 1) / 2;
+  const centerCol = ((simulatedBoard[0] ? simulatedBoard[0].length : 1) - 1) / 2;
+  const centerBias = (
+    (4 - Math.min(4, Math.abs(pair.row1 - centerRow) + Math.abs(pair.col1 - centerCol))) +
+    (4 - Math.min(4, Math.abs(pair.row2 - centerRow) + Math.abs(pair.col2 - centerCol)))
+  ) * 0.12;
+  const obviousScore =
+    (distance <= 2 ? 2.4 : (distance <= 4 ? 1.8 : 1.2)) +
+    (connectionDifficultyRank === 0
+      ? 1.35
+      : (connectionDifficultyRank === 1 ? 0.78 : (connectionDifficultyRank === 2 ? 0.35 : 0.12)));
+  return {
+    score: (obviousScore * (0.6 + (Math.random() * 0.35))) +
+      (nextPairCount * (0.35 + (Math.random() * 0.25))) +
+      centerBias +
+      ((Math.random() - 0.5) * 1.2) -
+      (connectionDifficultyRank * 0.2),
+    distance,
+    connectionType
+  };
+}
+
+function pickHumanModePairForSimulation(boardData, direction, options) {
+  const besidePercent = normalizeHumanModeBesidePercent(options && options.besidePercent, 70);
+  const removablePairs = getRemovablePairsForBoard(boardData);
+  if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
+    return { pair: null, decisionFailCount: 0 };
+  }
+  const { tiles, typeBuckets } = buildHumanModeVisibleTiles(boardData);
+  const usedAnchorKeys = new Set();
+  const rejectedBaseIds = new Set();
+  const anchorPairMap = new Map();
+  for (const pair of removablePairs) {
+    const firstValue = boardData[pair.row1] ? boardData[pair.row1][pair.col1] : null;
+    const secondValue = boardData[pair.row2] ? boardData[pair.row2][pair.col2] : null;
+    const firstBaseId = getMatchableBaseId(firstValue);
+    const secondBaseId = getMatchableBaseId(secondValue);
+    if (firstBaseId === null || secondBaseId === null || firstBaseId !== secondBaseId) continue;
+    const firstKey = buildHumanModeAnchorKey({ row: pair.row1, col: pair.col1, baseId: firstBaseId });
+    const secondKey = buildHumanModeAnchorKey({ row: pair.row2, col: pair.col2, baseId: secondBaseId });
+    if (!anchorPairMap.has(firstKey)) anchorPairMap.set(firstKey, []);
+    if (!anchorPairMap.has(secondKey)) anchorPairMap.set(secondKey, []);
+    anchorPairMap.get(firstKey).push(pair);
+    anchorPairMap.get(secondKey).push({
+      row1: pair.row2,
+      col1: pair.col2,
+      row2: pair.row1,
+      col2: pair.col1,
+      adjacent: pair.adjacent
+    });
+  }
+
+  const scoredMoves = [];
+  const failedBaseSummaries = [];
+  const anchorTryLimit = Math.max(1, Number(typeBuckets.size) || 1);
+  let anchorsTried = 0;
+  while (anchorsTried < anchorTryLimit) {
+    const anchor = pickHumanModeAnchor(tiles, typeBuckets, usedAnchorKeys, rejectedBaseIds);
+    if (!anchor) break;
+    anchorsTried++;
+    usedAnchorKeys.add(buildHumanModeAnchorKey(anchor));
+    const anchorCandidates = Array.isArray(anchorPairMap.get(buildHumanModeAnchorKey(anchor)))
+      ? anchorPairMap.get(buildHumanModeAnchorKey(anchor))
+      : [];
+    if (anchorCandidates.length === 0) {
+      rejectedBaseIds.add(anchor.baseId);
+      failedBaseSummaries.push(anchor.baseId);
+      continue;
+    }
+    for (const candidate of anchorCandidates) {
+      const estimate = estimateHumanModePairScore(boardData, candidate, direction);
+      scoredMoves.push({
+        move: {
+          row1: Number(candidate.row1),
+          col1: Number(candidate.col1),
+          row2: Number(candidate.row2),
+          col2: Number(candidate.col2)
+        },
+        score: estimate.score,
+        distance: estimate.distance,
+        connectionType: estimate.connectionType
+      });
+    }
+    if (scoredMoves.length > 0 && Math.random() < 0.8) break;
+  }
+
+  if (scoredMoves.length === 0) {
+    const fallbackPair = pickRandomPairWithPreference(removablePairs, true);
+    return {
+      pair: fallbackPair || null,
+      decisionFailCount: Math.max(1, failedBaseSummaries.length || 1)
+    };
+  }
+
+  const adjacentMoves = getHumanModeAdjacentScoredMoves(scoredMoves);
+  const preferAdjacent = adjacentMoves.length > 0 && shouldPreferAdjacentMoveByProbability(besidePercent);
+  const selected = preferAdjacent
+    ? (pickHumanModeMoveByScore(adjacentMoves) || pickHumanModeMoveByScore(scoredMoves))
+    : pickHumanModeMoveByScore(scoredMoves);
+  return {
+    pair: selected && selected.move ? selected.move : null,
+    decisionFailCount: Math.max(0, failedBaseSummaries.length)
+  };
+}
+
 function summarizeStepPairCounts(stepPairCounts, totalProgressSteps) {
   if (!Array.isArray(stepPairCounts) || stepPairCounts.length === 0) {
     return {
@@ -7404,13 +7971,20 @@ function accumulateConnectionTypeCount(summary, connectionType) {
   }
 }
 
-function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemovableCount) {
+function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemovableCount, options) {
+  const humanMode = Boolean(options && options.humanMode);
+  const humanModeBesidePercent = normalizeHumanModeBesidePercent(
+    options && options.humanModeBesidePercent,
+    70
+  );
   const boardData = cloneBoardData(baseBoardData);
   const baseCount = Number.isFinite(Number(initialRemovableCount))
     ? Math.max(0, Number(initialRemovableCount))
     : countRemovableCellCount(baseBoardData);
   const estimatedTotalSteps = Math.max(1, Math.floor(baseCount / 2));
   const connectionTypeCounts = createConnectionTypeCountSummary();
+  let totalTrialErrorCount = 0;
+  let maxTrialErrorCount = 0;
   if (!hasFilledCells(boardData)) {
     return {
       cleared: false,
@@ -7419,7 +7993,9 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       failedStepCount: 0,
       failedProgressPercent: 0,
       pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
-      connectionTypeCounts
+      connectionTypeCounts,
+      totalTrialErrorCount: 0,
+      maxTrialErrorCount: 0
     };
   }
 
@@ -7460,7 +8036,22 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     }
 
     stepPairCounts.push(removablePairs.length);
-    const selectedPair = pickRandomPairWithPreference(removablePairs, true);
+    let selectedPair = null;
+    let stepTrialErrorCount = 0;
+    if (humanMode) {
+      const humanPickResult = pickHumanModePairForSimulation(boardData, direction, {
+        besidePercent: humanModeBesidePercent
+      });
+      selectedPair = humanPickResult && humanPickResult.pair ? humanPickResult.pair : null;
+      stepTrialErrorCount = Math.max(
+        0,
+        Number.isFinite(Number(humanPickResult && humanPickResult.decisionFailCount))
+          ? Number(humanPickResult.decisionFailCount)
+          : 0
+      );
+    } else {
+      selectedPair = pickRandomPairWithPreference(removablePairs, true);
+    }
     if (!selectedPair) {
       const remainingCount = countRemovableCellCount(boardData);
       const remainingPercent = baseCount > 0 ? (remainingCount / baseCount) * 100 : 0;
@@ -7475,9 +8066,13 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         failedStepCount: stepCount,
         failedProgressPercent: failureProgressPercent,
         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-        connectionTypeCounts
+        connectionTypeCounts,
+        totalTrialErrorCount,
+        maxTrialErrorCount
       };
     }
+    totalTrialErrorCount += stepTrialErrorCount;
+    maxTrialErrorCount = Math.max(maxTrialErrorCount, stepTrialErrorCount);
 
     const linkPath = findConnectionPathByLianliankan(
       boardData,
@@ -7512,7 +8107,9 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       Math.min(100, (stepCount / estimatedTotalSteps) * 100)
     ),
     pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-    connectionTypeCounts
+    connectionTypeCounts,
+    totalTrialErrorCount,
+    maxTrialErrorCount
   };
 }
 
@@ -7925,7 +8522,7 @@ function runBatch(games, baseBoardData, direction, taskId) {
   postMessage({ type: 'done', taskId });
 }
 
-function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
+function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
   let partialCompleted = 0;
   let partialWins = 0;
   let partialFailedGames = 0;
@@ -7944,6 +8541,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
   let partialOneTurnCount = 0;
   let partialSameDirTwoTurnCount = 0;
   let partialReverseTwoTurnCount = 0;
+  let partialTotalTrialErrorCountSum = 0;
+  let partialMaxTrialErrorCount = 0;
   const initialRemovableCount = countRemovableCellCount(baseBoardData);
 
   for (let gameIndex = 0; gameIndex < games; gameIndex++) {
@@ -7952,7 +8551,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
       postMessage({ type: 'done_pair_metrics', taskId, canceled: true });
       return;
     }
-    const gameResult = simulateSingleGameWithPairStats(baseBoardData, direction, initialRemovableCount);
+    const gameResult = simulateSingleGameWithPairStats(
+      baseBoardData,
+      direction,
+      initialRemovableCount,
+      options
+    );
     if (gameResult && gameResult.cleared) {
       partialWins++;
     } else {
@@ -8002,6 +8606,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
     partialOneTurnCount += Number(connectionTypeCounts.oneTurnCount) || 0;
     partialSameDirTwoTurnCount += Number(connectionTypeCounts.sameDirTwoTurnCount) || 0;
     partialReverseTwoTurnCount += Number(connectionTypeCounts.reverseTwoTurnCount) || 0;
+    partialTotalTrialErrorCountSum += Number(gameResult && gameResult.totalTrialErrorCount) || 0;
+    partialMaxTrialErrorCount = Math.max(
+      partialMaxTrialErrorCount,
+      Number(gameResult && gameResult.maxTrialErrorCount) || 0
+    );
     partialCompleted++;
 
     if (partialCompleted >= 2) {
@@ -8025,7 +8634,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
         zeroTurnCount: partialZeroTurnCount,
         oneTurnCount: partialOneTurnCount,
         sameDirTwoTurnCount: partialSameDirTwoTurnCount,
-        reverseTwoTurnCount: partialReverseTwoTurnCount
+        reverseTwoTurnCount: partialReverseTwoTurnCount,
+        totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
+        maxTrialErrorCount: partialMaxTrialErrorCount
       });
       partialCompleted = 0;
       partialWins = 0;
@@ -8045,6 +8656,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
       partialOneTurnCount = 0;
       partialSameDirTwoTurnCount = 0;
       partialReverseTwoTurnCount = 0;
+      partialTotalTrialErrorCountSum = 0;
+      partialMaxTrialErrorCount = 0;
     }
   }
 
@@ -8069,7 +8682,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
       zeroTurnCount: partialZeroTurnCount,
       oneTurnCount: partialOneTurnCount,
       sameDirTwoTurnCount: partialSameDirTwoTurnCount,
-      reverseTwoTurnCount: partialReverseTwoTurnCount
+      reverseTwoTurnCount: partialReverseTwoTurnCount,
+      totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
+      maxTrialErrorCount: partialMaxTrialErrorCount
     });
   }
   canceledTaskIds.delete(taskId);
@@ -8326,7 +8941,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             direction,
             gameCount,
             onProgress,
-            shouldStop
+            shouldStop,
+            options = {}
         ) {
             if (typeof Worker === 'undefined' || typeof Blob === 'undefined' || typeof URL === 'undefined') {
                 return null;
@@ -8371,6 +8987,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 let oneTurnCount = 0;
                 let sameDirTwoTurnCount = 0;
                 let reverseTwoTurnCount = 0;
+                let totalTrialErrorCountSum = 0;
+                let maxTrialErrorCount = 0;
                 let finishedWorkers = 0;
                 let settled = false;
                 let launchedWorkerCount = 0;
@@ -8482,6 +9100,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             const reverseTwoTurn = Number.isFinite(Number(data.reverseTwoTurnCount))
                                 ? Number(data.reverseTwoTurnCount)
                                 : 0;
+                            const trialErrorCountSum = Number.isFinite(Number(data.totalTrialErrorCountSum))
+                                ? Number(data.totalTrialErrorCountSum)
+                                : 0;
+                            const trialErrorMax = Number.isFinite(Number(data.maxTrialErrorCount))
+                                ? Number(data.maxTrialErrorCount)
+                                : 0;
 
                             completedGames += done;
                             winCount += wins;
@@ -8503,6 +9127,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             oneTurnCount += oneTurn;
                             sameDirTwoTurnCount += sameDirTwoTurn;
                             reverseTwoTurnCount += reverseTwoTurn;
+                            totalTrialErrorCountSum += trialErrorCountSum;
+                            maxTrialErrorCount = Math.max(maxTrialErrorCount, trialErrorMax);
 
                             if (typeof onProgress === 'function') {
                                 onProgress(completedGames, gameCount, winCount);
@@ -8532,6 +9158,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                     oneTurnCount,
                                     sameDirTwoTurnCount,
                                     reverseTwoTurnCount,
+                                    totalTrialErrorCountSum,
+                                    maxTrialErrorCount,
                                     stoppedEarly: true
                                 });
                             }
@@ -8561,6 +9189,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 oneTurnCount,
                                 sameDirTwoTurnCount,
                                 reverseTwoTurnCount,
+                                totalTrialErrorCountSum,
+                                maxTrialErrorCount,
                                 stoppedEarly: false
                             });
                         }
@@ -8575,7 +9205,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         taskId,
                         games,
                         boardData: sourceBoard,
-                        direction
+                        direction,
+                        options: {
+                            humanMode: Boolean(options?.humanMode),
+                            humanModeBesidePercent: normalizeHumanModeBesidePercent(
+                                options?.humanModeBesidePercent,
+                                70
+                            )
+                        }
                     });
                 });
             });
@@ -8608,6 +9245,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const direction = (playModeState && playModeState.active)
                 ? playModeState.direction
                 : parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0);
+            const humanMode = Boolean(options?.humanMode ?? statsLocalHumanModeEnabled);
+            const humanModeBesidePercent = normalizeHumanModeBesidePercent(
+                options?.humanModeBesidePercent,
+                getHumanModeBesidePercent(70)
+            );
 
             if (!hasFilledCells(sourceBoard)) {
                 alert('请先生成关卡，再进行模拟试玩。');
@@ -8657,6 +9299,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 progressButton
                             );
                         }
+                    },
+                    {
+                        humanMode,
+                        humanModeBesidePercent
                     }
                 );
                 const winCount = Number(simulationResult?.winCount) || 0;
@@ -8664,6 +9310,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 const resultText = `${winCount}/${gameCount}（${winRate.toFixed(2)}%）`;
                 const statsSimulation = document.getElementById('levelStatsSimulation');
                 if (statsSimulation) statsSimulation.textContent = resultText;
+                const avgTrialError = Number(simulationResult?.averageTrialErrorPerStep) || 0;
+                const maxTrialError = Number(simulationResult?.maxTrialErrorCount) || 0;
+                const avgTrialEl = document.getElementById('levelStatsAvgTrialError');
+                if (avgTrialEl) avgTrialEl.textContent = avgTrialError.toFixed(2);
+                const maxTrialEl = document.getElementById('levelStatsMaxTrialError');
+                if (maxTrialEl) maxTrialEl.textContent = String(Math.max(0, Math.round(maxTrialError)));
 
                 const initialAdjacentMatchCount = countInitialAdjacentMatchPairs(sourceBoard);
                 const initialClusterCount = countInitialClusterCount(sourceBoard, 4);
@@ -8675,7 +9327,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     simulationResult,
                     initialAdjacentMatchCount,
                     initialClusterCount,
-                    false
+                    false,
+                    humanMode,
+                    humanModeBesidePercent
                 );
 
                 const info = document.getElementById('info');
@@ -8695,13 +9349,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 if (info) {
                     if (!shouldCopyResult) {
                         info.textContent = `模拟试玩完成：胜利 ${winCount} 局 / ${gameCount} 局，` +
-                            `胜率 ${winRate.toFixed(2)}%`;
+                            `胜率 ${winRate.toFixed(2)}%，模式：${humanMode ? `人类模式(相邻优先${humanModeBesidePercent}%)` : '标准模式'}`;
                     } else {
                         info.textContent = copied
                             ? `模拟试玩完成：胜利 ${winCount} 局 / ${gameCount} 局，` +
-                                `胜率 ${winRate.toFixed(2)}%，结果已复制到剪贴板`
+                                `胜率 ${winRate.toFixed(2)}%，模式：${humanMode ? `人类模式(相邻优先${humanModeBesidePercent}%)` : '标准模式'}，结果已复制到剪贴板`
                             : `模拟试玩完成：胜利 ${winCount} 局 / ${gameCount} 局，` +
-                                `胜率 ${winRate.toFixed(2)}%（复制失败，请检查剪贴板权限）`;
+                                `胜率 ${winRate.toFixed(2)}%，模式：${humanMode ? `人类模式(相邻优先${humanModeBesidePercent}%)` : '标准模式'}（复制失败，请检查剪贴板权限）`;
                     }
                 }
             } finally {
@@ -12267,6 +12921,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 rawItem,
                 ['testnum', 'test_num', 'testNum', '测试局数', '模拟局数']
             );
+            const humanModeRaw = getCampaignConfigValue(
+                rawItem,
+                ['humanMode', 'human_mode', 'renleimoshi', '人类模式']
+            );
+            const humanModeBesideRaw = getCampaignConfigValue(
+                rawItem,
+                ['humanmode_beside', 'humanModeBeside', 'human_mode_beside', '人类模式相邻优先概率']
+            );
 
             const count8Range = normalizeIntegerRange(count8Raw, [0, 0], 0, 200);
             const count6Range = normalizeIntegerRange(count6Raw, [0, 0], 0, 200);
@@ -12280,6 +12942,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const testNum = Number.isFinite(Number(testNumRaw))
                 ? Math.max(1, Math.min(10000, Math.round(Number(testNumRaw))))
                 : 100;
+            const humanMode = Number.isFinite(Number(humanModeRaw))
+                ? Number(humanModeRaw) === 1
+                : /^(true|on|yes|human)$/i.test(String(humanModeRaw || '').trim());
+            const humanModeBesidePercent = normalizeHumanModeBesidePercent(humanModeBesideRaw, 70);
             const maxAdjacentPairCount =
                 (boardTemplate.length * Math.max(0, (boardTemplate[0]?.length || 0) - 1)) +
                 ((boardTemplate.length - 1) * (boardTemplate[0]?.length || 0));
@@ -12306,6 +12972,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 remainRange,
                 testNum,
                 matchNumRange,
+                humanMode,
+                humanModeBesidePercent,
                 jump: false
             };
         }
@@ -12491,7 +13159,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 },
                                 {
                                     winRateRange: parsedLevel.winRateRange,
-                                    enableUnreachableEarlyStop: true
+                                    enableUnreachableEarlyStop: true,
+                                    humanMode: Boolean(parsedLevel.humanMode),
+                                    humanModeBesidePercent: normalizeHumanModeBesidePercent(
+                                        parsedLevel.humanModeBesidePercent,
+                                        70
+                                    )
                                 }
                             );
                             if (simulationResult.unreachable) {
@@ -12536,7 +13209,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             zeroTurnCount: 0,
                             oneTurnCount: 0,
                             sameDirTwoTurnCount: 0,
-                            reverseTwoTurnCount: 0
+                            reverseTwoTurnCount: 0,
+                            averageTrialErrorPerStep: 0,
+                            maxTrialErrorCount: 0
                         };
                         const initialAdjacentMatchCount = Math.max(
                             0,
@@ -12552,7 +13227,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                             matchedWinRate,
                             pairMetrics,
                             initialAdjacentMatchCount,
-                            initialClusterCount
+                            initialClusterCount,
+                            true,
+                            Boolean(parsedLevel.humanMode),
+                            normalizeHumanModeBesidePercent(parsedLevel.humanModeBesidePercent, 70)
                         ) + '\n';
                         successCount++;
 
@@ -12635,13 +13313,25 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 .filter(Boolean);
 
             for (const line of lines) {
-                const firstTab = line.indexOf('\t');
-                const lastTab = line.lastIndexOf('\t');
-                if (firstTab <= 0 || lastTab <= firstTab) continue;
-                const levelName = line.slice(0, firstTab).trim();
-                const boardText = line.slice(firstTab + 1, lastTab).trim();
-                const directionText = line.slice(lastTab + 1).trim();
-                if (!levelName) continue;
+                const columns = line.split('\t').map((item) => item.trim());
+                if (columns.length < 3) continue;
+                const levelName = String(columns[0] || '').trim();
+                const boardText = String(columns[1] || '').trim();
+                const directionText = String(columns[2] || '').trim();
+                let humanModeRaw = '';
+                let humanModeBesideRaw = '';
+                if (columns.length >= 5) {
+                    humanModeRaw = String(columns[columns.length - 2] || '').trim();
+                    humanModeBesideRaw = String(columns[columns.length - 1] || '').trim();
+                } else if (columns.length >= 4) {
+                    const optionalRaw = String(columns[columns.length - 1] || '').trim();
+                    if (/^(0|1|true|false|on|off|yes|no|human)$/i.test(optionalRaw)) {
+                        humanModeRaw = optionalRaw;
+                    } else {
+                        humanModeBesideRaw = optionalRaw;
+                    }
+                }
+                if (!levelName || !boardText) continue;
 
                 let rawBoard = null;
                 try {
@@ -12655,10 +13345,19 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 const rawDirection = Number(directionText);
                 if (!Number.isFinite(rawDirection)) continue;
                 const direction = Math.max(0, Math.min(8, Math.round(rawDirection)));
+                const humanMode = Number.isFinite(Number(humanModeRaw))
+                    ? Number(humanModeRaw) === 1
+                    : /^(true|on|yes|human)$/i.test(humanModeRaw);
+                const humanModeBesidePercent = normalizeHumanModeBesidePercent(
+                    humanModeBesideRaw,
+                    70
+                );
                 result.push({
                     levelName,
                     boardData,
-                    direction
+                    direction,
+                    humanMode,
+                    humanModeBesidePercent
                 });
             }
             return result;
@@ -12715,6 +13414,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                     `批量计算中：${index + 1}/${totalLevels}（${levelName}），` +
                                     `模拟 ${safeCompletedGames}/${safeTotalGames}`;
                             }
+                        },
+                        {
+                            humanMode: Boolean(levelItem.humanMode),
+                            humanModeBesidePercent: normalizeHumanModeBesidePercent(
+                                levelItem.humanModeBesidePercent,
+                                70
+                            )
                         }
                     );
 
@@ -12727,7 +13433,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         simulationResult.winRate,
                         simulationResult,
                         initialAdjacentMatchCount,
-                        initialClusterCount
+                        initialClusterCount,
+                        true,
+                        Boolean(levelItem.humanMode),
+                        normalizeHumanModeBesidePercent(levelItem.humanModeBesidePercent, 70)
                     ) + '\n';
 
                     if (index % 2 === 0) {
@@ -12914,10 +13623,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 ? String(Math.max(0, Number(item.clearedCardCountAfter)))
                 : '-';
             const resultText = outcomeLabel || '-';
+            const preStepTrialErrorCountText = Number.isFinite(Number(item.preStepDecisionFailCount))
+                ? String(Math.max(0, Number(item.preStepDecisionFailCount)))
+                : '0';
             const cellEntries = [
                 ['操作坐标', item.moveText || '未给出'],
                 ['候选数', Number.isFinite(Number(item.candidateCount)) ? String(Math.max(0, Number(item.candidateCount))) : '-'],
                 ['连接/拐点', `${item.connectionType || '-'} / ${Number.isFinite(Number(item.turnCount)) ? Number(item.turnCount) : '-'}`],
+                ['前置试错次数', preStepTrialErrorCountText],
                 ['局面结果', resultText],
                 ['剩余牌数', remainingCardText],
                 ['已消除牌数', clearedCardText],
@@ -13076,6 +13789,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 clearedCardCountBefore: Number(stepPayload.clearedCardCountBefore),
                 clearedCardCountAfter: Number(stepPayload.clearedCardCountAfter),
                 gameOutcome: String(stepPayload.gameOutcome || ''),
+                preStepDecisionFailCount: Number(stepPayload.preStepDecisionFailCount),
                 feelingLevel: String(stepPayload.feelingLevel || ''),
                 feelingDetail: String(stepPayload.feelingDetail || ''),
                 thought: String(stepPayload.thought || ''),
@@ -13670,6 +14384,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 agentUiState.playSessionSignature = '';
                 agentUiState.playSessionReviewSignature = '';
                 agentUiState.playSessionInitialRemovableCount = 0;
+                agentUiState.pendingDecisionFailCount = 0;
                 agentUiState.stepMemory = [];
                 agentUiState.lastActionResult = null;
                 renderAgentMemoryPanel();
@@ -13687,6 +14402,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 agentUiState.playSessionInitialRemovableCount = Number.isFinite(Number(initialCount))
                     ? Math.max(0, Math.round(Number(initialCount)))
                     : 0;
+                agentUiState.pendingDecisionFailCount = 0;
                 agentUiState.stepMemory = [];
                 agentUiState.lastActionResult = null;
                 renderAgentMemoryPanel();
@@ -13867,11 +14583,30 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
 
         function getAgentMemoryTrendViewOptions() {
             return [
-                { key: 'avg_candidate', label: '均候选' },
-                { key: 'thinking_complexity', label: '思考复杂度' },
+                { key: 'pair_count', label: '可配对数' },
+                { key: 'connection_distance', label: '连接距离' },
                 { key: 'trial_error_count', label: '试错次数' },
                 { key: 'pair_delta_after_move', label: '操作后配对数变动' }
             ];
+        }
+
+        function computeAgentStepConnectionDistance(record) {
+            const direct = Number(record?.connectionDistance);
+            if (Number.isFinite(direct) && direct >= 0) {
+                return direct;
+            }
+            const move = record?.move && typeof record.move === 'object'
+                ? record.move
+                : null;
+            if (!move) return null;
+            const row1 = Number(move.row1);
+            const col1 = Number(move.col1);
+            const row2 = Number(move.row2);
+            const col2 = Number(move.col2);
+            if (![row1, col1, row2, col2].every(Number.isFinite)) {
+                return null;
+            }
+            return Math.abs(row1 - row2) + Math.abs(col1 - col2);
         }
 
         function computeAgentStepTrialErrorCount(record, options = {}) {
@@ -13896,39 +14631,41 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
 
         function buildAgentMemoryTrendPoints(records, viewKey) {
             const points = [];
-            let runningCandidateSum = 0;
-            let runningCandidateCount = 0;
             for (const record of records) {
                 const step = Number(record?.step) || 0;
-                if (viewKey === 'avg_candidate') {
-                    const candidateCount = Number(record?.candidateCountBefore);
-                    if (!Number.isFinite(candidateCount) || candidateCount < 0) continue;
-                    runningCandidateSum += candidateCount;
-                    runningCandidateCount++;
-                    const value = runningCandidateSum / Math.max(1, runningCandidateCount);
-                    points.push({
-                        step,
-                        value,
-                        tip: `第${step}步：均候选 ${value.toFixed(2)}`
-                    });
-                    continue;
-                }
-                if (viewKey === 'thinking_complexity') {
-                    const value = Number(record?.thinkingComplexity);
+                if (viewKey === 'pair_count') {
+                    const pairCount = Number(record?.remainingPairsBefore);
+                    const fallbackPairCount = Number(record?.candidateCountBefore);
+                    const value = Number.isFinite(pairCount) && pairCount >= 0
+                        ? pairCount
+                        : fallbackPairCount;
                     if (!Number.isFinite(value) || value < 0) continue;
                     points.push({
                         step,
                         value,
-                        tip: `第${step}步：思考复杂度 ${value.toFixed(2)}`
+                        tip: `第${step}步：可配对数 ${Math.round(value)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'connection_distance') {
+                    const value = computeAgentStepConnectionDistance(record);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：连接距离 ${Number.isInteger(value) ? value : value.toFixed(2)}`
                     });
                     continue;
                 }
                 if (viewKey === 'trial_error_count') {
-                    const value = computeAgentStepTrialErrorCount(record);
+                    const preStepFails = Number(record?.preStepDecisionFailCount);
+                    const value = Number.isFinite(preStepFails) && preStepFails >= 0
+                        ? Math.round(preStepFails)
+                        : computeAgentStepTrialErrorCount(record);
                     points.push({
                         step,
                         value,
-                        tip: `第${step}步：试错次数 ${value}`
+                        tip: `第${step}步：前置试错次数 ${value}`
                     });
                     continue;
                 }
@@ -13965,37 +14702,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const title = document.createElement('div');
             title.className = 'agent-memory-title';
             title.textContent = '每步记忆面板';
-            const summary = document.createElement('div');
-            summary.className = 'agent-memory-summary';
-            const stepCount = history.length;
-            const lastRemaining = Number(history[history.length - 1]?.remainingPairsAfter);
-            const candidateAvg = history
-                .map((item) => Number(item?.candidateCountBefore))
-                .filter((value) => Number.isFinite(value) && value >= 0);
-            const turnAvg = history
-                .map((item) => Number(item?.turnCount))
-                .filter((value) => Number.isFinite(value) && value >= 0);
-            const avgCandidate = candidateAvg.length > 0
-                ? (candidateAvg.reduce((sum, value) => sum + value, 0) / candidateAvg.length)
-                : 0;
-            const avgTurn = turnAvg.length > 0
-                ? (turnAvg.reduce((sum, value) => sum + value, 0) / turnAvg.length)
-                : 0;
-            const summaryTexts = [
-                `步数 ${stepCount}`,
-                `均候选 ${avgCandidate.toFixed(1)}`,
-                `均拐点 ${avgTurn.toFixed(2)}`,
-                `当前剩余 ${Number.isFinite(lastRemaining) ? Math.max(0, lastRemaining) : '-'}`
-            ];
-            for (const text of summaryTexts) {
-                const chip = document.createElement('div');
-                chip.className = 'agent-memory-summary-item';
-                chip.textContent = text;
-                summary.appendChild(chip);
-            }
             header.appendChild(title);
-            header.appendChild(summary);
-            panel.appendChild(header);
 
             const trendViewOptions = getAgentMemoryTrendViewOptions();
             const activeTrendView = trendViewOptions.some((item) => item.key === agentUiState.memoryTrendView)
@@ -14019,22 +14726,83 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 });
                 tabs.appendChild(button);
             }
-            panel.appendChild(tabs);
+            header.appendChild(tabs);
+            panel.appendChild(header);
 
             const trendWrap = document.createElement('div');
             trendWrap.className = 'agent-memory-trend';
             const trendSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             trendSvg.classList.add('agent-memory-trend-svg');
-            trendSvg.setAttribute('viewBox', '0 0 320 86');
-            const axis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            axis.classList.add('agent-memory-trend-axis');
-            axis.setAttribute('x1', '8');
-            axis.setAttribute('y1', '78');
-            axis.setAttribute('x2', '312');
-            axis.setAttribute('y2', '78');
-            trendSvg.appendChild(axis);
-            const trendRecords = history.slice(-24);
+            const panelInnerWidth = Number(panel?.clientWidth) || 320;
+            const chartWidth = Math.max(320, Math.floor(panelInnerWidth - 2));
+            const chartHeight = 86;
+            const chartPaddingLeft = 28;
+            const chartPaddingRight = 6;
+            const chartTop = 8;
+            const chartBottom = 16;
+            const baselineY = chartHeight - chartBottom;
+            const axisX = chartPaddingLeft;
+            const chartPlotWidth = chartWidth - chartPaddingLeft - chartPaddingRight;
+            const chartPlotHeight = Math.max(1, baselineY - chartTop - 4);
+            trendSvg.setAttribute('viewBox', `0 0 ${chartWidth} ${chartHeight}`);
+            const trendRecords = history;
             const trendPointsRaw = buildAgentMemoryTrendPoints(trendRecords, activeTrendView);
+
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.classList.add('agent-memory-trend-axis');
+            xAxis.setAttribute('x1', String(axisX));
+            xAxis.setAttribute('y1', String(baselineY));
+            xAxis.setAttribute('x2', String(chartWidth - chartPaddingRight));
+            xAxis.setAttribute('y2', String(baselineY));
+            trendSvg.appendChild(xAxis);
+
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.classList.add('agent-memory-trend-axis');
+            yAxis.setAttribute('x1', String(axisX));
+            yAxis.setAttribute('y1', String(chartTop));
+            yAxis.setAttribute('x2', String(axisX));
+            yAxis.setAttribute('y2', String(baselineY));
+            trendSvg.appendChild(yAxis);
+
+            const createLabel = (x, y, text, anchor = 'middle') => {
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.classList.add('agent-memory-trend-label');
+                label.setAttribute('x', String(x));
+                label.setAttribute('y', String(y));
+                label.setAttribute('text-anchor', anchor);
+                label.textContent = text;
+                return label;
+            };
+            const formatTickValue = (value) => (
+                Number.isInteger(value) ? String(value) : Number(value).toFixed(2)
+            );
+
+            const stepStartRaw = Number(trendPointsRaw[0]?.step);
+            const stepEndRaw = Number(trendPointsRaw[trendPointsRaw.length - 1]?.step);
+            const fallbackStepStart = Number(trendRecords[0]?.step) || 1;
+            const fallbackStepEnd = Number(trendRecords[trendRecords.length - 1]?.step) || trendRecords.length;
+            const stepStart = Number.isFinite(stepStartRaw) ? stepStartRaw : fallbackStepStart;
+            const stepEnd = Number.isFinite(stepEndRaw) ? stepEndRaw : fallbackStepEnd;
+
+            const xTickStart = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xTickStart.classList.add('agent-memory-trend-tick');
+            xTickStart.setAttribute('x1', String(axisX));
+            xTickStart.setAttribute('y1', String(baselineY));
+            xTickStart.setAttribute('x2', String(axisX));
+            xTickStart.setAttribute('y2', String(baselineY + 3));
+            trendSvg.appendChild(xTickStart);
+            trendSvg.appendChild(createLabel(axisX, baselineY + 11, `${stepStart}`, 'middle'));
+
+            const xTickEndX = chartWidth - chartPaddingRight;
+            const xTickEnd = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xTickEnd.classList.add('agent-memory-trend-tick');
+            xTickEnd.setAttribute('x1', String(xTickEndX));
+            xTickEnd.setAttribute('y1', String(baselineY));
+            xTickEnd.setAttribute('x2', String(xTickEndX));
+            xTickEnd.setAttribute('y2', String(baselineY + 3));
+            trendSvg.appendChild(xTickEnd);
+            trendSvg.appendChild(createLabel(xTickEndX, baselineY + 11, `${stepEnd}`, 'middle'));
+
             const finiteValues = trendPointsRaw
                 .map((item) => Number(item?.value))
                 .filter((value) => Number.isFinite(value));
@@ -14042,14 +14810,34 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 const minValue = Math.min(...finiteValues);
                 const maxValue = Math.max(...finiteValues);
                 const range = Math.max(1, maxValue - minValue);
+                const yTicks = [maxValue, maxValue - (range / 2), minValue];
+                for (const tickValue of yTicks) {
+                    const y = chartTop + (((maxValue - tickValue) / range) * chartPlotHeight);
+                    const grid = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    grid.classList.add('agent-memory-trend-grid');
+                    grid.setAttribute('x1', String(axisX));
+                    grid.setAttribute('y1', y.toFixed(2));
+                    grid.setAttribute('x2', String(chartWidth - chartPaddingRight));
+                    grid.setAttribute('y2', y.toFixed(2));
+                    trendSvg.appendChild(grid);
+
+                    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    tick.classList.add('agent-memory-trend-tick');
+                    tick.setAttribute('x1', String(axisX - 3));
+                    tick.setAttribute('y1', y.toFixed(2));
+                    tick.setAttribute('x2', String(axisX));
+                    tick.setAttribute('y2', y.toFixed(2));
+                    trendSvg.appendChild(tick);
+                    trendSvg.appendChild(createLabel(axisX - 5, y + 2.4, formatTickValue(tickValue), 'end'));
+                }
                 const pathPoints = [];
                 for (let index = 0; index < trendPointsRaw.length; index++) {
                     const value = Number(trendPointsRaw[index]?.value);
                     if (!Number.isFinite(value)) continue;
                     const x = trendPointsRaw.length <= 1
-                        ? 160
-                        : 8 + ((304 * index) / Math.max(1, trendPointsRaw.length - 1));
-                    const y = 8 + (((maxValue - value) / range) * 66);
+                        ? (axisX + (chartPlotWidth / 2))
+                        : axisX + ((chartPlotWidth * index) / Math.max(1, trendPointsRaw.length - 1));
+                    const y = chartTop + (((maxValue - value) / range) * chartPlotHeight);
                     pathPoints.push({
                         x,
                         y,
@@ -14059,6 +14847,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     });
                 }
                 if (pathPoints.length > 0) {
+                    const dotRadius = pathPoints.length > 120
+                        ? 0.95
+                        : (pathPoints.length > 72 ? 1.3 : 2.2);
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     path.classList.add('agent-memory-trend-line');
                     path.setAttribute('d', pathPoints
@@ -14070,7 +14861,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         dot.classList.add('agent-memory-trend-point');
                         dot.setAttribute('cx', point.x.toFixed(2));
                         dot.setAttribute('cy', point.y.toFixed(2));
-                        dot.setAttribute('r', '2.2');
+                        dot.setAttribute('r', String(dotRadius));
                         const tip = document.createElementNS('http://www.w3.org/2000/svg', 'title');
                         tip.textContent = point.tip || `第${point.step}步：${point.value}`;
                         dot.appendChild(tip);
@@ -14443,7 +15234,41 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             return topPool[topPool.length - 1] || null;
         }
 
-        function buildHumanModePlanningContext(snapshot) {
+        function getHumanModeAdjacentScoredMoves(scoredMoves) {
+            if (!Array.isArray(scoredMoves)) return [];
+            return scoredMoves.filter((item) => Number(item?.distance) === 1);
+        }
+
+        function shouldPreferAdjacentMoveByProbability(besidePercent = null) {
+            const probability = normalizeHumanModeBesidePercent(
+                besidePercent,
+                getHumanModeBesidePercent(70)
+            );
+            if (probability <= 0) return false;
+            if (probability >= 100) return true;
+            return Math.random() < (probability / 100);
+        }
+
+        function pickHumanModeMoveWithBesidePreference(scoredMoves, options = {}) {
+            const besidePercent = normalizeHumanModeBesidePercent(
+                options?.besidePercent,
+                getHumanModeBesidePercent(70)
+            );
+            const adjacentMoves = getHumanModeAdjacentScoredMoves(scoredMoves);
+            const preferAdjacent = adjacentMoves.length > 0 &&
+                shouldPreferAdjacentMoveByProbability(besidePercent);
+            const selected = preferAdjacent
+                ? (pickHumanModeMoveByScore(adjacentMoves) || pickHumanModeMoveByScore(scoredMoves))
+                : pickHumanModeMoveByScore(scoredMoves);
+            return {
+                picked: selected,
+                preferAdjacent,
+                besidePercent,
+                adjacentCandidateCount: adjacentMoves.length
+            };
+        }
+
+        function buildHumanModePlanningContext(snapshot, options = {}) {
             const { tiles, typeBuckets } = buildHumanModeVisibleTiles(snapshot);
             if (!Array.isArray(tiles) || tiles.length === 0) {
                 return {
@@ -14463,13 +15288,16 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             let inspectedCount = 0;
             let sameTypeChecked = 0;
             const distanceSamples = [];
-            const anchorTryLimit = Math.max(
-                2,
-                Math.min(
-                    Math.max(2, typeBuckets.size || 0),
-                    1 + Math.floor(Math.random() * 4)
-                )
-            );
+            const exhaustiveScan = Boolean(options?.exhaustiveScan);
+            const anchorTryLimit = exhaustiveScan
+                ? Math.max(1, Number(typeBuckets.size) || 1)
+                : Math.max(
+                    2,
+                    Math.min(
+                        Math.max(2, typeBuckets.size || 0),
+                        1 + Math.floor(Math.random() * 4)
+                    )
+                );
 
             while (anchorsTried < anchorTryLimit) {
                 const anchor = pickHumanModeAnchor(tiles, typeBuckets, usedAnchorKeys, rejectedBaseIds);
@@ -14558,7 +15386,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         scoredMoves[idx].legalCandidateCount = legalCandidateCount;
                     }
                 }
-                if (scoredMoves.length > 0 && Math.random() < 0.8) {
+                if (scoredMoves.length > 0 && !exhaustiveScan && Math.random() < 0.8) {
                     break;
                 }
             }
@@ -14689,7 +15517,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             ].join('');
         }
 
-        function buildHumanModeDecisionFromPlanning(planningContext) {
+        function buildHumanModeDecisionFromPlanning(planningContext, options = {}) {
             if (!planningContext?.ok) {
                 return {
                     ok: false,
@@ -14710,12 +15538,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     humanMetrics: buildHumanModeMetrics(planningContext)
                 };
             }
-            const picked = pickHumanModeMoveByScore(scoredMoves) || scoredMoves[0];
+            const besidePick = pickHumanModeMoveWithBesidePreference(scoredMoves, options);
+            const picked = besidePick.picked || scoredMoves[0];
             const thought = buildHumanModeProcessThought(planningContext, picked);
             const difficultyRank = getConnectionDifficultyRank(picked.connectionType, picked.turnCount);
             const reason = [
                 `锚点尝试 ${planningContext.anchorsTried}，同花色检查 ${planningContext.sameTypeChecked} 个。`,
                 `本步连法 ${picked.connectionType}（难度级别 ${difficultyRank}），拐点 ${picked.turnCount}，并结合机关触发与位移后局面偏好选择。`,
+                `相邻优先概率 ${besidePick.besidePercent}%（本步${besidePick.preferAdjacent ? '已优先相邻候选' : '未触发相邻优先'}）。`,
                 `当前位移规则：${planningContext.directionRule || '无规则'}`
             ].join(' ');
             return {
@@ -14797,9 +15627,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             ];
         }
 
-        async function requestHumanModeDecision(snapshot, currentProfile = null) {
+        async function requestHumanModeDecision(snapshot, currentProfile = null, options = {}) {
+            const besidePercent = normalizeHumanModeBesidePercent(
+                options?.besidePercent,
+                getHumanModeBesidePercent(70)
+            );
             const planningContext = buildHumanModePlanningContext(snapshot);
-            const localDecision = buildHumanModeDecisionFromPlanning(planningContext);
+            const localDecision = buildHumanModeDecisionFromPlanning(planningContext, { besidePercent });
             if (!planningContext?.ok) {
                 return localDecision;
             }
@@ -14839,11 +15673,18 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                         distance: Math.abs(Number(parsed.move.row1) - Number(parsed.move.row2)) + Math.abs(Number(parsed.move.col1) - Number(parsed.move.col2))
                     };
                 }
+                const adjacentMoves = getHumanModeAdjacentScoredMoves(scoredMoves);
+                const shouldForceAdjacent = adjacentMoves.length > 0 &&
+                    shouldPreferAdjacentMoveByProbability(besidePercent);
+                if (shouldForceAdjacent) {
+                    picked = pickHumanModeMoveByScore(adjacentMoves) || picked;
+                }
                 const thought = buildHumanModeProcessThought(planningContext, picked);
                 const difficultyRank = getConnectionDifficultyRank(picked.connectionType, picked.turnCount);
                 const reason = [
                     `锚点尝试 ${planningContext.anchorsTried}，同花色检查 ${planningContext.sameTypeChecked} 个。`,
                     `本步连法 ${picked.connectionType || '-'}（难度级别 ${difficultyRank}），拐点 ${Number.isFinite(Number(picked.turnCount)) ? Number(picked.turnCount) : '-'}。`,
+                    `相邻优先概率 ${besidePercent}%（本步${shouldForceAdjacent ? '已优先相邻候选' : '未触发相邻优先'}）。`,
                     `位移规则：${planningContext.directionRule || '无规则'}，并已纳入机关结算影响。`
                 ].join(' ');
                 return {
@@ -14851,7 +15692,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     thought,
                     reason,
                     currentFeeling: '',
-                    move: parsed.move,
+                    move: picked?.move || parsed.move,
                     candidateCountBefore: Number(planningContext?.sameTypeChecked) || 0,
                     humanMode: true,
                     humanMetrics: buildHumanModeMetrics(planningContext, picked)
@@ -15065,11 +15906,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const pathNodeCount = Array.isArray(path) ? path.length : 0;
             const turnCount = Math.max(0, pathNodeCount - 2);
             const connectionType = getPlayConnectionTypeByPath(path);
+            const connectionDistance = computePathLengthByGridSteps(path);
             return {
                 ok: true,
                 connectionType,
                 turnCount,
-                pathNodeCount
+                pathNodeCount,
+                connectionDistance: Number.isFinite(connectionDistance) ? connectionDistance : null
             };
         }
 
@@ -15092,6 +15935,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const candidateCountBefore = Number.isFinite(decisionCandidateCount)
                 ? Math.max(0, Math.floor(decisionCandidateCount))
                 : Math.max(0, Number(snapshot.remainingPairs) || 0);
+            const preStepDecisionFailCount = Math.max(
+                0,
+                Number.isFinite(Number(decisionMeta?.preStepDecisionFailCount))
+                    ? Number(decisionMeta.preStepDecisionFailCount)
+                    : 0
+            );
             const validated = validateAgentMove(snapshot, move, {
                 humanMode: Boolean(decisionMeta?.humanMode || agentUiState.humanModeEnabled)
             });
@@ -15109,11 +15958,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     clearedCardCountBefore,
                     clearedCardCountAfter: clearedCardCountBefore,
                     gameOutcome: '',
+                    preStepDecisionFailCount,
                     boardCleared: false,
                     playFailed: false,
                     connectionType: '',
                     turnCount: null,
                     pathNodeCount: null,
+                    connectionDistance: null,
                     candidateCountBefore,
                     humanMetrics,
                     boardSnapshotBefore
@@ -15125,6 +15976,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     connectionType: '',
                     turnCount: null,
                     pathNodeCount: null,
+                    connectionDistance: null,
                     candidateCountBefore,
                     remainingPairsBefore: snapshot.remainingPairs,
                     remainingPairsAfter: snapshot.remainingPairs,
@@ -15135,6 +15987,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     clearedCardCountBefore,
                     clearedCardCountAfter: clearedCardCountBefore,
                     gameOutcome: '',
+                    preStepDecisionFailCount,
                     thought: String(decisionMeta?.thought || ''),
                     reason: String(decisionMeta?.reason || ''),
                     error: validated.error,
@@ -15185,11 +16038,15 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 clearedCardCountBefore,
                 clearedCardCountAfter,
                 gameOutcome,
+                preStepDecisionFailCount,
                 boardCleared,
                 playFailed: Boolean(playModeState.failed),
                 connectionType: validated.connectionType,
                 turnCount: validated.turnCount,
                 pathNodeCount: validated.pathNodeCount,
+                connectionDistance: Number.isFinite(Number(validated.connectionDistance))
+                    ? Number(validated.connectionDistance)
+                    : null,
                 candidateCountBefore,
                 humanMetrics,
                 error: success ? '' : '执行后未产生有效消除，请重新规划。'
@@ -15202,6 +16059,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 connectionType: result.connectionType,
                 turnCount: result.turnCount,
                 pathNodeCount: result.pathNodeCount,
+                connectionDistance: Number.isFinite(Number(result.connectionDistance))
+                    ? Number(result.connectionDistance)
+                    : null,
                 candidateCountBefore: result.candidateCountBefore,
                 remainingPairsBefore: result.remainingPairsBefore,
                 remainingPairsAfter: result.remainingPairsAfter,
@@ -15212,6 +16072,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 clearedCardCountBefore: result.clearedCardCountBefore,
                 clearedCardCountAfter: result.clearedCardCountAfter,
                 gameOutcome: result.gameOutcome,
+                preStepDecisionFailCount: result.preStepDecisionFailCount,
                 thought: String(decisionMeta?.thought || ''),
                 reason: String(decisionMeta?.reason || ''),
                 error: result.error || '',
@@ -15302,14 +16163,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 : extractHumanMetricsFromDecisionResult(decision, result);
             const candidateCount = Number(result?.candidateCountBefore ?? decision?.candidateCountBefore);
             const successfulCandidateCount = Number(metrics?.successfulCandidateCount);
-            const turnCount = Number(result?.turnCount);
-            const connectionType = String(result?.connectionType || '');
-            const rank = getConnectionDifficultyRank(connectionType, turnCount);
-            const thoughtText = String(decision?.thought || '');
-            const reasonText = String(decision?.reason || '');
-            const thoughtTextLength = thoughtText.length + reasonText.length;
             const searchAttempts = Number(metrics?.searchAttempts) || 0;
-            const observedCells = Number(metrics?.localObservedCells) || 0;
             const remainingBefore = Number(result?.remainingPairsBefore);
             const remainingAfter = Number(result?.remainingPairsAfter);
             const pairCombinationTotalBefore = Number(result?.pairCombinationTotalBefore);
@@ -15328,35 +16182,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             const pairAvailabilityRatio = hasPairRatioBase
                 ? clamp01(remainingBefore / pairCombinationTotalBefore)
                 : clamp01(availableChoiceCount / (humanMode ? 8 : 16));
-            const choiceEaseNorm = pairAvailabilityRatio;
-            const choiceHardnessNorm = 1 - choiceEaseNorm;
-            const turnNorm = clamp01(rank / 3);
-            const thoughtNorm = clamp01(thoughtTextLength / 160);
-            const searchNorm = clamp01(searchAttempts / 10);
-            const observedNorm = clamp01(observedCells / 68);
-            const typeNorm = clamp01(metrics?.typeComplexityScore);
-            const spaceNorm = clamp01(metrics?.spaceComplexityScore);
-            const thinkingDimensionCount = [
-                choiceHardnessNorm,
-                turnNorm,
-                thoughtNorm,
-                searchNorm,
-                observedNorm,
-                typeNorm,
-                spaceNorm
-            ].filter((value) => Number(value) > 0.08).length;
-            const thinkingDimensionNorm = clamp01(thinkingDimensionCount / 7);
-
-            const thinkingComplexity = clamp01(
-                choiceHardnessNorm * 0.24 +
-                turnNorm * 0.17 +
-                thoughtNorm * 0.14 +
-                searchNorm * 0.16 +
-                observedNorm * 0.08 +
-                typeNorm * 0.08 +
-                spaceNorm * 0.07 +
-                thinkingDimensionNorm * 0.06
-            );
+            const connectionDistance = Number.isFinite(Number(result?.connectionDistance))
+                ? Number(result.connectionDistance)
+                : computeAgentStepConnectionDistance({
+                    move: result?.move || decision?.move || null
+                });
+            const distanceNorm = Number.isFinite(connectionDistance)
+                ? clamp01(connectionDistance / 8)
+                : 0;
 
             const failNorm = result?.ok ? 0 : 1;
             const noProgressNorm = noProgress ? 1 : 0;
@@ -15383,11 +16216,15 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 trialDimensionNorm * 0.06
             );
 
-            const totalComplexity = clamp01((thinkingComplexity * 0.56) + (trialErrorComplexity * 0.44));
+            const totalComplexity = clamp01(
+                (trialErrorComplexity * 0.82) +
+                (distanceNorm * 0.18) +
+                ((1 - pairAvailabilityRatio) * 0.04)
+            );
             return {
-                thinkingComplexity,
                 trialErrorComplexity,
                 totalComplexity,
+                connectionDistance: Number.isFinite(connectionDistance) ? connectionDistance : null,
                 availableChoiceCount: Math.max(0, availableChoiceCount),
                 preSuccessFailCount: Number(trialStats.preSuccessFailCount) || 0
             };
@@ -15418,9 +16255,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     complexity
                 };
             }
+            const safeDistance = Number(complexity?.connectionDistance);
+            const distanceText = Number.isFinite(safeDistance)
+                ? `连接距离 ${Number.isInteger(safeDistance) ? safeDistance : safeDistance.toFixed(2)}`
+                : '连接距离 -';
             const detail = humanMode
-                ? `思考复杂度 ${complexity.thinkingComplexity.toFixed(2)}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，本步决策压力较高。`
-                : `思考复杂度 ${complexity.thinkingComplexity.toFixed(2)}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，当前推进阻力较大。`;
+                ? `${distanceText}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，本步决策压力较高。`
+                : `${distanceText}，试错复杂度 ${complexity.trialErrorComplexity.toFixed(2)}，当前推进阻力较大。`;
             return {
                 level: '困难',
                 detail,
@@ -15516,7 +16357,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                                 content: [
                                     '你是人类模式下的关卡体验分析助手。',
                                     '你只能基于给定指标做难度感受判断。',
-                                    '请重点结合 thinkingComplexity（思考复杂度）和 trialErrorComplexity（试错复杂度）做评价。',
+                                    '请重点结合 connectionDistance（连接距离）和 trialErrorComplexity（试错复杂度）做评价。',
                                     '仅输出 JSON，格式：{"level":"简单|正常|困难","detail":"仅当困难时填写，其余留空"}。'
                                 ].join('\n')
                             },
@@ -15565,7 +16406,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     role: 'system',
                     content: [
                         '你是关卡体验分析助手。',
-                        '请结合 thinkingComplexity（思考复杂度）与 trialErrorComplexity（试错复杂度）判断本步难度。',
+                        '请结合 connectionDistance（连接距离）与 trialErrorComplexity（试错复杂度）判断本步难度。',
                         '仅输出 JSON，不要输出任何额外文本。',
                         '格式：{"level":"简单|正常|困难","detail":"仅当level=困难时填写，其余留空"}。'
                     ].join('\n')
@@ -15782,7 +16623,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 if (agentUiState.humanModeEnabled) {
                     decision = await requestHumanModeDecision(
                         snapshot,
-                        agentUiState.quickModeEnabled ? null : currentProfile
+                        agentUiState.quickModeEnabled ? null : currentProfile,
+                        {
+                            besidePercent: getHumanModeBesidePercent(70)
+                        }
                     );
                 } else if (agentUiState.quickModeEnabled) {
                     decision = buildLocalStandardAgentDecision(snapshot);
@@ -15792,6 +16636,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     decision = parseAgentDecision(decisionText);
                 }
                 if (!decision.ok) {
+                    agentUiState.pendingDecisionFailCount = Math.max(
+                        0,
+                        (Number(agentUiState.pendingDecisionFailCount) || 0) + 1
+                    );
                     agentUiState.lastActionResult = { ok: false, error: decision.error };
                     const errorPrefix = agentUiState.humanModeEnabled ? '人类模式决策失败' : '思考结果解析失败';
                     pushCollapsedAssistantMessage(`${errorPrefix}：${decision.error}`, 'agent-decision-failure');
@@ -15804,13 +16652,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                 });
                 if (!decision.move) {
                     const err = 'Agent 未给出合法 move。';
+                    agentUiState.pendingDecisionFailCount = Math.max(
+                        0,
+                        (Number(agentUiState.pendingDecisionFailCount) || 0) + 1
+                    );
                     agentUiState.lastActionResult = { ok: false, error: err };
                     pushAgentChatMessage('assistant', `操作结果：错误（${err}）`);
                     updateAgentRunStatus('状态：未产出操作');
                     return;
                 }
+                const preStepDecisionFailCount = Math.max(0, Number(agentUiState.pendingDecisionFailCount) || 0);
+                decision.preStepDecisionFailCount = preStepDecisionFailCount;
                 updateAgentRunStatus('状态：执行操作中');
                 const result = await executeAgentMove(decision.move, decision);
+                agentUiState.pendingDecisionFailCount = 0;
                 updateAgentRunStatus('状态：等待结算反馈');
                 const feeling = await requestAgentPostStepFeeling(decision, result, {
                     forceLocal: agentUiState.quickModeEnabled
@@ -15840,7 +16695,6 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     carryFailures: carryFailuresFromPrevious
                 });
                 if (latestStep && typeof latestStep === 'object') {
-                    latestStep.thinkingComplexity = Number(stepComplexity?.thinkingComplexity) || 0;
                     latestStep.trialErrorComplexity = Number(stepComplexity?.trialErrorComplexity) || 0;
                     latestStep.totalComplexity = Number(stepComplexity?.totalComplexity) || 0;
                     latestStep.trialErrorCount = Number(stepTrialErrorCount) || 0;
@@ -15864,6 +16718,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
                     clearedCardCountBefore: Number(result?.clearedCardCountBefore),
                     clearedCardCountAfter: Number(result?.clearedCardCountAfter),
                     gameOutcome: String(result?.gameOutcome || ''),
+                    preStepDecisionFailCount: Number(
+                        latestStep?.preStepDecisionFailCount ?? result?.preStepDecisionFailCount ?? preStepDecisionFailCount
+                    ),
                     feelingLevel: String(feeling?.level || '正常'),
                     feelingDetail: String(feeling?.detail || ''),
                     thought: String(decision.thought || ''),
@@ -16436,6 +17293,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId) {
             applyBoardBackground(selectedBoardBackgroundIndex);
             updateSaveCurrentLevelButtonState();
             updateSimulateUiLabels();
+            renderStatsLocalHumanModeToggle();
+            setHumanModeBesidePercent(humanModeBesidePercent);
             setWorkerPoolReuseEnabled(
                 Boolean(document.getElementById('workerPoolReuseToggle')?.checked)
             );
