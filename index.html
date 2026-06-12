@@ -6776,6 +6776,74 @@
             return length;
         }
 
+        function computePairConnectionDistance(boardData, pair) {
+            if (!pair) return null;
+            const path = findConnectionPathByLianliankan(
+                boardData,
+                pair.row1,
+                pair.col1,
+                pair.row2,
+                pair.col2
+            );
+            const distance = computePathLengthByGridSteps(path);
+            return Number.isFinite(distance) && distance >= 0 ? distance : null;
+        }
+
+        function summarizeRemovablePairDistances(boardData, removablePairs) {
+            if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
+                return { totalDistance: 0, pairCount: 0, averageDistance: 0 };
+            }
+            let totalDistance = 0;
+            let pairCount = 0;
+            for (const pair of removablePairs) {
+                const distance = computePairConnectionDistance(boardData, pair);
+                if (!Number.isFinite(distance)) continue;
+                totalDistance += distance;
+                pairCount++;
+            }
+            return {
+                totalDistance,
+                pairCount,
+                averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0
+            };
+        }
+
+        function calculateInitialFaceDistributionDistance(boardData) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+            const positionsByBaseId = new Map();
+            for (let row = 0; row < boardData.length; row++) {
+                const sourceRow = boardData[row];
+                if (!Array.isArray(sourceRow)) continue;
+                for (let col = 0; col < sourceRow.length; col++) {
+                    const parsed = decodeCellId(sourceRow[col]);
+                    if (!Number.isInteger(parsed.baseId)) continue;
+                    if (parsed.baseId < 1 || parsed.baseId >= BOMB_CELL_ID) continue;
+                    if (parsed.baseId === PLACEHOLDER_CELL_ID || isObstacleBaseId(parsed.baseId)) {
+                        continue;
+                    }
+                    if (!positionsByBaseId.has(parsed.baseId)) {
+                        positionsByBaseId.set(parsed.baseId, []);
+                    }
+                    positionsByBaseId.get(parsed.baseId).push({ row, col });
+                }
+            }
+
+            let totalDistance = 0;
+            let pairCount = 0;
+            positionsByBaseId.forEach((positions) => {
+                if (!Array.isArray(positions) || positions.length < 2) return;
+                for (let left = 0; left < positions.length - 1; left++) {
+                    for (let right = left + 1; right < positions.length; right++) {
+                        totalDistance +=
+                            Math.abs(positions[left].row - positions[right].row) +
+                            Math.abs(positions[left].col - positions[right].col);
+                        pairCount++;
+                    }
+                }
+            });
+            return pairCount > 0 ? (totalDistance / pairCount) : 0;
+        }
+
         function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
             if (!Array.isArray(boardData) || boardData.length === 0) return null;
             const height = boardData.length;
@@ -8381,6 +8449,12 @@
             const connectionTypeCounts = createConnectionTypeCountSummary();
             let totalTrialErrorCount = 0;
             let maxTrialErrorCount = 0;
+            let totalActualPairDistance = 0;
+            let actualPairDistanceCount = 0;
+            let totalAvailablePairDistance = 0;
+            let availablePairDistanceStepCount = 0;
+            const initialFaceDistributionDistance =
+                calculateInitialFaceDistributionDistance(baseBoardData);
             if (!hasFilledCells(boardData)) {
                 return {
                     cleared: false,
@@ -8391,7 +8465,12 @@
                     pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
                     connectionTypeCounts,
                     totalTrialErrorCount: 0,
-                    maxTrialErrorCount: 0
+                    maxTrialErrorCount: 0,
+                    totalActualPairDistance: 0,
+                    actualPairDistanceCount: 0,
+                    totalAvailablePairDistance: 0,
+                    availablePairDistanceStepCount: 0,
+                    initialFaceDistributionDistance
                 };
             }
 
@@ -8413,7 +8492,12 @@
                             pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                             connectionTypeCounts,
                             totalTrialErrorCount,
-                            maxTrialErrorCount
+                            maxTrialErrorCount,
+                            totalActualPairDistance,
+                            actualPairDistanceCount,
+                            totalAvailablePairDistance,
+                            availablePairDistanceStepCount,
+                            initialFaceDistributionDistance
                         };
                     }
                     const remainingCount = countRemovableCellCount(boardData);
@@ -8431,11 +8515,22 @@
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                         connectionTypeCounts,
                         totalTrialErrorCount,
-                        maxTrialErrorCount
+                        maxTrialErrorCount,
+                        totalActualPairDistance,
+                        actualPairDistanceCount,
+                        totalAvailablePairDistance,
+                        availablePairDistanceStepCount,
+                        initialFaceDistributionDistance
                     };
                 }
 
                 stepPairCounts.push(removablePairs.length);
+                const availableDistanceSummary =
+                    summarizeRemovablePairDistances(boardData, removablePairs);
+                if (availableDistanceSummary.pairCount > 0) {
+                    totalAvailablePairDistance += availableDistanceSummary.averageDistance;
+                    availablePairDistanceStepCount++;
+                }
                 let selectedPair = null;
                 let stepTrialErrorCount = 0;
                 if (humanMode) {
@@ -8468,7 +8563,12 @@
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                         connectionTypeCounts,
                         totalTrialErrorCount,
-                        maxTrialErrorCount
+                        maxTrialErrorCount,
+                        totalActualPairDistance,
+                        actualPairDistanceCount,
+                        totalAvailablePairDistance,
+                        availablePairDistanceStepCount,
+                        initialFaceDistributionDistance
                     };
                 }
                 totalTrialErrorCount += stepTrialErrorCount;
@@ -8481,6 +8581,11 @@
                     selectedPair.row2,
                     selectedPair.col2
                 );
+                const actualPairDistance = computePathLengthByGridSteps(linkPath);
+                if (Number.isFinite(actualPairDistance) && actualPairDistance >= 0) {
+                    totalActualPairDistance += actualPairDistance;
+                    actualPairDistanceCount++;
+                }
                 const connectionType = getPlayConnectionTypeByPath(linkPath);
                 accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
 
@@ -8509,7 +8614,12 @@
                 pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                 connectionTypeCounts,
                 totalTrialErrorCount,
-                maxTrialErrorCount
+                maxTrialErrorCount,
+                totalActualPairDistance,
+                actualPairDistanceCount,
+                totalAvailablePairDistance,
+                availablePairDistanceStepCount,
+                initialFaceDistributionDistance
             };
         }
 
@@ -8548,6 +8658,12 @@
             let secondHalfPairCountSum = 0;
             let totalTrialErrorCountSum = 0;
             let maxTrialErrorCount = 0;
+            let totalActualPairDistance = 0;
+            let actualPairDistanceCount = 0;
+            let totalAvailablePairDistance = 0;
+            let availablePairDistanceStepCount = 0;
+            const initialFaceDistributionDistance =
+                calculateInitialFaceDistributionDistance(sourceBoard);
             let quartileStepCounts = [0, 0, 0, 0];
             let quartilePairCountSums = [0, 0, 0, 0];
             let usedWorkers = false;
@@ -8577,6 +8693,9 @@
                     reverseTwoTurnCount: 0,
                     averageTrialErrorPerStep: 0,
                     maxTrialErrorCount: 0,
+                    averageActualPairDistance: 0,
+                    averageAvailablePairDistance: 0,
+                    initialFaceDistributionDistance,
                     stoppedEarly: true,
                     unreachable: true
                 };
@@ -8649,6 +8768,20 @@
                     maxTrialErrorCount = Number.isFinite(Number(workerResult.maxTrialErrorCount))
                         ? Number(workerResult.maxTrialErrorCount)
                         : 0;
+                    totalActualPairDistance = Number.isFinite(Number(workerResult.totalActualPairDistance))
+                        ? Number(workerResult.totalActualPairDistance)
+                        : 0;
+                    actualPairDistanceCount = Number.isFinite(Number(workerResult.actualPairDistanceCount))
+                        ? Number(workerResult.actualPairDistanceCount)
+                        : 0;
+                    totalAvailablePairDistance =
+                        Number.isFinite(Number(workerResult.totalAvailablePairDistance))
+                            ? Number(workerResult.totalAvailablePairDistance)
+                            : 0;
+                    availablePairDistanceStepCount =
+                        Number.isFinite(Number(workerResult.availablePairDistanceStepCount))
+                            ? Number(workerResult.availablePairDistanceStepCount)
+                            : 0;
                     const toQuartileArray = (raw) => {
                         const result = [0, 0, 0, 0];
                         if (!Array.isArray(raw)) return result;
@@ -8716,6 +8849,11 @@
                         maxTrialErrorCount,
                         Number(gameResult?.maxTrialErrorCount) || 0
                     );
+                    totalActualPairDistance += Number(gameResult?.totalActualPairDistance) || 0;
+                    actualPairDistanceCount += Number(gameResult?.actualPairDistanceCount) || 0;
+                    totalAvailablePairDistance += Number(gameResult?.totalAvailablePairDistance) || 0;
+                    availablePairDistanceStepCount +=
+                        Number(gameResult?.availablePairDistanceStepCount) || 0;
                     firstHalfStepCount += Number(pairSummary.firstHalfStepCount) || 0;
                     firstHalfPairCountSum += Number(pairSummary.firstHalfPairCountSum) || 0;
                     secondHalfStepCount += Number(pairSummary.secondHalfStepCount) || 0;
@@ -8782,6 +8920,12 @@
             const averageTrialErrorPerStep = totalStepCount > 0
                 ? (totalTrialErrorCountSum / totalStepCount)
                 : 0;
+            const averageActualPairDistance = actualPairDistanceCount > 0
+                ? (totalActualPairDistance / actualPairDistanceCount)
+                : 0;
+            const averageAvailablePairDistance = availablePairDistanceStepCount > 0
+                ? (totalAvailablePairDistance / availablePairDistanceStepCount)
+                : 0;
             const firstHalfAveragePairCount = firstHalfStepCount > 0
                 ? (firstHalfPairCountSum / firstHalfStepCount)
                 : 0;
@@ -8831,6 +8975,9 @@
                 averageReverseTwoTurnCount,
                 averageTrialErrorPerStep,
                 maxTrialErrorCount,
+                averageActualPairDistance,
+                averageAvailablePairDistance,
+                initialFaceDistributionDistance,
                 stoppedEarly,
                 unreachable
             };
@@ -8927,6 +9074,12 @@
                 0,
                 Math.round(Number(metrics?.maxTrialErrorCount) || 0)
             );
+            const averageActualPairDistance =
+                Number(metrics?.averageActualPairDistance || 0).toFixed(2);
+            const averageAvailablePairDistance =
+                Number(metrics?.averageAvailablePairDistance || 0).toFixed(2);
+            const initialFaceDistributionDistance =
+                Number(metrics?.initialFaceDistributionDistance || 0).toFixed(2);
             const humanModeFlag = humanMode ? 1 : 0;
             const safeHumanModeBesidePercent = normalizeHumanModeBesidePercent(
                 humanModeBesidePercent,
@@ -8975,7 +9128,9 @@
                 `${frontBackPairCompareText}\t${zeroTurnCount.toFixed(2)}\t` +
                 `${oneTurnCount.toFixed(2)}\t${sameDirTwoTurnCount.toFixed(2)}\t` +
                 `${reverseTwoTurnCount.toFixed(2)}\t${quartilePairAverageTexts.join('\t')}\t` +
-                `${averageTrialErrorPerStep}\t${maxTrialErrorCount}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
+                `${averageTrialErrorPerStep}\t${maxTrialErrorCount}\t` +
+                `${averageActualPairDistance}\t${averageAvailablePairDistance}\t` +
+                `${initialFaceDistributionDistance}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
             return includeLevelColumn ? `${safeLevelText}\t${payload}` : payload;
         }
 
@@ -9129,6 +9284,7 @@ const BOMB_CELL_ID = 99;
 const ATTACHMENT_MULTIPLIER = 1000;
 const ATTACHMENT_IDS = new Set([1, 5]);
 const STONE_CELL_ID = 501;
+const WOOD_CELL_ID = 502;
 const MAGNET_CELL_ID = 503;
 const ICE_LEVEL_1_CELL_ID = 504;
 const ICE_LEVEL_2_CELL_ID = 505;
@@ -9502,6 +9658,100 @@ function getPlayConnectionTypeByPath(pathPoints) {
     return '同向2拐';
   }
   return '反向2拐';
+}
+
+function computePathLengthByGridSteps(pathPoints) {
+  if (!Array.isArray(pathPoints) || pathPoints.length < 2) return null;
+  let length = 0;
+  for (let index = 1; index < pathPoints.length; index++) {
+    const prev = pathPoints[index - 1];
+    const current = pathPoints[index];
+    const prevRow = Number(prev && prev.row);
+    const prevCol = Number(prev && prev.col);
+    const row = Number(current && current.row);
+    const col = Number(current && current.col);
+    if (![prevRow, prevCol, row, col].every(Number.isFinite)) {
+      return null;
+    }
+    length += Math.abs(row - prevRow) + Math.abs(col - prevCol);
+  }
+  return length;
+}
+
+function computePairConnectionDistance(boardData, pair) {
+  if (!pair) return null;
+  const path = findConnectionPathByLianliankan(
+    boardData,
+    pair.row1,
+    pair.col1,
+    pair.row2,
+    pair.col2
+  );
+  const distance = computePathLengthByGridSteps(path);
+  return Number.isFinite(distance) && distance >= 0 ? distance : null;
+}
+
+function summarizeRemovablePairDistances(boardData, removablePairs) {
+  if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
+    return { totalDistance: 0, pairCount: 0, averageDistance: 0 };
+  }
+  let totalDistance = 0;
+  let pairCount = 0;
+  for (const pair of removablePairs) {
+    const distance = computePairConnectionDistance(boardData, pair);
+    if (!Number.isFinite(distance)) continue;
+    totalDistance += distance;
+    pairCount++;
+  }
+  return {
+    totalDistance,
+    pairCount,
+    averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0
+  };
+}
+
+function calculateInitialFaceDistributionDistance(boardData) {
+  if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+  const positionsByBaseId = new Map();
+  for (let row = 0; row < boardData.length; row++) {
+    const sourceRow = boardData[row];
+    if (!Array.isArray(sourceRow)) continue;
+    for (let col = 0; col < sourceRow.length; col++) {
+      const parsed = decodeCellId(sourceRow[col]);
+      if (!Number.isInteger(parsed.baseId)) continue;
+      if (parsed.baseId < 1 || parsed.baseId >= BOMB_CELL_ID) continue;
+      if (
+        parsed.baseId === PLACEHOLDER_CELL_ID ||
+        parsed.baseId === STONE_CELL_ID ||
+        parsed.baseId === WOOD_CELL_ID ||
+        parsed.baseId === MAGNET_CELL_ID ||
+        parsed.baseId === ICE_LEVEL_1_CELL_ID ||
+        parsed.baseId === ICE_LEVEL_2_CELL_ID ||
+        parsed.baseId === ICE_LEVEL_3_CELL_ID
+      ) {
+        continue;
+      }
+      if (!positionsByBaseId.has(parsed.baseId)) {
+        positionsByBaseId.set(parsed.baseId, []);
+      }
+      positionsByBaseId.get(parsed.baseId).push({ row, col });
+    }
+  }
+
+  let totalDistance = 0;
+  let pairCount = 0;
+  positionsByBaseId.forEach((positions) => {
+    if (!Array.isArray(positions) || positions.length < 2) return;
+    for (let left = 0; left < positions.length - 1; left++) {
+      for (let right = left + 1; right < positions.length; right++) {
+        totalDistance +=
+          Math.abs(positions[left].row - positions[right].row) +
+          Math.abs(positions[left].col - positions[right].col);
+        pairCount++;
+      }
+    }
+  });
+  return pairCount > 0 ? (totalDistance / pairCount) : 0;
 }
 
 function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
@@ -9983,6 +10233,11 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
   const connectionTypeCounts = createConnectionTypeCountSummary();
   let totalTrialErrorCount = 0;
   let maxTrialErrorCount = 0;
+  let totalActualPairDistance = 0;
+  let actualPairDistanceCount = 0;
+  let totalAvailablePairDistance = 0;
+  let availablePairDistanceStepCount = 0;
+  const initialFaceDistributionDistance = calculateInitialFaceDistributionDistance(baseBoardData);
   if (!hasFilledCells(boardData)) {
     return {
       cleared: false,
@@ -9993,7 +10248,12 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
       connectionTypeCounts,
       totalTrialErrorCount: 0,
-      maxTrialErrorCount: 0
+      maxTrialErrorCount: 0,
+      totalActualPairDistance: 0,
+      actualPairDistanceCount: 0,
+      totalAvailablePairDistance: 0,
+      availablePairDistanceStepCount: 0,
+      initialFaceDistributionDistance
     };
   }
 
@@ -10013,7 +10273,14 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
           failedStepCount: null,
           failedProgressPercent: null,
           pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-          connectionTypeCounts
+          connectionTypeCounts,
+          totalTrialErrorCount,
+          maxTrialErrorCount,
+          totalActualPairDistance,
+          actualPairDistanceCount,
+          totalAvailablePairDistance,
+          availablePairDistanceStepCount,
+          initialFaceDistributionDistance
         };
       }
       const remainingCount = countRemovableCellCount(boardData);
@@ -10029,11 +10296,23 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         failedStepCount: stepCount,
         failedProgressPercent: failureProgressPercent,
         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
-        connectionTypeCounts
+        connectionTypeCounts,
+        totalTrialErrorCount,
+        maxTrialErrorCount,
+        totalActualPairDistance,
+        actualPairDistanceCount,
+        totalAvailablePairDistance,
+        availablePairDistanceStepCount,
+        initialFaceDistributionDistance
       };
     }
 
     stepPairCounts.push(removablePairs.length);
+    const availableDistanceSummary = summarizeRemovablePairDistances(boardData, removablePairs);
+    if (availableDistanceSummary.pairCount > 0) {
+      totalAvailablePairDistance += availableDistanceSummary.averageDistance;
+      availablePairDistanceStepCount++;
+    }
     let selectedPair = null;
     let stepTrialErrorCount = 0;
     if (humanMode) {
@@ -10066,7 +10345,12 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
         connectionTypeCounts,
         totalTrialErrorCount,
-        maxTrialErrorCount
+        maxTrialErrorCount,
+        totalActualPairDistance,
+        actualPairDistanceCount,
+        totalAvailablePairDistance,
+        availablePairDistanceStepCount,
+        initialFaceDistributionDistance
       };
     }
     totalTrialErrorCount += stepTrialErrorCount;
@@ -10079,6 +10363,11 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       selectedPair.row2,
       selectedPair.col2
     );
+    const actualPairDistance = computePathLengthByGridSteps(linkPath);
+    if (Number.isFinite(actualPairDistance) && actualPairDistance >= 0) {
+      totalActualPairDistance += actualPairDistance;
+      actualPairDistanceCount++;
+    }
     const connectionType = getPlayConnectionTypeByPath(linkPath);
     accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
 
@@ -10107,7 +10396,12 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
     connectionTypeCounts,
     totalTrialErrorCount,
-    maxTrialErrorCount
+    maxTrialErrorCount,
+    totalActualPairDistance,
+    actualPairDistanceCount,
+    totalAvailablePairDistance,
+    availablePairDistanceStepCount,
+    initialFaceDistributionDistance
   };
 }
 
@@ -10541,6 +10835,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
   let partialReverseTwoTurnCount = 0;
   let partialTotalTrialErrorCountSum = 0;
   let partialMaxTrialErrorCount = 0;
+  let partialTotalActualPairDistance = 0;
+  let partialActualPairDistanceCount = 0;
+  let partialTotalAvailablePairDistance = 0;
+  let partialAvailablePairDistanceStepCount = 0;
   const initialRemovableCount = countRemovableCellCount(baseBoardData);
 
   for (let gameIndex = 0; gameIndex < games; gameIndex++) {
@@ -10609,6 +10907,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       partialMaxTrialErrorCount,
       Number(gameResult && gameResult.maxTrialErrorCount) || 0
     );
+    partialTotalActualPairDistance += Number(gameResult && gameResult.totalActualPairDistance) || 0;
+    partialActualPairDistanceCount += Number(gameResult && gameResult.actualPairDistanceCount) || 0;
+    partialTotalAvailablePairDistance +=
+      Number(gameResult && gameResult.totalAvailablePairDistance) || 0;
+    partialAvailablePairDistanceStepCount +=
+      Number(gameResult && gameResult.availablePairDistanceStepCount) || 0;
     partialCompleted++;
 
     if (partialCompleted >= 2) {
@@ -10634,7 +10938,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
         sameDirTwoTurnCount: partialSameDirTwoTurnCount,
         reverseTwoTurnCount: partialReverseTwoTurnCount,
         totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
-        maxTrialErrorCount: partialMaxTrialErrorCount
+        maxTrialErrorCount: partialMaxTrialErrorCount,
+        totalActualPairDistance: partialTotalActualPairDistance,
+        actualPairDistanceCount: partialActualPairDistanceCount,
+        totalAvailablePairDistance: partialTotalAvailablePairDistance,
+        availablePairDistanceStepCount: partialAvailablePairDistanceStepCount
       });
       partialCompleted = 0;
       partialWins = 0;
@@ -10656,6 +10964,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       partialReverseTwoTurnCount = 0;
       partialTotalTrialErrorCountSum = 0;
       partialMaxTrialErrorCount = 0;
+      partialTotalActualPairDistance = 0;
+      partialActualPairDistanceCount = 0;
+      partialTotalAvailablePairDistance = 0;
+      partialAvailablePairDistanceStepCount = 0;
     }
   }
 
@@ -10682,7 +10994,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       sameDirTwoTurnCount: partialSameDirTwoTurnCount,
       reverseTwoTurnCount: partialReverseTwoTurnCount,
       totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
-      maxTrialErrorCount: partialMaxTrialErrorCount
+      maxTrialErrorCount: partialMaxTrialErrorCount,
+      totalActualPairDistance: partialTotalActualPairDistance,
+      actualPairDistanceCount: partialActualPairDistanceCount,
+      totalAvailablePairDistance: partialTotalAvailablePairDistance,
+      availablePairDistanceStepCount: partialAvailablePairDistanceStepCount
     });
   }
   canceledTaskIds.delete(taskId);
@@ -10987,6 +11303,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 let reverseTwoTurnCount = 0;
                 let totalTrialErrorCountSum = 0;
                 let maxTrialErrorCount = 0;
+                let totalActualPairDistance = 0;
+                let actualPairDistanceCount = 0;
+                let totalAvailablePairDistance = 0;
+                let availablePairDistanceStepCount = 0;
                 let finishedWorkers = 0;
                 let settled = false;
                 let launchedWorkerCount = 0;
@@ -11104,6 +11424,22 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             const trialErrorMax = Number.isFinite(Number(data.maxTrialErrorCount))
                                 ? Number(data.maxTrialErrorCount)
                                 : 0;
+                            const actualDistanceSum =
+                                Number.isFinite(Number(data.totalActualPairDistance))
+                                    ? Number(data.totalActualPairDistance)
+                                    : 0;
+                            const actualDistanceCount =
+                                Number.isFinite(Number(data.actualPairDistanceCount))
+                                    ? Number(data.actualPairDistanceCount)
+                                    : 0;
+                            const availableDistanceSum =
+                                Number.isFinite(Number(data.totalAvailablePairDistance))
+                                    ? Number(data.totalAvailablePairDistance)
+                                    : 0;
+                            const availableDistanceStepCount =
+                                Number.isFinite(Number(data.availablePairDistanceStepCount))
+                                    ? Number(data.availablePairDistanceStepCount)
+                                    : 0;
 
                             completedGames += done;
                             winCount += wins;
@@ -11127,6 +11463,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             reverseTwoTurnCount += reverseTwoTurn;
                             totalTrialErrorCountSum += trialErrorCountSum;
                             maxTrialErrorCount = Math.max(maxTrialErrorCount, trialErrorMax);
+                            totalActualPairDistance += actualDistanceSum;
+                            actualPairDistanceCount += actualDistanceCount;
+                            totalAvailablePairDistance += availableDistanceSum;
+                            availablePairDistanceStepCount += availableDistanceStepCount;
 
                             if (typeof onProgress === 'function') {
                                 onProgress(completedGames, gameCount, winCount);
@@ -11158,6 +11498,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                     reverseTwoTurnCount,
                                     totalTrialErrorCountSum,
                                     maxTrialErrorCount,
+                                    totalActualPairDistance,
+                                    actualPairDistanceCount,
+                                    totalAvailablePairDistance,
+                                    availablePairDistanceStepCount,
                                     stoppedEarly: true
                                 });
                             }
@@ -11189,6 +11533,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                 reverseTwoTurnCount,
                                 totalTrialErrorCountSum,
                                 maxTrialErrorCount,
+                                totalActualPairDistance,
+                                actualPairDistanceCount,
+                                totalAvailablePairDistance,
+                                availablePairDistanceStepCount,
                                 stoppedEarly: false
                             });
                         }
@@ -15974,7 +16322,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             sameDirTwoTurnCount: 0,
                             reverseTwoTurnCount: 0,
                             averageTrialErrorPerStep: 0,
-                            maxTrialErrorCount: 0
+                            maxTrialErrorCount: 0,
+                            averageActualPairDistance: 0,
+                            averageAvailablePairDistance: 0,
+                            initialFaceDistributionDistance: calculateInitialFaceDistributionDistance(
+                                matchedBoardData
+                            )
                         };
                         const initialAdjacentMatchCount = Math.max(
                             0,
