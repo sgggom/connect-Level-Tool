@@ -2098,6 +2098,23 @@
             justify-content: flex-end;
         }
 
+        .agent-memory-view-select {
+            min-width: 148px;
+            max-width: 100%;
+            padding: 4px 8px;
+            border-radius: 7px;
+            border: 1px solid rgba(148, 163, 184, 0.38);
+            background: rgba(15, 23, 42, 0.92);
+            color: #dbeafe;
+            font-size: 0.74em;
+            outline: none;
+        }
+
+        .agent-memory-view-select option {
+            color: #111827;
+            background: #f8fafc;
+        }
+
         .agent-memory-view-btn {
             border: 1px solid rgba(148, 163, 184, 0.32);
             border-radius: 999px;
@@ -6274,13 +6291,16 @@
                 ? Math.max(0, Math.round(Number(record.remainingPairCount)))
                 : null;
             const connectionType = String(record?.connectionType || '未知连接');
+            const cancelReason = String(record?.cancelReason || '').trim();
             typeText.textContent = safeRemainingPairCount === null
                 ? connectionType
                 : `${connectionType}（可配对：${safeRemainingPairCount}对）`;
 
             const hint = document.createElement('span');
             hint.className = 'play-step-log-hint';
-            hint.textContent = '悬停预览/点击回放';
+            hint.textContent = cancelReason
+                ? `重选：${cancelReason}`
+                : '悬停预览/点击回放';
 
             const previewPayload = buildPlayStepPreviewPayload(record);
             if (previewPayload) {
@@ -6337,6 +6357,13 @@
             logList.appendChild(empty);
         }
 
+        function recordPlaySelectionCancelReason(reason) {
+            if (!playModeState || !playModeState.active) return;
+            const safeReason = String(reason || '').trim();
+            if (!safeReason) return;
+            playModeState.lastCancelReason = safeReason;
+        }
+
         function appendPlayStepLog(stepIndex, connectionType, remainingPairCount = null, meta = null) {
             const logList = document.getElementById('playStepLogList');
             if (!logList) return;
@@ -6375,7 +6402,8 @@
                     : null,
                 boardSnapshotAfter: Array.isArray(meta?.boardSnapshotAfter)
                     ? cloneBoardData(meta.boardSnapshotAfter)
-                    : null
+                    : null,
+                cancelReason: String(meta?.cancelReason || '').trim()
             };
             logs.push(record);
 
@@ -6427,6 +6455,7 @@
             playModeState.isResolving = false;
             playModeState.failed = false;
             playModeState.clearedPairs = 0;
+            playModeState.lastCancelReason = '';
             syncBoardDisplayWithoutTransition(playModeState.boardData);
             updatePlayRetryButton(false);
             updatePlayAutoPairButton();
@@ -6791,20 +6820,41 @@
 
         function summarizeRemovablePairDistances(boardData, removablePairs) {
             if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
-                return { totalDistance: 0, pairCount: 0, averageDistance: 0 };
+                return {
+                    totalDistance: 0,
+                    pairCount: 0,
+                    averageDistance: 0,
+                    totalFriendlyScore: 0,
+                    averageFriendlyScore: 0
+                };
             }
             let totalDistance = 0;
             let pairCount = 0;
+            let totalFriendlyScore = 0;
             for (const pair of removablePairs) {
-                const distance = computePairConnectionDistance(boardData, pair);
+                const path = findConnectionPathByLianliankan(
+                    boardData,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                );
+                const distance = computePathLengthByGridSteps(path);
                 if (!Number.isFinite(distance)) continue;
+                const connectionType = pair.connectionType || getPlayConnectionTypeByPath(path);
                 totalDistance += distance;
+                totalFriendlyScore += calculateAvailablePairFriendlyScore(
+                    distance,
+                    connectionType
+                );
                 pairCount++;
             }
             return {
                 totalDistance,
                 pairCount,
-                averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0
+                averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0,
+                totalFriendlyScore,
+                averageFriendlyScore: pairCount > 0 ? (totalFriendlyScore / pairCount) : 0
             };
         }
 
@@ -6866,6 +6916,29 @@
             return distanceFactor * getConnectionTypeDifficultyMultiplier(connectionType);
         }
 
+        function getConnectionTypeFriendlyWeight(connectionType) {
+            switch (connectionType) {
+                case '1拐连接':
+                    return 0.75;
+                case '同向2拐':
+                    return 0.55;
+                case '反向2拐':
+                    return 0.45;
+                case '直线连接':
+                    return 1;
+                default:
+                    return 0.5;
+            }
+        }
+
+        function calculateAvailablePairFriendlyScore(pairDistance, connectionType) {
+            const safeDistance = Number.isFinite(Number(pairDistance))
+                ? Math.max(0, Number(pairDistance))
+                : 0;
+            const distanceFriendlyScore = 20 / (20 + safeDistance);
+            return distanceFriendlyScore * getConnectionTypeFriendlyWeight(connectionType);
+        }
+
         function calculateBoardDifficultyScore(
             boardData,
             initialRemovableCount = null,
@@ -6880,22 +6953,40 @@
                 : getRemovablePairsForBoard(boardData);
             const pairCount = Array.isArray(pairs) ? pairs.length : 0;
             const distanceSummary = summarizeRemovablePairDistances(boardData, pairs);
-            const averageAvailableDistance = Number(distanceSummary.averageDistance) || 0;
+            const boardFriendlyScore = Math.max(
+                0,
+                Number(distanceSummary.totalFriendlyScore) || 0
+            );
             const safeInitialCount = Number.isFinite(Number(initialRemovableCount)) &&
                 Number(initialRemovableCount) > 0
                 ? Number(initialRemovableCount)
                 : remainingCount;
-            const remainingPressure = safeInitialCount > 0
-                ? (remainingCount / safeInitialCount) * 20
-                : 0;
+            const remainingScale = safeInitialCount > 0
+                ? 1 + (Math.max(0, remainingCount) / safeInitialCount) * 0.25
+                : 1;
+            const accessibilityDifficulty = 100 / (1 + boardFriendlyScore);
+            return (accessibilityDifficulty * remainingScale) + (pairCount === 0 ? 200 : 0);
+        }
 
-            return (
-                10 +
-                (80 / Math.sqrt(pairCount + 1)) +
-                (averageAvailableDistance * 4) +
-                remainingPressure +
-                (pairCount === 0 ? 200 : 0)
-            );
+        function buildBoardAccessibilityMetrics(
+            boardData,
+            initialRemovableCount = null,
+            removablePairs = null
+        ) {
+            const pairs = Array.isArray(removablePairs)
+                ? removablePairs
+                : getRemovablePairsForBoard(boardData);
+            const distanceSummary = summarizeRemovablePairDistances(boardData, pairs);
+            return {
+                pairCount: Array.isArray(pairs) ? pairs.length : 0,
+                averageAvailableDistance: Number(distanceSummary.averageDistance) || 0,
+                boardFriendlyScore: Number(distanceSummary.totalFriendlyScore) || 0,
+                boardDifficultyScore: calculateBoardDifficultyScore(
+                    boardData,
+                    initialRemovableCount,
+                    pairs
+                )
+            };
         }
 
         function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
@@ -7198,6 +7289,7 @@
 
             if (selected.row === row && selected.col === col) {
                 clearPlaySelectionVisual();
+                recordPlaySelectionCancelReason('再次点击同一张牌，取消当前选择');
                 if (info) info.textContent = '试玩模式：已取消选择';
                 return;
             }
@@ -7212,6 +7304,7 @@
 
             if (selectedMatchBaseId !== currentMatchBaseId) {
                 setPlaySelection(row, col);
+                recordPlaySelectionCancelReason('数字不同，切换为新选中的牌');
                 if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentMatchBaseId}`;
                 return;
             }
@@ -7226,6 +7319,7 @@
 
             if (!canConnect) {
                 setPlaySelection(row, col);
+                recordPlaySelectionCancelReason('路径不满足连连看规则，切换为新选中的牌');
                 if (info) info.textContent = '试玩模式：路径不满足连连看规则，请重选';
                 return;
             }
@@ -7304,9 +7398,11 @@
                     {
                         move,
                         boardSnapshotBefore,
-                        boardSnapshotAfter: cloneBoardData(boardData)
+                        boardSnapshotAfter: cloneBoardData(boardData),
+                        cancelReason: playModeState.lastCancelReason || ''
                     }
                 );
+                playModeState.lastCancelReason = '';
 
                 if (isPlayBoardCleared(boardData)) {
                     updatePlayRetryButton(false);
@@ -7382,6 +7478,7 @@
                 isResolving: false,
                 failed: false,
                 clearedPairs: 0,
+                lastCancelReason: '',
                 direction: parseInt(document.querySelector('input[name="direction"]:checked')?.value || 0)
             };
 
@@ -9802,20 +9899,38 @@ function computePairConnectionDistance(boardData, pair) {
 
 function summarizeRemovablePairDistances(boardData, removablePairs) {
   if (!Array.isArray(removablePairs) || removablePairs.length === 0) {
-    return { totalDistance: 0, pairCount: 0, averageDistance: 0 };
+    return {
+      totalDistance: 0,
+      pairCount: 0,
+      averageDistance: 0,
+      totalFriendlyScore: 0,
+      averageFriendlyScore: 0
+    };
   }
   let totalDistance = 0;
   let pairCount = 0;
+  let totalFriendlyScore = 0;
   for (const pair of removablePairs) {
-    const distance = computePairConnectionDistance(boardData, pair);
+    const path = findConnectionPathByLianliankan(
+      boardData,
+      pair.row1,
+      pair.col1,
+      pair.row2,
+      pair.col2
+    );
+    const distance = computePathLengthByGridSteps(path);
     if (!Number.isFinite(distance)) continue;
+    const connectionType = pair.connectionType || getPlayConnectionTypeByPath(path);
     totalDistance += distance;
+    totalFriendlyScore += calculateAvailablePairFriendlyScore(distance, connectionType);
     pairCount++;
   }
   return {
     totalDistance,
     pairCount,
-    averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0
+    averageDistance: pairCount > 0 ? (totalDistance / pairCount) : 0,
+    totalFriendlyScore,
+    averageFriendlyScore: pairCount > 0 ? (totalFriendlyScore / pairCount) : 0
   };
 }
 
@@ -9885,6 +10000,29 @@ function calculateMoveDifficultyFactor(pairDistance, connectionType) {
   return distanceFactor * getConnectionTypeDifficultyMultiplier(connectionType);
 }
 
+function getConnectionTypeFriendlyWeight(connectionType) {
+  switch (connectionType) {
+    case '1拐连接':
+      return 0.75;
+    case '同向2拐':
+      return 0.55;
+    case '反向2拐':
+      return 0.45;
+    case '直线连接':
+      return 1;
+    default:
+      return 0.5;
+  }
+}
+
+function calculateAvailablePairFriendlyScore(pairDistance, connectionType) {
+  const safeDistance = Number.isFinite(Number(pairDistance))
+    ? Math.max(0, Number(pairDistance))
+    : 0;
+  const distanceFriendlyScore = 20 / (20 + safeDistance);
+  return distanceFriendlyScore * getConnectionTypeFriendlyWeight(connectionType);
+}
+
 function calculateBoardDifficultyScore(boardData, initialRemovableCount, removablePairs) {
   if (!Array.isArray(boardData) || boardData.length === 0) return 0;
   const remainingCount = countRemovableCellCount(boardData);
@@ -9895,22 +10033,19 @@ function calculateBoardDifficultyScore(boardData, initialRemovableCount, removab
     : getRemovablePairsForBoard(boardData);
   const pairCount = Array.isArray(pairs) ? pairs.length : 0;
   const distanceSummary = summarizeRemovablePairDistances(boardData, pairs);
-  const averageAvailableDistance = Number(distanceSummary.averageDistance) || 0;
+  const boardFriendlyScore = Math.max(
+    0,
+    Number(distanceSummary.totalFriendlyScore) || 0
+  );
   const safeInitialCount = Number.isFinite(Number(initialRemovableCount)) &&
     Number(initialRemovableCount) > 0
     ? Number(initialRemovableCount)
     : remainingCount;
-  const remainingPressure = safeInitialCount > 0
-    ? (remainingCount / safeInitialCount) * 20
-    : 0;
-
-  return (
-    10 +
-    (80 / Math.sqrt(pairCount + 1)) +
-    (averageAvailableDistance * 4) +
-    remainingPressure +
-    (pairCount === 0 ? 200 : 0)
-  );
+  const remainingScale = safeInitialCount > 0
+    ? 1 + (Math.max(0, remainingCount) / safeInitialCount) * 0.25
+    : 1;
+  const accessibilityDifficulty = 100 / (1 + boardFriendlyScore);
+  return (accessibilityDifficulty * remainingScale) + (pairCount === 0 ? 200 : 0);
 }
 
 function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
@@ -16950,9 +17085,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
 
             const grid = document.createElement('div');
             grid.className = 'agent-step-grid';
-            const remainingText = item.humanMode
-                ? '未知（人类模式）'
-                : `${Number.isFinite(Number(item.remainingPairsBefore)) ? Number(item.remainingPairsBefore) : '-'} -> ${Number.isFinite(Number(item.remainingPairsAfter)) ? Number(item.remainingPairsAfter) : '-'}`;
+            const remainingText = `${Number.isFinite(Number(item.remainingPairsBefore)) ? Number(item.remainingPairsBefore) : '-'} -> ${Number.isFinite(Number(item.remainingPairsAfter)) ? Number(item.remainingPairsAfter) : '-'}`;
             const remainingCardText = Number.isFinite(Number(item.remainingCardCountAfter))
                 ? String(Math.max(0, Number(item.remainingCardCountAfter)))
                 : '-';
@@ -16963,16 +17096,28 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const preStepTrialErrorCountText = Number.isFinite(Number(item.preStepDecisionFailCount))
                 ? String(Math.max(0, Number(item.preStepDecisionFailCount)))
                 : '0';
+            const stepDifficultyScoreText = formatAgentMetricNumber(item.stepDifficultyScore);
+            const maxStepDifficultyScoreText = formatAgentMetricNumber(item.maxStepDifficultyScore);
+            const connectionDistanceText = formatAgentMetricNumber(item.connectionDistance);
+            const availableDistanceText = formatAgentMetricNumber(item.availableDistanceBefore);
+            const boardDifficultyText = `${formatAgentMetricNumber(item.boardDifficultyBefore)} -> ${formatAgentMetricNumber(item.boardDifficultyAfter)}`;
+            const cancelReasonText = String(item.cancelReason || '').trim() || '-';
             const cellEntries = [
                 ['操作坐标', item.moveText || '未给出'],
                 ['候选数', Number.isFinite(Number(item.candidateCount)) ? String(Math.max(0, Number(item.candidateCount))) : '-'],
                 ['连接/拐点', `${item.connectionType || '-'} / ${Number.isFinite(Number(item.turnCount)) ? Number(item.turnCount) : '-'}`],
+                ['实际配对距离', connectionDistanceText],
+                ['平均可配对距离', availableDistanceText],
+                ['场面难度', boardDifficultyText],
+                ['本步难度分', stepDifficultyScoreText],
+                ['当前最高分', maxStepDifficultyScoreText],
                 ['前置试错次数', preStepTrialErrorCountText],
                 ['局面结果', resultText],
                 ['剩余牌数', remainingCardText],
                 ['已消除牌数', clearedCardText],
                 ['剩余可配对', remainingText],
-                ['选择原因', String(item.reason || '未提供')],
+                ['操作依据', String(item.reason || '未提供')],
+                ['取消/重选原因', cancelReasonText],
                 ['感受评级', String(item.feelingLevel || '-')]
             ];
             for (const [label, value] of cellEntries) {
@@ -16998,7 +17143,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
 
             const thoughtText = String(item.thought || '').trim();
             const reasonText = String(item.reason || '').trim();
-            if (thoughtText || reasonText) {
+            const cancelReasonDetailText = String(item.cancelReason || '').trim();
+            if (thoughtText || reasonText || cancelReasonDetailText) {
                 const thoughtDetails = document.createElement('details');
                 thoughtDetails.className = 'agent-step-thought';
                 const summary = document.createElement('summary');
@@ -17009,6 +17155,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 const thoughtLines = [];
                 if (thoughtText) thoughtLines.push(`思考：${thoughtText}`);
                 if (reasonText) thoughtLines.push(`依据：${reasonText}`);
+                if (cancelReasonDetailText) thoughtLines.push(`取消/重选：${cancelReasonDetailText}`);
                 content.textContent = thoughtLines.join('\n');
                 thoughtDetails.appendChild(content);
                 card.appendChild(thoughtDetails);
@@ -17119,6 +17266,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 reason: String(stepPayload.reason || ''),
                 connectionType: String(stepPayload.connectionType || ''),
                 turnCount: Number(stepPayload.turnCount),
+                connectionDistance: Number(stepPayload.connectionDistance),
+                availableDistanceBefore: Number(stepPayload.availableDistanceBefore),
+                availableDistanceAfter: Number(stepPayload.availableDistanceAfter),
+                boardDifficultyBefore: Number(stepPayload.boardDifficultyBefore),
+                boardDifficultyAfter: Number(stepPayload.boardDifficultyAfter),
+                stepDifficultyScore: Number(stepPayload.stepDifficultyScore),
+                maxStepDifficultyScore: Number(stepPayload.maxStepDifficultyScore),
+                cancelReason: String(stepPayload.cancelReason || ''),
                 remainingPairsBefore: Number(stepPayload.remainingPairsBefore),
                 remainingPairsAfter: Number(stepPayload.remainingPairsAfter),
                 remainingCardCountBefore: Number(stepPayload.remainingCardCountBefore),
@@ -17918,12 +18073,24 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             };
         }
 
+        function formatAgentMetricNumber(value, digits = 2) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return '-';
+            return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(digits);
+        }
+
         function getAgentMemoryTrendViewOptions() {
             return [
                 { key: 'pair_count', label: '可配对数' },
-                { key: 'connection_distance', label: '连接距离' },
+                { key: 'connection_distance', label: '实际配对距离' },
+                { key: 'available_distance_before', label: '平均可配对距离' },
+                { key: 'step_difficulty_score', label: '每步难度分' },
+                { key: 'max_step_difficulty_score', label: '当前最高分' },
                 { key: 'trial_error_count', label: '试错次数' },
-                { key: 'pair_delta_after_move', label: '操作后配对数变动' }
+                { key: 'pair_delta_after_move', label: '操作后配对变化' },
+                { key: 'remaining_card_count', label: '剩余牌数' },
+                { key: 'cleared_card_count', label: '已消除牌数' },
+                { key: 'board_difficulty_before_after', label: '场面难度变化' }
             ];
         }
 
@@ -17994,6 +18161,36 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     });
                     continue;
                 }
+                if (viewKey === 'available_distance_before') {
+                    const value = Number(record?.availableDistanceBefore);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：平均可配对距离 ${formatAgentMetricNumber(value)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'step_difficulty_score') {
+                    const value = Number(record?.stepDifficultyScore);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：难度分 ${formatAgentMetricNumber(value)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'max_step_difficulty_score') {
+                    const value = Number(record?.maxStepDifficultyScore);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：当前最高分 ${formatAgentMetricNumber(value)}`
+                    });
+                    continue;
+                }
                 if (viewKey === 'trial_error_count') {
                     const preStepFails = Number(record?.preStepDecisionFailCount);
                     const value = Number.isFinite(preStepFails) && preStepFails >= 0
@@ -18016,9 +18213,68 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                         value,
                         tip: `第${step}步：配对数变动 ${value >= 0 ? '+' : ''}${value}`
                     });
+                    continue;
+                }
+                if (viewKey === 'remaining_card_count') {
+                    const value = Number(record?.remainingCardCountAfter);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：剩余牌数 ${Math.round(value)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'cleared_card_count') {
+                    const value = Number(record?.clearedCardCountAfter);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：已消除牌数 ${Math.round(value)}`
+                    });
+                    continue;
+                }
+                if (viewKey === 'board_difficulty_before_after') {
+                    const before = Number(record?.boardDifficultyBefore);
+                    const after = Number(record?.boardDifficultyAfter);
+                    if (!Number.isFinite(before) && !Number.isFinite(after)) continue;
+                    const value = Number.isFinite(after) ? after : before;
+                    points.push({
+                        step,
+                        value,
+                        tip: `第${step}步：场面难度 ${formatAgentMetricNumber(before)} -> ${formatAgentMetricNumber(after)}`
+                    });
                 }
             }
             return points;
+        }
+
+        function buildAgentMemorySummaryItems(history) {
+            const records = Array.isArray(history) ? history : [];
+            const finiteValues = (key) => records
+                .map((item) => Number(item?.[key]))
+                .filter((value) => Number.isFinite(value) && value >= 0);
+            const average = (key) => {
+                const values = finiteValues(key);
+                if (values.length === 0) return null;
+                return values.reduce((sum, value) => sum + value, 0) / values.length;
+            };
+            const maxValue = (key) => {
+                const values = finiteValues(key);
+                return values.length > 0 ? Math.max(...values) : null;
+            };
+            const trialTotal = records.reduce((sum, item) => {
+                const value = Number(item?.trialErrorCount ?? item?.preStepDecisionFailCount);
+                return sum + (Number.isFinite(value) && value > 0 ? value : 0);
+            }, 0);
+            return [
+                ['平均每步分', formatAgentMetricNumber(average('stepDifficultyScore'))],
+                ['最高分', formatAgentMetricNumber(maxValue('stepDifficultyScore'))],
+                ['平均实际距离', formatAgentMetricNumber(average('connectionDistance'))],
+                ['平均可配对距离', formatAgentMetricNumber(average('availableDistanceBefore'))],
+                ['累计试错', formatAgentMetricNumber(trialTotal, 0)]
+            ];
         }
 
         function renderAgentMemoryPanel() {
@@ -18046,25 +18302,37 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 ? agentUiState.memoryTrendView
                 : trendViewOptions[0].key;
             agentUiState.memoryTrendView = activeTrendView;
-            const tabs = document.createElement('div');
-            tabs.className = 'agent-memory-view-tabs';
+            const selectorWrap = document.createElement('div');
+            selectorWrap.className = 'agent-memory-view-tabs';
+            const selector = document.createElement('select');
+            selector.className = 'agent-memory-view-select';
+            selector.setAttribute('aria-label', '选择统计图表');
             for (const option of trendViewOptions) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'agent-memory-view-btn';
-                if (option.key === activeTrendView) {
-                    button.classList.add('active');
-                }
-                button.textContent = option.label;
-                button.addEventListener('click', () => {
-                    if (agentUiState.memoryTrendView === option.key) return;
-                    agentUiState.memoryTrendView = option.key;
-                    renderAgentMemoryPanel();
-                });
-                tabs.appendChild(button);
+                const optionElement = document.createElement('option');
+                optionElement.value = option.key;
+                optionElement.textContent = option.label;
+                optionElement.selected = option.key === activeTrendView;
+                selector.appendChild(optionElement);
             }
-            header.appendChild(tabs);
+            selector.addEventListener('change', () => {
+                const nextKey = String(selector.value || '').trim();
+                if (!trendViewOptions.some((item) => item.key === nextKey)) return;
+                agentUiState.memoryTrendView = nextKey;
+                renderAgentMemoryPanel();
+            });
+            selectorWrap.appendChild(selector);
+            header.appendChild(selectorWrap);
             panel.appendChild(header);
+
+            const summary = document.createElement('div');
+            summary.className = 'agent-memory-summary';
+            for (const [label, value] of buildAgentMemorySummaryItems(history)) {
+                const item = document.createElement('span');
+                item.className = 'agent-memory-summary-item';
+                item.textContent = `${label}：${value}`;
+                summary.appendChild(item);
+            }
+            panel.appendChild(summary);
 
             const trendWrap = document.createElement('div');
             trendWrap.className = 'agent-memory-trend';
@@ -18240,6 +18508,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     connectionType: item.connectionType,
                     turnCount: item.turnCount,
                     pathNodeCount: item.pathNodeCount,
+                    connectionDistance: item.connectionDistance,
+                    availableDistanceBefore: item.availableDistanceBefore,
+                    boardDifficultyBefore: item.boardDifficultyBefore,
+                    boardDifficultyAfter: item.boardDifficultyAfter,
+                    stepDifficultyScore: item.stepDifficultyScore,
+                    maxStepDifficultyScore: item.maxStepDifficultyScore,
+                    cancelReason: item.cancelReason,
                     candidateCountBefore: item.candidateCountBefore
                 };
                 if (includeRemaining) {
@@ -19278,6 +19553,21 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     ? Number(decisionMeta.preStepDecisionFailCount)
                     : 0
             );
+            const boardMetricsBefore = buildBoardAccessibilityMetrics(
+                snapshot.boardData,
+                initialRemovableCardCount,
+                snapshot.removablePairs
+            );
+            const previousMaxStepDifficultyScore = Math.max(
+                0,
+                ...(
+                    Array.isArray(agentUiState.stepMemory)
+                        ? agentUiState.stepMemory
+                            .map((item) => Number(item?.maxStepDifficultyScore ?? item?.stepDifficultyScore))
+                            .filter((value) => Number.isFinite(value) && value >= 0)
+                        : []
+                )
+            );
             const validated = validateAgentMove(snapshot, move, {
                 humanMode: Boolean(decisionMeta?.humanMode || agentUiState.humanModeEnabled)
             });
@@ -19302,6 +19592,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     turnCount: null,
                     pathNodeCount: null,
                     connectionDistance: null,
+                    availableDistanceBefore: boardMetricsBefore.averageAvailableDistance,
+                    availableDistanceAfter: boardMetricsBefore.averageAvailableDistance,
+                    boardDifficultyBefore: boardMetricsBefore.boardDifficultyScore,
+                    boardDifficultyAfter: boardMetricsBefore.boardDifficultyScore,
+                    stepDifficultyScore: 0,
+                    maxStepDifficultyScore: previousMaxStepDifficultyScore,
+                    cancelReason: validated.error,
                     candidateCountBefore,
                     humanMetrics,
                     boardSnapshotBefore
@@ -19314,6 +19611,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     turnCount: null,
                     pathNodeCount: null,
                     connectionDistance: null,
+                    availableDistanceBefore: boardMetricsBefore.averageAvailableDistance,
+                    availableDistanceAfter: boardMetricsBefore.averageAvailableDistance,
+                    boardDifficultyBefore: boardMetricsBefore.boardDifficultyScore,
+                    boardDifficultyAfter: boardMetricsBefore.boardDifficultyScore,
+                    stepDifficultyScore: 0,
+                    maxStepDifficultyScore: previousMaxStepDifficultyScore,
+                    cancelReason: validated.error,
                     candidateCountBefore,
                     remainingPairsBefore: snapshot.remainingPairs,
                     remainingPairsAfter: snapshot.remainingPairs,
@@ -19362,6 +19666,22 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const gameOutcome = boardCleared
                 ? 'victory'
                 : (failedWithCardsLeft ? 'failure' : '');
+            const boardMetricsAfter = buildBoardAccessibilityMetrics(
+                boardNow,
+                initialRemovableCardCount
+            );
+            const moveDifficultyFactor = calculateMoveDifficultyFactor(
+                validated.connectionDistance,
+                validated.connectionType
+            );
+            const stepDifficultyScore = success
+                ? ((boardMetricsBefore.boardDifficultyScore + boardMetricsAfter.boardDifficultyScore) / 2) *
+                    moveDifficultyFactor
+                : 0;
+            const maxStepDifficultyScore = Math.max(
+                previousMaxStepDifficultyScore,
+                Number.isFinite(stepDifficultyScore) ? stepDifficultyScore : 0
+            );
             const result = {
                 ok: success,
                 move,
@@ -19384,6 +19704,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 connectionDistance: Number.isFinite(Number(validated.connectionDistance))
                     ? Number(validated.connectionDistance)
                     : null,
+                availableDistanceBefore: boardMetricsBefore.averageAvailableDistance,
+                availableDistanceAfter: boardMetricsAfter.averageAvailableDistance,
+                boardDifficultyBefore: boardMetricsBefore.boardDifficultyScore,
+                boardDifficultyAfter: boardMetricsAfter.boardDifficultyScore,
+                stepDifficultyScore: Number.isFinite(stepDifficultyScore) ? stepDifficultyScore : 0,
+                maxStepDifficultyScore,
+                cancelReason: String(playModeState?.lastCancelReason || ''),
                 candidateCountBefore,
                 humanMetrics,
                 error: success ? '' : '执行后未产生有效消除，请重新规划。'
@@ -19399,6 +19726,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 connectionDistance: Number.isFinite(Number(result.connectionDistance))
                     ? Number(result.connectionDistance)
                     : null,
+                availableDistanceBefore: result.availableDistanceBefore,
+                availableDistanceAfter: result.availableDistanceAfter,
+                boardDifficultyBefore: result.boardDifficultyBefore,
+                boardDifficultyAfter: result.boardDifficultyAfter,
+                stepDifficultyScore: result.stepDifficultyScore,
+                maxStepDifficultyScore: result.maxStepDifficultyScore,
+                cancelReason: result.cancelReason,
                 candidateCountBefore: result.candidateCountBefore,
                 remainingPairsBefore: result.remainingPairsBefore,
                 remainingPairsAfter: result.remainingPairsAfter,
@@ -20048,6 +20382,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     reason: String(decision.reason || decision.thought || '未提供'),
                     connectionType: String(result?.connectionType || '-'),
                     turnCount: Number(result?.turnCount),
+                    connectionDistance: Number(latestStep?.connectionDistance ?? result?.connectionDistance),
+                    availableDistanceBefore: Number(latestStep?.availableDistanceBefore ?? result?.availableDistanceBefore),
+                    availableDistanceAfter: Number(latestStep?.availableDistanceAfter ?? result?.availableDistanceAfter),
+                    boardDifficultyBefore: Number(latestStep?.boardDifficultyBefore ?? result?.boardDifficultyBefore),
+                    boardDifficultyAfter: Number(latestStep?.boardDifficultyAfter ?? result?.boardDifficultyAfter),
+                    stepDifficultyScore: Number(latestStep?.stepDifficultyScore ?? result?.stepDifficultyScore),
+                    maxStepDifficultyScore: Number(latestStep?.maxStepDifficultyScore ?? result?.maxStepDifficultyScore),
+                    cancelReason: String(latestStep?.cancelReason || result?.cancelReason || result?.error || ''),
                     remainingPairsBefore: Number(result?.remainingPairsBefore),
                     remainingPairsAfter: Number(result?.remainingPairsAfter),
                     remainingCardCountBefore: Number(result?.remainingCardCountBefore),
