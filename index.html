@@ -6844,6 +6844,60 @@
             return pairCount > 0 ? (totalDistance / pairCount) : 0;
         }
 
+        function getConnectionTypeDifficultyMultiplier(connectionType) {
+            switch (connectionType) {
+                case '1拐连接':
+                    return 1.2;
+                case '同向2拐':
+                    return 1.45;
+                case '反向2拐':
+                    return 1.6;
+                case '直线连接':
+                default:
+                    return 1;
+            }
+        }
+
+        function calculateMoveDifficultyFactor(pairDistance, connectionType) {
+            const safeDistance = Number.isFinite(Number(pairDistance))
+                ? Math.max(0, Number(pairDistance))
+                : 0;
+            const distanceFactor = 1 + (Math.min(safeDistance, 20) / 20);
+            return distanceFactor * getConnectionTypeDifficultyMultiplier(connectionType);
+        }
+
+        function calculateBoardDifficultyScore(
+            boardData,
+            initialRemovableCount = null,
+            removablePairs = null
+        ) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+            const remainingCount = countRemovableCellCount(boardData);
+            if (remainingCount <= 0) return 0;
+
+            const pairs = Array.isArray(removablePairs)
+                ? removablePairs
+                : getRemovablePairsForBoard(boardData);
+            const pairCount = Array.isArray(pairs) ? pairs.length : 0;
+            const distanceSummary = summarizeRemovablePairDistances(boardData, pairs);
+            const averageAvailableDistance = Number(distanceSummary.averageDistance) || 0;
+            const safeInitialCount = Number.isFinite(Number(initialRemovableCount)) &&
+                Number(initialRemovableCount) > 0
+                ? Number(initialRemovableCount)
+                : remainingCount;
+            const remainingPressure = safeInitialCount > 0
+                ? (remainingCount / safeInitialCount) * 20
+                : 0;
+
+            return (
+                10 +
+                (80 / Math.sqrt(pairCount + 1)) +
+                (averageAvailableDistance * 4) +
+                remainingPressure +
+                (pairCount === 0 ? 200 : 0)
+            );
+        }
+
         function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
             if (!Array.isArray(boardData) || boardData.length === 0) return null;
             const height = boardData.length;
@@ -8453,6 +8507,8 @@
             let actualPairDistanceCount = 0;
             let totalAvailablePairDistance = 0;
             let availablePairDistanceStepCount = 0;
+            let totalStepDifficultyScore = 0;
+            let maxStepDifficultyScore = 0;
             const initialFaceDistributionDistance =
                 calculateInitialFaceDistributionDistance(baseBoardData);
             if (!hasFilledCells(boardData)) {
@@ -8470,6 +8526,8 @@
                     actualPairDistanceCount: 0,
                     totalAvailablePairDistance: 0,
                     availablePairDistanceStepCount: 0,
+                    totalStepDifficultyScore: 0,
+                    maxStepDifficultyScore: 0,
                     initialFaceDistributionDistance
                 };
             }
@@ -8497,6 +8555,8 @@
                             actualPairDistanceCount,
                             totalAvailablePairDistance,
                             availablePairDistanceStepCount,
+                            totalStepDifficultyScore,
+                            maxStepDifficultyScore,
                             initialFaceDistributionDistance
                         };
                     }
@@ -8520,11 +8580,18 @@
                         actualPairDistanceCount,
                         totalAvailablePairDistance,
                         availablePairDistanceStepCount,
+                        totalStepDifficultyScore,
+                        maxStepDifficultyScore,
                         initialFaceDistributionDistance
                     };
                 }
 
                 stepPairCounts.push(removablePairs.length);
+                const beforeBoardScore = calculateBoardDifficultyScore(
+                    boardData,
+                    baseCount,
+                    removablePairs
+                );
                 const availableDistanceSummary =
                     summarizeRemovablePairDistances(boardData, removablePairs);
                 if (availableDistanceSummary.pairCount > 0) {
@@ -8568,6 +8635,8 @@
                         actualPairDistanceCount,
                         totalAvailablePairDistance,
                         availablePairDistanceStepCount,
+                        totalStepDifficultyScore,
+                        maxStepDifficultyScore,
                         initialFaceDistributionDistance
                     };
                 }
@@ -8588,6 +8657,10 @@
                 }
                 const connectionType = getPlayConnectionTypeByPath(linkPath);
                 accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
+                const moveDifficultyFactor = calculateMoveDifficultyFactor(
+                    actualPairDistance,
+                    connectionType
+                );
 
                 const firstValue = boardData[selectedPair.row1]?.[selectedPair.col1];
                 const selectedBaseId = getMatchableBaseId(firstValue);
@@ -8597,6 +8670,13 @@
                     triggerBombEffect(boardData, null);
                 }
                 applyDirectionShiftUntilStable(boardData, direction);
+                const afterBoardScore = calculateBoardDifficultyScore(boardData, baseCount);
+                const stepDifficultyScore =
+                    ((beforeBoardScore + afterBoardScore) / 2) * moveDifficultyFactor;
+                if (Number.isFinite(stepDifficultyScore) && stepDifficultyScore >= 0) {
+                    totalStepDifficultyScore += stepDifficultyScore;
+                    maxStepDifficultyScore = Math.max(maxStepDifficultyScore, stepDifficultyScore);
+                }
                 stepCount++;
             }
 
@@ -8619,6 +8699,8 @@
                 actualPairDistanceCount,
                 totalAvailablePairDistance,
                 availablePairDistanceStepCount,
+                totalStepDifficultyScore,
+                maxStepDifficultyScore,
                 initialFaceDistributionDistance
             };
         }
@@ -8662,6 +8744,8 @@
             let actualPairDistanceCount = 0;
             let totalAvailablePairDistance = 0;
             let availablePairDistanceStepCount = 0;
+            let totalStepDifficultyScore = 0;
+            let maxStepDifficultyScore = 0;
             const initialFaceDistributionDistance =
                 calculateInitialFaceDistributionDistance(sourceBoard);
             let quartileStepCounts = [0, 0, 0, 0];
@@ -8696,6 +8780,8 @@
                     averageActualPairDistance: 0,
                     averageAvailablePairDistance: 0,
                     initialFaceDistributionDistance,
+                    averageStepDifficultyScore: 0,
+                    maxStepDifficultyScore: 0,
                     stoppedEarly: true,
                     unreachable: true
                 };
@@ -8782,6 +8868,14 @@
                         Number.isFinite(Number(workerResult.availablePairDistanceStepCount))
                             ? Number(workerResult.availablePairDistanceStepCount)
                             : 0;
+                    totalStepDifficultyScore =
+                        Number.isFinite(Number(workerResult.totalStepDifficultyScore))
+                            ? Number(workerResult.totalStepDifficultyScore)
+                            : 0;
+                    maxStepDifficultyScore =
+                        Number.isFinite(Number(workerResult.maxStepDifficultyScore))
+                            ? Number(workerResult.maxStepDifficultyScore)
+                            : 0;
                     const toQuartileArray = (raw) => {
                         const result = [0, 0, 0, 0];
                         if (!Array.isArray(raw)) return result;
@@ -8854,6 +8948,11 @@
                     totalAvailablePairDistance += Number(gameResult?.totalAvailablePairDistance) || 0;
                     availablePairDistanceStepCount +=
                         Number(gameResult?.availablePairDistanceStepCount) || 0;
+                    totalStepDifficultyScore += Number(gameResult?.totalStepDifficultyScore) || 0;
+                    maxStepDifficultyScore = Math.max(
+                        maxStepDifficultyScore,
+                        Number(gameResult?.maxStepDifficultyScore) || 0
+                    );
                     firstHalfStepCount += Number(pairSummary.firstHalfStepCount) || 0;
                     firstHalfPairCountSum += Number(pairSummary.firstHalfPairCountSum) || 0;
                     secondHalfStepCount += Number(pairSummary.secondHalfStepCount) || 0;
@@ -8926,6 +9025,9 @@
             const averageAvailablePairDistance = availablePairDistanceStepCount > 0
                 ? (totalAvailablePairDistance / availablePairDistanceStepCount)
                 : 0;
+            const averageStepDifficultyScore = totalStepCount > 0
+                ? (totalStepDifficultyScore / totalStepCount)
+                : 0;
             const firstHalfAveragePairCount = firstHalfStepCount > 0
                 ? (firstHalfPairCountSum / firstHalfStepCount)
                 : 0;
@@ -8978,6 +9080,8 @@
                 averageActualPairDistance,
                 averageAvailablePairDistance,
                 initialFaceDistributionDistance,
+                averageStepDifficultyScore,
+                maxStepDifficultyScore,
                 stoppedEarly,
                 unreachable
             };
@@ -9080,6 +9184,10 @@
                 Number(metrics?.averageAvailablePairDistance || 0).toFixed(2);
             const initialFaceDistributionDistance =
                 Number(metrics?.initialFaceDistributionDistance || 0).toFixed(2);
+            const averageStepDifficultyScore =
+                Number(metrics?.averageStepDifficultyScore || 0).toFixed(2);
+            const maxStepDifficultyScore =
+                Number(metrics?.maxStepDifficultyScore || 0).toFixed(2);
             const humanModeFlag = humanMode ? 1 : 0;
             const safeHumanModeBesidePercent = normalizeHumanModeBesidePercent(
                 humanModeBesidePercent,
@@ -9130,7 +9238,8 @@
                 `${reverseTwoTurnCount.toFixed(2)}\t${quartilePairAverageTexts.join('\t')}\t` +
                 `${averageTrialErrorPerStep}\t${maxTrialErrorCount}\t` +
                 `${averageActualPairDistance}\t${averageAvailablePairDistance}\t` +
-                `${initialFaceDistributionDistance}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
+                `${initialFaceDistributionDistance}\t${averageStepDifficultyScore}\t` +
+                `${maxStepDifficultyScore}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
             return includeLevelColumn ? `${safeLevelText}\t${payload}` : payload;
         }
 
@@ -9754,6 +9863,56 @@ function calculateInitialFaceDistributionDistance(boardData) {
   return pairCount > 0 ? (totalDistance / pairCount) : 0;
 }
 
+function getConnectionTypeDifficultyMultiplier(connectionType) {
+  switch (connectionType) {
+    case '1拐连接':
+      return 1.2;
+    case '同向2拐':
+      return 1.45;
+    case '反向2拐':
+      return 1.6;
+    case '直线连接':
+    default:
+      return 1;
+  }
+}
+
+function calculateMoveDifficultyFactor(pairDistance, connectionType) {
+  const safeDistance = Number.isFinite(Number(pairDistance))
+    ? Math.max(0, Number(pairDistance))
+    : 0;
+  const distanceFactor = 1 + (Math.min(safeDistance, 20) / 20);
+  return distanceFactor * getConnectionTypeDifficultyMultiplier(connectionType);
+}
+
+function calculateBoardDifficultyScore(boardData, initialRemovableCount, removablePairs) {
+  if (!Array.isArray(boardData) || boardData.length === 0) return 0;
+  const remainingCount = countRemovableCellCount(boardData);
+  if (remainingCount <= 0) return 0;
+
+  const pairs = Array.isArray(removablePairs)
+    ? removablePairs
+    : getRemovablePairsForBoard(boardData);
+  const pairCount = Array.isArray(pairs) ? pairs.length : 0;
+  const distanceSummary = summarizeRemovablePairDistances(boardData, pairs);
+  const averageAvailableDistance = Number(distanceSummary.averageDistance) || 0;
+  const safeInitialCount = Number.isFinite(Number(initialRemovableCount)) &&
+    Number(initialRemovableCount) > 0
+    ? Number(initialRemovableCount)
+    : remainingCount;
+  const remainingPressure = safeInitialCount > 0
+    ? (remainingCount / safeInitialCount) * 20
+    : 0;
+
+  return (
+    10 +
+    (80 / Math.sqrt(pairCount + 1)) +
+    (averageAvailableDistance * 4) +
+    remainingPressure +
+    (pairCount === 0 ? 200 : 0)
+  );
+}
+
 function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
   if (!Array.isArray(boardData) || boardData.length === 0) return null;
   const height = boardData.length;
@@ -10237,6 +10396,8 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
   let actualPairDistanceCount = 0;
   let totalAvailablePairDistance = 0;
   let availablePairDistanceStepCount = 0;
+  let totalStepDifficultyScore = 0;
+  let maxStepDifficultyScore = 0;
   const initialFaceDistributionDistance = calculateInitialFaceDistributionDistance(baseBoardData);
   if (!hasFilledCells(boardData)) {
     return {
@@ -10253,6 +10414,8 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       actualPairDistanceCount: 0,
       totalAvailablePairDistance: 0,
       availablePairDistanceStepCount: 0,
+      totalStepDifficultyScore: 0,
+      maxStepDifficultyScore: 0,
       initialFaceDistributionDistance
     };
   }
@@ -10280,6 +10443,8 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
           actualPairDistanceCount,
           totalAvailablePairDistance,
           availablePairDistanceStepCount,
+          totalStepDifficultyScore,
+          maxStepDifficultyScore,
           initialFaceDistributionDistance
         };
       }
@@ -10303,11 +10468,18 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         actualPairDistanceCount,
         totalAvailablePairDistance,
         availablePairDistanceStepCount,
+        totalStepDifficultyScore,
+        maxStepDifficultyScore,
         initialFaceDistributionDistance
       };
     }
 
     stepPairCounts.push(removablePairs.length);
+    const beforeBoardScore = calculateBoardDifficultyScore(
+      boardData,
+      baseCount,
+      removablePairs
+    );
     const availableDistanceSummary = summarizeRemovablePairDistances(boardData, removablePairs);
     if (availableDistanceSummary.pairCount > 0) {
       totalAvailablePairDistance += availableDistanceSummary.averageDistance;
@@ -10350,6 +10522,8 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         actualPairDistanceCount,
         totalAvailablePairDistance,
         availablePairDistanceStepCount,
+        totalStepDifficultyScore,
+        maxStepDifficultyScore,
         initialFaceDistributionDistance
       };
     }
@@ -10370,6 +10544,10 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     }
     const connectionType = getPlayConnectionTypeByPath(linkPath);
     accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
+    const moveDifficultyFactor = calculateMoveDifficultyFactor(
+      actualPairDistance,
+      connectionType
+    );
 
     const firstValue = boardData[selectedPair.row1][selectedPair.col1];
     const selectedBaseId = getMatchableBaseId(firstValue);
@@ -10379,6 +10557,13 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       triggerBombEffect(boardData);
     }
     applyDirectionShiftUntilStable(boardData, direction);
+    const afterBoardScore = calculateBoardDifficultyScore(boardData, baseCount);
+    const stepDifficultyScore =
+      ((beforeBoardScore + afterBoardScore) / 2) * moveDifficultyFactor;
+    if (Number.isFinite(stepDifficultyScore) && stepDifficultyScore >= 0) {
+      totalStepDifficultyScore += stepDifficultyScore;
+      maxStepDifficultyScore = Math.max(maxStepDifficultyScore, stepDifficultyScore);
+    }
     stepCount++;
   }
 
@@ -10401,6 +10586,8 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     actualPairDistanceCount,
     totalAvailablePairDistance,
     availablePairDistanceStepCount,
+    totalStepDifficultyScore,
+    maxStepDifficultyScore,
     initialFaceDistributionDistance
   };
 }
@@ -10839,6 +11026,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
   let partialActualPairDistanceCount = 0;
   let partialTotalAvailablePairDistance = 0;
   let partialAvailablePairDistanceStepCount = 0;
+  let partialTotalStepDifficultyScore = 0;
+  let partialMaxStepDifficultyScore = 0;
   const initialRemovableCount = countRemovableCellCount(baseBoardData);
 
   for (let gameIndex = 0; gameIndex < games; gameIndex++) {
@@ -10913,6 +11102,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       Number(gameResult && gameResult.totalAvailablePairDistance) || 0;
     partialAvailablePairDistanceStepCount +=
       Number(gameResult && gameResult.availablePairDistanceStepCount) || 0;
+    partialTotalStepDifficultyScore += Number(gameResult && gameResult.totalStepDifficultyScore) || 0;
+    partialMaxStepDifficultyScore = Math.max(
+      partialMaxStepDifficultyScore,
+      Number(gameResult && gameResult.maxStepDifficultyScore) || 0
+    );
     partialCompleted++;
 
     if (partialCompleted >= 2) {
@@ -10942,7 +11136,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
         totalActualPairDistance: partialTotalActualPairDistance,
         actualPairDistanceCount: partialActualPairDistanceCount,
         totalAvailablePairDistance: partialTotalAvailablePairDistance,
-        availablePairDistanceStepCount: partialAvailablePairDistanceStepCount
+        availablePairDistanceStepCount: partialAvailablePairDistanceStepCount,
+        totalStepDifficultyScore: partialTotalStepDifficultyScore,
+        maxStepDifficultyScore: partialMaxStepDifficultyScore
       });
       partialCompleted = 0;
       partialWins = 0;
@@ -10968,6 +11164,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       partialActualPairDistanceCount = 0;
       partialTotalAvailablePairDistance = 0;
       partialAvailablePairDistanceStepCount = 0;
+      partialTotalStepDifficultyScore = 0;
+      partialMaxStepDifficultyScore = 0;
     }
   }
 
@@ -10998,7 +11196,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       totalActualPairDistance: partialTotalActualPairDistance,
       actualPairDistanceCount: partialActualPairDistanceCount,
       totalAvailablePairDistance: partialTotalAvailablePairDistance,
-      availablePairDistanceStepCount: partialAvailablePairDistanceStepCount
+      availablePairDistanceStepCount: partialAvailablePairDistanceStepCount,
+      totalStepDifficultyScore: partialTotalStepDifficultyScore,
+      maxStepDifficultyScore: partialMaxStepDifficultyScore
     });
   }
   canceledTaskIds.delete(taskId);
@@ -11307,6 +11507,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 let actualPairDistanceCount = 0;
                 let totalAvailablePairDistance = 0;
                 let availablePairDistanceStepCount = 0;
+                let totalStepDifficultyScore = 0;
+                let maxStepDifficultyScore = 0;
                 let finishedWorkers = 0;
                 let settled = false;
                 let launchedWorkerCount = 0;
@@ -11440,6 +11642,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                 Number.isFinite(Number(data.availablePairDistanceStepCount))
                                     ? Number(data.availablePairDistanceStepCount)
                                     : 0;
+                            const stepDifficultyScoreSum =
+                                Number.isFinite(Number(data.totalStepDifficultyScore))
+                                    ? Number(data.totalStepDifficultyScore)
+                                    : 0;
+                            const stepDifficultyScoreMax =
+                                Number.isFinite(Number(data.maxStepDifficultyScore))
+                                    ? Number(data.maxStepDifficultyScore)
+                                    : 0;
 
                             completedGames += done;
                             winCount += wins;
@@ -11467,6 +11677,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             actualPairDistanceCount += actualDistanceCount;
                             totalAvailablePairDistance += availableDistanceSum;
                             availablePairDistanceStepCount += availableDistanceStepCount;
+                            totalStepDifficultyScore += stepDifficultyScoreSum;
+                            maxStepDifficultyScore = Math.max(
+                                maxStepDifficultyScore,
+                                stepDifficultyScoreMax
+                            );
 
                             if (typeof onProgress === 'function') {
                                 onProgress(completedGames, gameCount, winCount);
@@ -11502,6 +11717,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                     actualPairDistanceCount,
                                     totalAvailablePairDistance,
                                     availablePairDistanceStepCount,
+                                    totalStepDifficultyScore,
+                                    maxStepDifficultyScore,
                                     stoppedEarly: true
                                 });
                             }
@@ -11537,6 +11754,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                 actualPairDistanceCount,
                                 totalAvailablePairDistance,
                                 availablePairDistanceStepCount,
+                                totalStepDifficultyScore,
+                                maxStepDifficultyScore,
                                 stoppedEarly: false
                             });
                         }
@@ -16327,7 +16546,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             averageAvailablePairDistance: 0,
                             initialFaceDistributionDistance: calculateInitialFaceDistributionDistance(
                                 matchedBoardData
-                            )
+                            ),
+                            averageStepDifficultyScore: 0,
+                            maxStepDifficultyScore: 0
                         };
                         const initialAdjacentMatchCount = Math.max(
                             0,
