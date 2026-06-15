@@ -615,6 +615,126 @@
             backface-visibility: hidden;
         }
 
+        .play-settings-button {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.26);
+            background: rgba(17, 24, 39, 0.78);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+        }
+
+        .play-settings-button:hover {
+            transform: none;
+            background: rgba(31, 41, 55, 0.9);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.38);
+        }
+
+        .play-settings-panel {
+            position: absolute;
+            left: 0;
+            bottom: calc(100% + 8px);
+            width: 178px;
+            display: none;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(17, 24, 39, 0.96);
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.42);
+            color: #fff;
+            z-index: 10040;
+        }
+
+        .play-settings-panel.open {
+            display: block;
+        }
+
+        .play-settings-title {
+            font-size: 0.82em;
+            color: rgba(231, 240, 255, 0.84);
+            margin-bottom: 8px;
+        }
+
+        .play-operation-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.88em;
+        }
+
+        .play-operation-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .play-operation-option input {
+            margin: 0;
+        }
+
+        .play-drag-ghost {
+            position: fixed !important;
+            pointer-events: none;
+            z-index: 10050;
+            opacity: 0.9;
+            transform: translate(-50%, -50%) scale(0.96) !important;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            transition: none;
+            will-change: left, top;
+        }
+
+        .cell.play-drag-ghost {
+            display: flex;
+            overflow: visible;
+            background: transparent;
+        }
+
+        .play-adjacent-choice-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10045;
+            background: rgba(0, 0, 0, 0.68);
+        }
+
+        .play-adjacent-choice-tile {
+            position: fixed !important;
+            z-index: 10046;
+            cursor: pointer;
+            transform: scale(1.08) !important;
+            box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.95),
+                0 10px 24px rgba(0,0,0,0.42);
+            animation: play-adjacent-choice-pulse 0.9s ease-in-out infinite alternate;
+        }
+
+        @keyframes play-adjacent-choice-pulse {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.25); }
+        }
+
+        .board.play-mode .cell.play-drag-source-hidden .card-image-stack,
+        .board.play-mode .cell.play-drag-source-hidden .cell-id-label {
+            visibility: hidden;
+        }
+
+        .board.play-mode .cell.play-drag-match-hint {
+            --play-drag-match-hint-strength: 0;
+            filter: brightness(calc(1 + (var(--play-drag-match-hint-strength) * 0.35)));
+            box-shadow: 0 0 calc(18px * var(--play-drag-match-hint-strength))
+                rgba(255, 246, 168, var(--play-drag-match-hint-strength));
+            z-index: 9;
+        }
+
+        .board.play-mode .cell.play-drag-match-hint .card-image-guide {
+            opacity: var(--play-drag-match-hint-strength);
+        }
+
         .board {
             display: grid;
             gap: 1px;
@@ -630,7 +750,28 @@
             backdrop-filter: none;
         }
 
+        @property --play-link-color {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #58d66d;
+        }
+
+        @property --play-link-border-color {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #b8ffbf;
+        }
+
+        @property --play-link-glow-color {
+            syntax: '<color>';
+            inherits: true;
+            initial-value: #58d66d;
+        }
+
         .play-link-overlay {
+            --play-link-color: #58d66d;
+            --play-link-border-color: #b8ffbf;
+            --play-link-glow-color: #58d66d;
             position: absolute;
             inset: 0;
             width: 100%;
@@ -638,15 +779,60 @@
             pointer-events: none;
             z-index: 30;
             overflow: visible;
+            transition: --play-link-color 0.18s ease,
+                --play-link-border-color 0.18s ease,
+                --play-link-glow-color 0.18s ease;
         }
 
         .play-link-path {
             fill: none;
-            stroke: #ffd54f;
-            stroke-width: 5;
             stroke-linecap: round;
             stroke-linejoin: round;
-            filter: drop-shadow(0 0 4px rgba(255, 213, 79, 0.7));
+            vector-effect: non-scaling-stroke;
+            filter: drop-shadow(0 0 5px rgba(255, 213, 79, 0.65));
+        }
+
+        .play-link-guide-band {
+            stroke: none;
+            opacity: 0.78;
+            vector-effect: non-scaling-stroke;
+            filter: drop-shadow(0 0 7px var(--play-link-glow-color));
+        }
+
+        .play-link-current-band {
+            stroke: none;
+            opacity: 0.96;
+            vector-effect: non-scaling-stroke;
+            filter: drop-shadow(0 0 6px var(--play-link-glow-color));
+        }
+
+        .play-link-band-border {
+            fill: none;
+            stroke: var(--play-link-border-color);
+            stroke-width: 3;
+            stroke-linecap: butt;
+            vector-effect: non-scaling-stroke;
+            filter: drop-shadow(0 0 4px var(--play-link-glow-color));
+        }
+
+        .play-link-overlay.play-link-overturn-warning {
+            animation: play-link-overturn-warning-flash 0.18s linear 2;
+        }
+
+        .play-link-overlay.play-link-overturn-warning .play-link-current-band,
+        .play-link-overlay.play-link-overturn-warning .play-link-guide-band {
+            fill: rgba(255, 59, 48, 0.72) !important;
+            filter: drop-shadow(0 0 8px #ff3b30);
+        }
+
+        .play-link-overlay.play-link-overturn-warning .play-link-band-border {
+            stroke: #ff3b30;
+            filter: drop-shadow(0 0 6px #ff3b30);
+        }
+
+        @keyframes play-link-overturn-warning-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
         }
 
         .cell {
@@ -791,7 +977,8 @@
             bottom: 8px;
             z-index: 40;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 8px;
             pointer-events: auto;
         }
@@ -2913,82 +3100,18 @@
                 </div>
 
                 <div class="config-section">
-                    <div class="config-title">概率参数 (0-1)</div>
-                    <div class="config-grid probability-grid">
+                    <div class="config-title">反向生成</div>
+                    <div class="config-grid">
                         <div class="config-item">
-                            <label>同列/同行同数字概率：</label>
-                            <div class="slider-wrap">
-                                <input
-                                    type="range"
-                                    id="sameLie"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value="0.1"
-                                    oninput="document.getElementById('sameLieValue').textContent=parseFloat(this.value).toFixed(2);"
-                                >
-                                <span class="slider-value" id="sameLieValue">0.10</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <label>同位置相同概率：</label>
-                            <div class="slider-wrap">
-                                <input
-                                    type="range"
-                                    id="sameNum"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value="0.1"
-                                    oninput="document.getElementById('sameNumValue').textContent=parseFloat(this.value).toFixed(2);"
-                                >
-                                <span class="slider-value" id="sameNumValue">0.10</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <label>相邻列同位置相同概率：</label>
-                            <div class="slider-wrap">
-                                <input
-                                    type="range"
-                                    id="xianglinSame"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value="0.1"
-                                    oninput="document.getElementById('xianglinSameValue').textContent=parseFloat(this.value).toFixed(2);"
-                                >
-                                <span class="slider-value" id="xianglinSameValue">0.10</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <label>方向上下重叠控制：</label>
-                            <div class="slider-wrap">
-                                <input
-                                    type="range"
-                                    id="directionBothCtrl"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value="0.50"
-                                    oninput="document.getElementById('directionBothCtrlValue').textContent=parseFloat(this.value).toFixed(2);"
-                                >
-                                <span class="slider-value" id="directionBothCtrlValue">0.50</span>
-                            </div>
-                        </div>
-                        <div class="config-item">
-                            <label>同色邻近概率（8格）：</label>
-                            <div class="slider-wrap">
-                                <input
-                                    type="range"
-                                    id="distanceCtrl"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value="0.1"
-                                    oninput="document.getElementById('distanceCtrlValue').textContent=parseFloat(this.value).toFixed(2);"
-                                >
-                                <span class="slider-value" id="distanceCtrlValue">0.10</span>
-                            </div>
+                            <label for="reverseDifficulty">反向生成难度：</label>
+                            <select
+                                id="reverseDifficulty"
+                                title="控制反向生成时的可消对数量、连接类型和配对距离倾向"
+                            >
+                                <option value="easy">简单</option>
+                                <option value="normal" selected>普通</option>
+                                <option value="hard">困难</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -3234,6 +3357,49 @@
                         <div class="board-bottom-actions">
                             <button
                                 type="button"
+                                class="play-settings-button"
+                                id="playSettingsButton"
+                                title="玩法设置"
+                                aria-label="玩法设置"
+                                onclick="togglePlaySettingsPanel(event)"
+                            >⚙</button>
+                            <div
+                                class="play-settings-panel"
+                                id="playSettingsPanel"
+                                onclick="event.stopPropagation()"
+                            >
+                                <div class="play-settings-title">操作方式</div>
+                                <label class="play-operation-option">
+                                    <input
+                                        type="radio"
+                                        name="playOperationMode"
+                                        value="click"
+                                        onchange="setPlayOperationMode('click')"
+                                        checked
+                                    >
+                                    <span>点击操作</span>
+                                </label>
+                                <label class="play-operation-option">
+                                    <input
+                                        type="radio"
+                                        name="playOperationMode"
+                                        value="link"
+                                        onchange="setPlayOperationMode('link')"
+                                    >
+                                    <span>连线操作</span>
+                                </label>
+                                <label class="play-operation-option">
+                                    <input
+                                        type="radio"
+                                        name="playOperationMode"
+                                        value="drag"
+                                        onchange="setPlayOperationMode('drag')"
+                                    >
+                                    <span>拖动操作</span>
+                                </label>
+                            </div>
+                            <button
+                                type="button"
                                 id="btnPlayAutoPair"
                                 class="btn-play-auto-pair"
                                 onclick="autoMatchPlayPair()"
@@ -3405,6 +3571,8 @@
         let stepGenerationState = null;
         let playModeState = null;
         let playStepTypeCounts = null;
+        const PLAY_OPERATION_MODES = new Set(['click', 'link', 'drag']);
+        let selectedPlayOperationMode = 'click';
         let isSimulatingPlayGames = false;
         let isBatchGenerating = false;
         let isBatchCampaignRunning = false;
@@ -5246,17 +5414,13 @@
                     document.querySelector('input[name="direction"]:checked')?.value,
                     10
                 ) || 0,
-                sameLie: getProbabilityValue('sameLie', 0.1),
-                sameNum: getProbabilityValue('sameNum', 0.1),
-                xianglinSame: getProbabilityValue('xianglinSame', 0.1),
-                directionBothCtrl: getProbabilityValue('directionBothCtrl', 0.5),
+                reverseDifficulty: getReverseGenerationDifficultyValue('normal'),
                 autoBombPairCount: getAutoBombPairCount(),
                 batchCount: parseInt(document.getElementById('batchCount')?.value, 10) || 100,
                 batchCampaignRounds:
                     parseInt(document.getElementById('batchCampaignRounds')?.value, 10) || 1,
                 simulateGameCount:
-                    parseInt(document.getElementById('simulateGameCount')?.value, 10) || 100,
-                distanceCtrl: getProbabilityValue('distanceCtrl', 0.1)
+                    parseInt(document.getElementById('simulateGameCount')?.value, 10) || 100
             };
         }
 
@@ -5275,47 +5439,6 @@
                 return;
             }
             valueLabel.textContent = numericValue.toFixed(decimals);
-        }
-
-        function applyProbabilityConfigSnapshot(config) {
-            if (!config || typeof config !== 'object') return;
-            const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-            const getProbabilityConfigValue = (key, fallback) => {
-                const numericValue = Number(config[key]);
-                return clamp(Number.isFinite(numericValue) ? numericValue : fallback, 0, 1);
-            };
-
-            setSliderControlValue(
-                'sameLie',
-                'sameLieValue',
-                getProbabilityConfigValue('sameLie', 0.1),
-                2
-            );
-            setSliderControlValue(
-                'sameNum',
-                'sameNumValue',
-                getProbabilityConfigValue('sameNum', 0.1),
-                2
-            );
-            setSliderControlValue(
-                'xianglinSame',
-                'xianglinSameValue',
-                getProbabilityConfigValue('xianglinSame', 0.1),
-                2
-            );
-            setSliderControlValue(
-                'directionBothCtrl',
-                'directionBothCtrlValue',
-                getProbabilityConfigValue('directionBothCtrl', 0.5),
-                2
-            );
-            setSliderControlValue(
-                'distanceCtrl',
-                'distanceCtrlValue',
-                getProbabilityConfigValue('distanceCtrl', 0.1),
-                2
-            );
-            setDefaultInfoText();
         }
 
         function applyConfigSnapshot(config) {
@@ -5365,30 +5488,9 @@
                 0,
                 8
             ));
-            const sameLie = clamp(
-                Number.isFinite(Number(config.sameLie)) ? Number(config.sameLie) : 0.1,
-                0,
-                1
-            );
-            const sameNum = clamp(
-                Number.isFinite(Number(config.sameNum)) ? Number(config.sameNum) : 0.1,
-                0,
-                1
-            );
-            const xianglinSame = Number.isFinite(Number(config.xianglinSame))
-                ? Number(config.xianglinSame)
-                : 0.1;
-            const directionBothCtrl = clamp(
-                Number.isFinite(Number(config.directionBothCtrl))
-                    ? Number(config.directionBothCtrl)
-                    : 0.5,
-                0,
-                1
-            );
-            const distanceCtrl = clamp(
-                Number.isFinite(Number(config.distanceCtrl)) ? Number(config.distanceCtrl) : 0.1,
-                0,
-                1
+            const reverseDifficulty = normalizeReverseGenerationDifficulty(
+                config.reverseDifficulty || config.difficulty,
+                'normal'
             );
             const batchCount = Math.round(clamp(
                 Number.isFinite(Number(config.batchCount)) ? Number(config.batchCount) : 100,
@@ -5423,11 +5525,8 @@
 
             setSliderControlValue('width', 'widthValue', Math.round(width), 0);
             setSliderControlValue('height', 'heightValue', Math.round(height), 0);
-            setSliderControlValue('sameLie', 'sameLieValue', sameLie, 2);
-            setSliderControlValue('sameNum', 'sameNumValue', sameNum, 2);
-            setSliderControlValue('xianglinSame', 'xianglinSameValue', clamp(xianglinSame, 0, 1), 2);
-            setSliderControlValue('directionBothCtrl', 'directionBothCtrlValue', directionBothCtrl, 2);
-            setSliderControlValue('distanceCtrl', 'distanceCtrlValue', distanceCtrl, 2);
+            const reverseDifficultySelect = document.getElementById('reverseDifficulty');
+            if (reverseDifficultySelect) reverseDifficultySelect.value = reverseDifficulty;
 
             const count8MinInput = document.getElementById('count8Min');
             if (count8MinInput) count8MinInput.value = String(Math.min(count8Min, count8Max));
@@ -5460,7 +5559,14 @@
 
         function buildDefaultConfigName(config) {
             const directionTitle = getDirectionTitleById(config.direction);
-            return `${config.width}x${config.height}_${directionTitle}`;
+            const difficultyTitleMap = {
+                easy: '简单',
+                normal: '普通',
+                hard: '困难'
+            };
+            const difficultyTitle =
+                difficultyTitleMap[normalizeReverseGenerationDifficulty(config.reverseDifficulty, 'normal')];
+            return `${config.width}x${config.height}_${directionTitle}_${difficultyTitle}`;
         }
 
         function persistConfigGroups() {
@@ -5725,11 +5831,11 @@
             const selectedGroup = savedConfigGroups.find(group => group.name === selectedName);
             if (!selectedGroup) return;
 
-            applyProbabilityConfigSnapshot(selectedGroup.config);
+            applyConfigSnapshot(selectedGroup.config);
             if (nameInput) nameInput.value = selectedGroup.name;
 
             const info = document.getElementById('info');
-            if (info) info.textContent = `已加载配置组概率参数：${selectedGroup.name}`;
+            if (info) info.textContent = `已加载配置组：${selectedGroup.name}`;
         }
 
         function deleteSelectedConfigGroup() {
@@ -5823,21 +5929,20 @@
                 count8: importedCount8,
                 count6: importedCount6,
                 direction: toNumber(item?.['方向'], 0),
-                sameLie: toNumber(item?.['同列/同行同数字概率'], 0.1),
-                sameNum: toNumber(item?.['同位置相同概率'], 0.1),
-                xianglinSame: toNumber(item?.['相邻列同位置相同概率'], 0.1),
-                directionBothCtrl: toNumber(item?.['方向上下重叠控制'], 0.5),
+                reverseDifficulty: normalizeReverseGenerationDifficulty(
+                    item?.['反向生成难度'] ??
+                    item?.['生成难度'] ??
+                    item?.['difficulty'] ??
+                    item?.['reverseDifficulty'],
+                    'normal'
+                ),
                 batchCount: toNumber(item?.['计算局数'] ?? item?.['batchCount'], 100),
                 batchCampaignRounds: toNumber(item?.['跑关轮数'] ?? item?.['campaignRounds'], 1),
                 simulateGameCount: toNumber(
                     item?.['模拟局数'] ?? item?.['simulateGameCount'] ?? item?.['simGameCount'],
                     100
                 ),
-                autoBombPairCount: importedBombPairCount,
-                distanceCtrl: toNumber(
-                    item?.['距离参数'] ?? item?.['同色邻近概率（8格）'] ?? item?.['同色邻近概率'],
-                    0.1
-                )
+                autoBombPairCount: importedBombPairCount
             };
         }
 
@@ -6115,6 +6220,77 @@
             }
         }
 
+        function getPlayOperationMode() {
+            return selectedPlayOperationMode;
+        }
+
+        function getPlayOperationHintText(mode = selectedPlayOperationMode) {
+            switch (mode) {
+                case 'link':
+                    return '试玩模式：按住牌并拖动画线，线末端贴到相同牌时消除';
+                case 'drag':
+                    return '试玩模式：按住牌拖出路径，路径末端贴到相同牌时消除';
+                case 'click':
+                default:
+                    return '试玩模式：点击两张相同且可连通的牌进行消除';
+            }
+        }
+
+        function isPlayOperationMode(mode) {
+            return selectedPlayOperationMode === mode;
+        }
+
+        function updatePlayOperationSettingsUi() {
+            const radios = document.querySelectorAll('input[name="playOperationMode"]');
+            radios.forEach((radio) => {
+                radio.checked = radio.value === selectedPlayOperationMode;
+            });
+        }
+
+        function setPlayOperationMode(mode) {
+            if (!PLAY_OPERATION_MODES.has(mode)) {
+                updatePlayOperationSettingsUi();
+                return;
+            }
+            if (selectedPlayOperationMode === mode) {
+                updatePlayOperationSettingsUi();
+                return;
+            }
+            selectedPlayOperationMode = mode;
+            if (playModeState && playModeState.active) {
+                clearAdjacentPlayChoiceOverlay();
+                cancelPlayDragLink();
+                clearPlaySelectionVisual();
+                clearPlayLinkPath();
+                setInfoText(getPlayOperationHintText(mode));
+            }
+            updatePlayOperationSettingsUi();
+        }
+
+        function openPlaySettingsPanel() {
+            const panel = document.getElementById('playSettingsPanel');
+            if (!panel) return;
+            panel.classList.add('open');
+            updatePlayOperationSettingsUi();
+        }
+
+        function closePlaySettingsPanel() {
+            const panel = document.getElementById('playSettingsPanel');
+            if (!panel) return;
+            panel.classList.remove('open');
+        }
+
+        function togglePlaySettingsPanel(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('playSettingsPanel');
+            if (!panel) return;
+            if (panel.classList.contains('open')) {
+                closePlaySettingsPanel();
+            } else {
+                openPlaySettingsPanel();
+            }
+        }
+
         function updatePlayModeButton() {
             const playButton = document.getElementById('btnPlayMode');
             if (playButton) {
@@ -6243,12 +6419,15 @@
             if (!record || !Array.isArray(record.boardSnapshotBefore)) return;
             hideSavedLevelPreview();
 
+            clearAdjacentPlayChoiceOverlay();
+            cancelPlayDragLink();
             clearPlaySelectionVisual();
             clearPlayLinkPath();
 
             playModeState.boardData = cloneBoardData(record.boardSnapshotBefore);
             playModeState.tokenBoard = createTokenBoardFromBoard(playModeState.boardData);
             playModeState.selected = null;
+            playModeState.dragLink = null;
             playModeState.isResolving = false;
             playModeState.failed = false;
             playModeState.clearedPairs = Math.max(0, safeStep - 1);
@@ -6419,6 +6598,8 @@
 
         function markPlayModeFailed() {
             if (!playModeState || !playModeState.active) return;
+            clearAdjacentPlayChoiceOverlay();
+            cancelPlayDragLink();
             clearPlaySelectionVisual();
             clearPlayLinkPath();
             playModeState.failed = true;
@@ -6447,11 +6628,14 @@
             if (!Array.isArray(playModeState.originalBoard)) return;
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-shifting');
+            clearAdjacentPlayChoiceOverlay();
+            cancelPlayDragLink();
             clearPlaySelectionVisual();
             clearPlayLinkPath();
             playModeState.boardData = cloneBoardData(playModeState.originalBoard);
             playModeState.tokenBoard = createTokenBoardFromBoard(playModeState.originalBoard);
             playModeState.selected = null;
+            playModeState.dragLink = null;
             playModeState.isResolving = false;
             playModeState.failed = false;
             playModeState.clearedPairs = 0;
@@ -6487,13 +6671,170 @@
             }
 
             clearPlaySelectionVisual();
-            await processPlayCellSelection(selectedPair.row1, selectedPair.col1);
-            if (!playModeState || !playModeState.active || playModeState.failed) {
-                updatePlayAutoPairButton();
-                return;
-            }
-            await processPlayCellSelection(selectedPair.row2, selectedPair.col2);
+            clearPlayDragLinkState();
+            const linkPath = findConnectionPathByLianliankan(
+                boardData,
+                selectedPair.row1,
+                selectedPair.col1,
+                selectedPair.row2,
+                selectedPair.col2
+            );
+            await resolvePlayMatchedPair(selectedPair, linkPath);
             updatePlayAutoPairButton();
+        }
+
+        function clearPlayDragLinkState() {
+            if (!playModeState) return;
+            clearPlayDragMatchHints();
+            clearPlayDragSourceHidden();
+            removePlayDragGhost();
+            playModeState.dragLink = null;
+        }
+
+        function clearPlayDragMatchHints() {
+            const board = document.getElementById('board');
+            if (!board) return;
+            board.querySelectorAll('.cell.play-drag-match-hint').forEach((cell) => {
+                cell.classList.remove('play-drag-match-hint');
+                cell.style.removeProperty('--play-drag-match-hint-strength');
+            });
+        }
+
+        function updatePlayDragMatchHints() {
+            clearPlayDragMatchHints();
+            if (!isPlayOperationMode('drag')) return;
+            const state = playModeState?.dragLink;
+            const boardData = playModeState?.boardData;
+            if (!state || state.completed || !Array.isArray(boardData)) return;
+            calculatePlayDragMatchHintTargets(state, boardData).forEach((hint) => {
+                const cell = document.getElementById(`cell-${hint.row}-${hint.col}`);
+                if (!cell) return;
+                cell.classList.add('play-drag-match-hint');
+                cell.style.setProperty(
+                    '--play-drag-match-hint-strength',
+                    String(Math.max(0, Math.min(1, hint.strength)))
+                );
+            });
+        }
+
+        function clearAdjacentPlayChoiceOverlay() {
+            const overlay = playModeState?.adjacentChoiceOverlay;
+            if (overlay && overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+            if (playModeState) {
+                playModeState.adjacentChoiceOverlay = null;
+                playModeState.adjacentChoice = null;
+            }
+        }
+
+        function clearPlayDragSourceHidden() {
+            const source = playModeState?.dragSource;
+            if (source) {
+                const cell = document.getElementById(`cell-${source.row}-${source.col}`);
+                if (cell) cell.classList.remove('play-drag-source-hidden');
+            }
+            if (playModeState) playModeState.dragSource = null;
+        }
+
+        function removePlayDragGhost() {
+            const ghost = playModeState?.dragGhost;
+            if (ghost && ghost.parentNode) {
+                ghost.parentNode.removeChild(ghost);
+            }
+            if (playModeState) playModeState.dragGhost = null;
+        }
+
+        function getViewportPointForExtCell(extPoint) {
+            const board = document.getElementById('board');
+            const firstCell = document.getElementById('cell-0-0');
+            if (!board || !firstCell || !extPoint) return null;
+            const boardRect = board.getBoundingClientRect();
+            const firstRect = firstCell.getBoundingClientRect();
+            const { stepX, stepY } = getCellStepDistance();
+            const originX = firstRect.left - boardRect.left + (firstRect.width / 2);
+            const originY = firstRect.top - boardRect.top + (firstRect.height / 2);
+            return {
+                x: boardRect.left + originX + ((extPoint.col - 1) * stepX),
+                y: boardRect.top + originY + ((extPoint.row - 1) * stepY)
+            };
+        }
+
+        function updatePlayDragGhostPosition(point = null) {
+            const ghost = playModeState?.dragGhost;
+            if (!ghost) return;
+            const viewportPoint = point || getViewportPointForExtCell(
+                playModeState?.dragLink?.path?.[playModeState.dragLink.path.length - 1]
+            );
+            if (!viewportPoint) return;
+            ghost.style.left = `${viewportPoint.x}px`;
+            ghost.style.top = `${viewportPoint.y}px`;
+        }
+
+        function getPlayDragGhostConstrainedPoint(pointerPoint, pathPoints) {
+            if (!pointerPoint || !Array.isArray(pathPoints) || pathPoints.length === 0) return null;
+            if (pathPoints.length < 2) {
+                const onlyPoint = pathPoints[0];
+                return onlyPoint ? { x: onlyPoint.x, y: onlyPoint.y } : null;
+            }
+            const endPoint = pathPoints[pathPoints.length - 1];
+            const startPoint = pathPoints[pathPoints.length - 2];
+            if (!startPoint || !endPoint) return null;
+            const isHorizontal = Math.abs(endPoint.x - startPoint.x) >= Math.abs(endPoint.y - startPoint.y);
+            if (isHorizontal) {
+                const minX = Math.min(startPoint.x, endPoint.x);
+                const maxX = Math.max(startPoint.x, endPoint.x);
+                return {
+                    x: Math.max(minX, Math.min(maxX, pointerPoint.x)),
+                    y: endPoint.y
+                };
+            }
+            const minY = Math.min(startPoint.y, endPoint.y);
+            const maxY = Math.max(startPoint.y, endPoint.y);
+            return {
+                x: endPoint.x,
+                y: Math.max(minY, Math.min(maxY, pointerPoint.y))
+            };
+        }
+
+        function getPlayDragGhostPathViewportPoints(state) {
+            if (!state || !Array.isArray(state.path)) return [];
+            return compressPathPoints(state.path)
+                .map((point) => getViewportPointForExtCell(point))
+                .filter(Boolean);
+        }
+
+        function updatePlayDragGhostPositionFromPointer(event) {
+            if (!isPlayOperationMode('drag')) return;
+            if (!event || typeof event.clientX !== 'number' || typeof event.clientY !== 'number') return;
+            const constrainedPoint = getPlayDragGhostConstrainedPoint(
+                { x: event.clientX, y: event.clientY },
+                getPlayDragGhostPathViewportPoints(playModeState?.dragLink)
+            );
+            updatePlayDragGhostPosition(constrainedPoint);
+        }
+
+        function updatePlayDragGhostPositionFromGrid() {
+            if (!isPlayOperationMode('drag')) return;
+            updatePlayDragGhostPosition();
+        }
+
+        function createPlayDragGhost(row, col) {
+            removePlayDragGhost();
+            if (!isPlayOperationMode('drag')) return;
+            const sourceCell = document.getElementById(`cell-${row}-${col}`);
+            if (!sourceCell || !document.body) return;
+            const rect = sourceCell.getBoundingClientRect();
+            const ghost = sourceCell.cloneNode(true);
+            ghost.removeAttribute('id');
+            ghost.classList.add('play-drag-ghost');
+            ghost.style.width = `${rect.width}px`;
+            ghost.style.height = `${rect.height}px`;
+            document.body.appendChild(ghost);
+            playModeState.dragGhost = ghost;
+            playModeState.dragSource = { row, col };
+            sourceCell.classList.add('play-drag-source-hidden');
+            updatePlayDragGhostPosition({ x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2) });
         }
 
         function clearPlaySelectionVisual() {
@@ -6513,6 +6854,235 @@
             const selectedCell = document.getElementById(`cell-${row}-${col}`);
             if (selectedCell) selectedCell.classList.add('play-selected');
             playModeState.selected = { row, col };
+        }
+
+        function getPlayDragLinkExtCellFromEvent(event) {
+            const board = document.getElementById('board');
+            const firstCell = document.getElementById('cell-0-0');
+            if (!board || !firstCell || !event) return null;
+            const boardData = playModeState?.boardData;
+            if (!Array.isArray(boardData) || boardData.length === 0) return null;
+            const boardRect = board.getBoundingClientRect();
+            const firstRect = firstCell.getBoundingClientRect();
+            const { stepX, stepY } = getCellStepDistance();
+            if (!stepX || !stepY) return null;
+            const originX = firstRect.left - boardRect.left + (firstRect.width / 2);
+            const originY = firstRect.top - boardRect.top + (firstRect.height / 2);
+            const localX = event.clientX - boardRect.left;
+            const localY = event.clientY - boardRect.top;
+            const extCol = Math.round((localX - originX) / stepX) + 1;
+            const extRow = Math.round((localY - originY) / stepY) + 1;
+            return { row: extRow, col: extCol };
+        }
+
+        function shouldRenderPlayDragLinkPath(mode = selectedPlayOperationMode) {
+            return mode === 'link' || mode === 'drag';
+        }
+
+        function flashPlayDragOverturnWarning() {
+            const board = document.getElementById('board');
+            const overlay = board?.querySelector('.play-link-overlay');
+            if (!overlay) return;
+            overlay.classList.remove('play-link-overturn-warning');
+            void overlay.getBoundingClientRect();
+            overlay.classList.add('play-link-overturn-warning');
+            window.setTimeout(() => {
+                overlay.classList.remove('play-link-overturn-warning');
+            }, 380);
+        }
+
+        function refreshPlayDragLinkPath() {
+            const state = playModeState?.dragLink;
+            const boardData = playModeState?.boardData;
+            if (!state || !Array.isArray(boardData)) return;
+            if (!shouldRenderPlayDragLinkPath(selectedPlayOperationMode)) {
+                clearPlayLinkPath();
+                return;
+            }
+            renderPlayLinkPath(
+                buildPlayDragLinkPreviewPath(state, boardData, selectedPlayOperationMode),
+                boardData[0]?.length || 0,
+                boardData.length,
+                {
+                    guideSegments: buildPlayLinkGuideSegments(
+                        state,
+                        boardData,
+                        selectedPlayOperationMode
+                    ),
+                    turnCount: state.turns
+                }
+            );
+        }
+
+        function startPlayDragLink(event, row, col) {
+            if (
+                !playModeState ||
+                !playModeState.active ||
+                playModeState.isResolving ||
+                playModeState.failed
+            ) {
+                return false;
+            }
+            const state = createPlayDragLinkState(playModeState.boardData, row, col);
+            if (!state) return false;
+            event.preventDefault();
+            clearPlaySelectionVisual();
+            clearPlayLinkPath();
+            playModeState.dragLink = state;
+            createPlayDragGhost(row, col);
+            refreshPlayDragLinkPath();
+            updatePlayDragMatchHints();
+            setInfoText(`试玩模式：拖动连线 ${state.matchBaseId}`);
+            return true;
+        }
+
+        function updatePlayDragLink(event) {
+            const state = playModeState?.dragLink;
+            if (!state || state.completed || playModeState.isResolving) return;
+            const point = getPlayDragLinkExtCellFromEvent(event);
+            if (!point) return;
+            if (!extendPlayDragLinkToExtCell(
+                state,
+                playModeState.boardData,
+                point.row,
+                point.col,
+                selectedPlayOperationMode
+            )) {
+                if (isPlayDragLinkOverTurnAttempt(state, playModeState.boardData, point.row, point.col)) {
+                    event.preventDefault();
+                    flashPlayDragOverturnWarning();
+                }
+                updatePlayDragGhostPositionFromPointer(event);
+                return;
+            }
+            event.preventDefault();
+            refreshPlayDragLinkPath();
+            updatePlayDragMatchHints();
+            updatePlayDragGhostPositionFromPointer(event);
+        }
+
+        async function finishPlayDragLink() {
+            const state = playModeState?.dragLink;
+            if (!state || state.completed || playModeState.isResolving) return;
+            const target = findPlayDragLinkReleaseTarget(
+                state,
+                playModeState.boardData,
+                selectedPlayOperationMode
+            );
+            if (!target) {
+                cancelPlayDragLink('松开后未连接到相同牌，取消当前连线');
+                return;
+            }
+
+            state.completed = true;
+            const pair = {
+                row1: state.startRow,
+                col1: state.startCol,
+                row2: target.row,
+                col2: target.col
+            };
+            playModeState.dragLink = null;
+            removePlayDragGhost();
+            clearPlayDragMatchHints();
+            try {
+                await resolvePlayMatchedPair(
+                    pair,
+                    buildPlayDragLinkPathForMode(state, target, selectedPlayOperationMode),
+                    { suppressLinkRender: isPlayOperationMode('drag') }
+                );
+            } finally {
+                clearPlayDragSourceHidden();
+            }
+        }
+
+        function cancelPlayDragLink(reason = '') {
+            const state = playModeState?.dragLink;
+            if (!state) return;
+            const cell = document.getElementById(`cell-${state.startRow}-${state.startCol}`);
+            if (cell) cell.classList.remove('play-selected');
+            clearPlayLinkPath();
+            clearPlayDragLinkState();
+            if (reason) recordPlaySelectionCancelReason(reason);
+        }
+
+        async function resolveAdjacentPlayChoice(source, target) {
+            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
+            clearAdjacentPlayChoiceOverlay();
+            const boardData = playModeState.boardData;
+            const linkPath = findConnectionPathByLianliankan(
+                boardData,
+                source.row,
+                source.col,
+                target.row,
+                target.col
+            );
+            await resolvePlayMatchedPair({
+                row1: source.row,
+                col1: source.col,
+                row2: target.row,
+                col2: target.col
+            }, linkPath, { suppressSelectionLift: true });
+        }
+
+        function createAdjacentChoiceTile(source, target) {
+            const cell = document.getElementById(`cell-${target.row}-${target.col}`);
+            if (!cell) return null;
+            const rect = cell.getBoundingClientRect();
+            const tile = cell.cloneNode(true);
+            tile.removeAttribute('id');
+            tile.classList.add('play-adjacent-choice-tile');
+            tile.style.left = `${rect.left}px`;
+            tile.style.top = `${rect.top}px`;
+            tile.style.width = `${rect.width}px`;
+            tile.style.height = `${rect.height}px`;
+            tile.addEventListener('click', (event) => {
+                event.stopPropagation();
+                resolveAdjacentPlayChoice(source, target);
+            });
+            return tile;
+        }
+
+        function showAdjacentPlayChoiceOverlay(source, targets) {
+            if (!playModeState || !Array.isArray(targets) || targets.length === 0) return;
+            clearAdjacentPlayChoiceOverlay();
+            const overlay = document.createElement('div');
+            overlay.className = 'play-adjacent-choice-overlay';
+            overlay.addEventListener('click', () => {
+                clearAdjacentPlayChoiceOverlay();
+                setInfoText(getPlayOperationHintText());
+            });
+            playModeState.adjacentChoiceOverlay = overlay;
+            playModeState.adjacentChoice = {
+                source: { row: source.row, col: source.col },
+                targets: targets.map((target) => ({ row: target.row, col: target.col }))
+            };
+            for (const target of targets) {
+                const tile = createAdjacentChoiceTile(source, target);
+                if (tile) overlay.appendChild(tile);
+            }
+            document.body.appendChild(overlay);
+            setInfoText('请选择要配对的相邻牌，点击其他位置取消');
+        }
+
+        async function processAdjacentPlayCellClick(row, col) {
+            if (
+                !playModeState ||
+                !playModeState.active ||
+                playModeState.isResolving ||
+                playModeState.failed
+            ) {
+                return;
+            }
+            clearPlayDragLinkState();
+            clearPlayLinkPath();
+            const source = { row, col };
+            const targets = findAdjacentPlayMatchTargets(playModeState.boardData, row, col);
+            if (targets.length === 0) return;
+            if (targets.length === 1) {
+                await resolveAdjacentPlayChoice(source, targets[0]);
+                return;
+            }
+            showAdjacentPlayChoiceOverlay(source, targets);
         }
 
         function waitForMs(durationMs) {
@@ -6989,6 +7559,327 @@
             };
         }
 
+        const PLAY_DRAG_LINK_MAX_TURNS = 2;
+
+        function createPlayDragLinkState(boardData, startRow, startCol) {
+            const startValue = boardData?.[startRow]?.[startCol];
+            if (!isCellClickableInPlay(startValue)) return null;
+            const matchBaseId = getMatchableBaseId(startValue);
+            if (matchBaseId === null) return null;
+            return {
+                startRow,
+                startCol,
+                matchBaseId,
+                path: [{ row: startRow + 1, col: startCol + 1 }],
+                lastDirection: null,
+                turns: 0,
+                completed: false
+            };
+        }
+
+        function getPlayDragLinkDirection(fromPoint, toPoint) {
+            if (!fromPoint || !toPoint) return null;
+            const deltaRow = toPoint.row - fromPoint.row;
+            const deltaCol = toPoint.col - fromPoint.col;
+            if (deltaRow === 0 && deltaCol === 0) return null;
+            if (deltaRow !== 0 && deltaCol !== 0) return null;
+            return deltaRow !== 0 ? 'vertical' : 'horizontal';
+        }
+
+        function isExtCellInsideManualLinkBounds(boardData, extRow, extCol) {
+            if (!Array.isArray(boardData) || boardData.length === 0) return false;
+            const height = boardData.length;
+            const width = boardData[0]?.length || 0;
+            return extRow >= 0 && extRow <= height + 1 && extCol >= 0 && extCol <= width + 1;
+        }
+
+        function isExtCellPassableForPlayDragLink(boardData, extRow, extCol) {
+            if (!isExtCellInsideManualLinkBounds(boardData, extRow, extCol)) return false;
+            const boardRow = extRow - 1;
+            const boardCol = extCol - 1;
+            if (
+                boardRow < 0 ||
+                boardRow >= boardData.length ||
+                boardCol < 0 ||
+                boardCol >= (boardData[0]?.length || 0)
+            ) {
+                return true;
+            }
+            return isEmptyCellId(boardData[boardRow]?.[boardCol] ?? EMPTY_CELL_ID);
+        }
+
+        function isExtCellMatchingManualLinkTarget(state, boardData, extRow, extCol) {
+            if (!state || !Array.isArray(boardData)) return false;
+            const boardRow = extRow - 1;
+            const boardCol = extCol - 1;
+            if (boardRow === state.startRow && boardCol === state.startCol) return false;
+            const value = boardData?.[boardRow]?.[boardCol];
+            if (!isCellClickableInPlay(value)) return false;
+            return getMatchableBaseId(value) === state.matchBaseId;
+        }
+
+        function findPlayDragLinkPathPointIndex(state, point) {
+            if (!state || !Array.isArray(state.path) || !point) return -1;
+            return state.path.findIndex((pathPoint) =>
+                pathPoint.row === point.row && pathPoint.col === point.col
+            );
+        }
+
+        function recalculatePlayDragLinkPathMeta(state) {
+            if (!state || !Array.isArray(state.path)) return;
+            let lastDirection = null;
+            let turns = 0;
+            for (let index = 1; index < state.path.length; index++) {
+                const direction = getPlayDragLinkDirection(state.path[index - 1], state.path[index]);
+                if (!direction) continue;
+                if (lastDirection && lastDirection !== direction) turns++;
+                lastDirection = direction;
+            }
+            state.lastDirection = lastDirection;
+            state.turns = turns;
+        }
+
+        function backtrackPlayDragLinkToPathPoint(state, pointIndex) {
+            if (!state || !Array.isArray(state.path)) return false;
+            if (pointIndex < 0 || pointIndex >= state.path.length - 1) return false;
+            state.path.splice(pointIndex + 1);
+            recalculatePlayDragLinkPathMeta(state);
+            return true;
+        }
+
+        function extendPlayDragLinkToExtCell(state, boardData, extRow, extCol, mode = 'drag') {
+            if (!state || state.completed || !Array.isArray(state.path)) return false;
+            const nextPoint = {
+                row: Math.round(Number(extRow)),
+                col: Math.round(Number(extCol))
+            };
+            if (!Number.isFinite(nextPoint.row) || !Number.isFinite(nextPoint.col)) return false;
+            const currentPoint = state.path[state.path.length - 1];
+            const direction = getPlayDragLinkDirection(currentPoint, nextPoint);
+            if (!direction) return false;
+
+            const existingPointIndex = findPlayDragLinkPathPointIndex(state, nextPoint);
+            if (existingPointIndex >= 0) {
+                return backtrackPlayDragLinkToPathPoint(state, existingPointIndex);
+            }
+
+            const stepRow = Math.sign(nextPoint.row - currentPoint.row);
+            const stepCol = Math.sign(nextPoint.col - currentPoint.col);
+            const nextTurns = state.turns +
+                (state.lastDirection && state.lastDirection !== direction ? 1 : 0);
+            if (nextTurns > PLAY_DRAG_LINK_MAX_TURNS) return false;
+
+            const appended = [];
+            let row = currentPoint.row + stepRow;
+            let col = currentPoint.col + stepCol;
+            while (row !== nextPoint.row || col !== nextPoint.col) {
+                if (!isExtCellPassableForPlayDragLink(boardData, row, col)) return false;
+                appended.push({ row, col });
+                row += stepRow;
+                col += stepCol;
+            }
+            const nextPointPassable = isExtCellPassableForPlayDragLink(
+                boardData,
+                nextPoint.row,
+                nextPoint.col
+            );
+            const nextPointIsManualTarget = mode === 'link' && isExtCellMatchingManualLinkTarget(
+                state,
+                boardData,
+                nextPoint.row,
+                nextPoint.col
+            );
+            if (!nextPointPassable && !nextPointIsManualTarget) {
+                return false;
+            }
+            appended.push(nextPoint);
+            state.path.push(...appended);
+            state.lastDirection = direction;
+            state.turns = nextTurns;
+            return true;
+        }
+
+        function isPlayDragLinkOverTurnAttempt(state, boardData, extRow, extCol) {
+            if (!state || state.completed || !Array.isArray(state.path)) return false;
+            const nextPoint = {
+                row: Math.round(Number(extRow)),
+                col: Math.round(Number(extCol))
+            };
+            if (!Number.isFinite(nextPoint.row) || !Number.isFinite(nextPoint.col)) return false;
+            if (!isExtCellInsideManualLinkBounds(boardData, nextPoint.row, nextPoint.col)) return false;
+            if (findPlayDragLinkPathPointIndex(state, nextPoint) >= 0) return false;
+            const currentPoint = state.path[state.path.length - 1];
+            const direction = getPlayDragLinkDirection(currentPoint, nextPoint);
+            if (!direction) return false;
+            const nextTurns = state.turns +
+                (state.lastDirection && state.lastDirection !== direction ? 1 : 0);
+            return nextTurns > PLAY_DRAG_LINK_MAX_TURNS;
+        }
+
+        function findPlayDragLinkAdjacentTarget(state, boardData) {
+            if (!state || !Array.isArray(state.path) || state.path.length < 2) return null;
+            const endPoint = state.path[state.path.length - 1];
+            const neighbors = [
+                { row: endPoint.row - 2, col: endPoint.col - 1 },
+                { row: endPoint.row, col: endPoint.col - 1 },
+                { row: endPoint.row - 1, col: endPoint.col - 2 },
+                { row: endPoint.row - 1, col: endPoint.col }
+            ];
+            for (const position of neighbors) {
+                if (position.row === state.startRow && position.col === state.startCol) continue;
+                const value = boardData?.[position.row]?.[position.col];
+                if (!isCellClickableInPlay(value)) continue;
+                if (getMatchableBaseId(value) === state.matchBaseId) {
+                    return position;
+                }
+            }
+            return null;
+        }
+
+        function calculatePlayDragMatchHintTargets(state, boardData, maxDistance = 3) {
+            if (!state || !Array.isArray(state.path) || !Array.isArray(boardData)) return [];
+            const endPoint = state.path[state.path.length - 1];
+            if (!endPoint) return [];
+            const safeMaxDistance = Math.max(1, Number(maxDistance) || 1);
+            const hints = [];
+            for (let row = 0; row < boardData.length; row++) {
+                const sourceRow = boardData[row];
+                if (!Array.isArray(sourceRow)) continue;
+                for (let col = 0; col < sourceRow.length; col++) {
+                    if (row === state.startRow && col === state.startCol) continue;
+                    const value = sourceRow[col];
+                    if (!isCellClickableInPlay(value)) continue;
+                    if (getMatchableBaseId(value) !== state.matchBaseId) continue;
+                    const distance = Math.abs(endPoint.row - (row + 1)) +
+                        Math.abs(endPoint.col - (col + 1));
+                    if (distance <= 0 || distance > safeMaxDistance) continue;
+                    hints.push({
+                        row,
+                        col,
+                        distance,
+                        strength: Math.max(0.12, (safeMaxDistance - distance + 1) / safeMaxDistance)
+                    });
+                }
+            }
+            return hints.sort((left, right) =>
+                left.distance - right.distance || left.row - right.row || left.col - right.col
+            );
+        }
+
+        function findPlayDragLinkEndpointTarget(state, boardData) {
+            if (!state || !Array.isArray(state.path) || state.path.length < 2) return null;
+            const endPoint = state.path[state.path.length - 1];
+            const boardRow = endPoint.row - 1;
+            const boardCol = endPoint.col - 1;
+            if (boardRow === state.startRow && boardCol === state.startCol) return null;
+            const value = boardData?.[boardRow]?.[boardCol];
+            if (!isCellClickableInPlay(value)) return null;
+            if (getMatchableBaseId(value) !== state.matchBaseId) return null;
+            return { row: boardRow, col: boardCol };
+        }
+
+        function findPlayDragLinkReleaseTarget(state, boardData, mode = selectedPlayOperationMode) {
+            if (mode === 'link') {
+                return findPlayDragLinkEndpointTarget(state, boardData);
+            }
+            return findPlayDragLinkAdjacentTarget(state, boardData);
+        }
+
+        function canPlayLinkMoveInDirection(state, direction) {
+            if (!state || !direction) return false;
+            const directionAxis = direction.row !== 0 ? 'vertical' : 'horizontal';
+            const nextTurns = state.turns +
+                (state.lastDirection && state.lastDirection !== directionAxis ? 1 : 0);
+            return nextTurns <= PLAY_DRAG_LINK_MAX_TURNS;
+        }
+
+        function buildPlayLinkGuideSegmentInDirection(state, boardData, direction, mode = 'link') {
+            if (!state || !Array.isArray(state.path) || state.path.length === 0) return null;
+            if (!canPlayLinkMoveInDirection(state, direction)) return null;
+            const startPoint = state.path[state.path.length - 1];
+            const segment = [startPoint];
+            let row = startPoint.row + direction.row;
+            let col = startPoint.col + direction.col;
+
+            while (isExtCellInsideManualLinkBounds(boardData, row, col)) {
+                const point = { row, col };
+                const existingIndex = findPlayDragLinkPathPointIndex(state, point);
+                if (existingIndex >= 0) break;
+
+                if (isExtCellPassableForPlayDragLink(boardData, row, col)) {
+                    segment.push(point);
+                    row += direction.row;
+                    col += direction.col;
+                    continue;
+                }
+
+                if (mode === 'link' && isExtCellMatchingManualLinkTarget(state, boardData, row, col)) {
+                    segment.push(point);
+                }
+                break;
+            }
+
+            return segment.length >= 2 ? segment : null;
+        }
+
+        function buildPlayLinkGuideSegments(state, boardData, mode = selectedPlayOperationMode) {
+            if (mode !== 'link' && mode !== 'drag' || !state || state.completed) return [];
+            const directions = [
+                { row: -1, col: 0 },
+                { row: 1, col: 0 },
+                { row: 0, col: -1 },
+                { row: 0, col: 1 }
+            ];
+            return directions
+                .map((direction) => buildPlayLinkGuideSegmentInDirection(
+                    state,
+                    boardData,
+                    direction,
+                    mode
+                ))
+                .filter(Boolean);
+        }
+
+        function buildPlayDragLinkPathToTarget(state, target) {
+            if (!state || !Array.isArray(state.path) || !target) return [];
+            const targetPoint = { row: target.row + 1, col: target.col + 1 };
+            const path = [...state.path];
+            const lastPoint = path[path.length - 1];
+            if (!lastPoint || lastPoint.row !== targetPoint.row || lastPoint.col !== targetPoint.col) {
+                path.push(targetPoint);
+            }
+            return compressPathPoints(path);
+        }
+
+        function buildPlayDragLinkPathForMode(state, target, mode = selectedPlayOperationMode) {
+            if (mode === 'link' || mode === 'drag') return compressPathPoints(state?.path || []);
+            if (target) return buildPlayDragLinkPathToTarget(state, target);
+            return compressPathPoints(state?.path || []);
+        }
+
+        function buildPlayDragLinkPreviewPath(state, boardData, mode = selectedPlayOperationMode) {
+            const target = findPlayDragLinkReleaseTarget(state, boardData, mode);
+            return buildPlayDragLinkPathForMode(state, target, mode);
+        }
+
+        function findAdjacentPlayMatchTargets(boardData, row, col) {
+            const currentValue = boardData?.[row]?.[col];
+            if (!isCellClickableInPlay(currentValue)) return [];
+            const matchBaseId = getMatchableBaseId(currentValue);
+            if (matchBaseId === null) return [];
+            const neighbors = [
+                { row: row - 1, col },
+                { row: row + 1, col },
+                { row, col: col - 1 },
+                { row, col: col + 1 }
+            ];
+            return neighbors.filter((position) => {
+                const value = boardData?.[position.row]?.[position.col];
+                if (!isCellClickableInPlay(value)) return false;
+                return getMatchableBaseId(value) === matchBaseId;
+            });
+        }
+
         function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
             if (!Array.isArray(boardData) || boardData.length === 0) return null;
             const height = boardData.length;
@@ -7141,23 +8032,391 @@
             });
         }
 
-        function renderPlayLinkPath(extPath, width, height) {
+        function getPlayLinkGridMetrics() {
             const board = document.getElementById('board');
-            if (!board || !Array.isArray(extPath) || extPath.length < 2) return;
+            const firstCell = document.getElementById('cell-0-0');
+            if (!board || !firstCell) return null;
+            const boardRect = board.getBoundingClientRect();
+            const firstRect = firstCell.getBoundingClientRect();
+            const { stepX, stepY } = getCellStepDistance();
+            return {
+                originX: firstRect.left - boardRect.left + (firstRect.width / 2),
+                originY: firstRect.top - boardRect.top + (firstRect.height / 2),
+                stepX,
+                stepY,
+                cellWidth: Math.max(1, firstRect.width || 1),
+                cellHeight: Math.max(1, firstRect.height || 1)
+            };
+        }
+
+        function calculatePlayLinkExtCellRect(point, metrics, width, height) {
+            if (!point || !metrics) return null;
+            const safeWidth = Math.max(1, Number(width) || 1);
+            const safeHeight = Math.max(1, Number(height) || 1);
+            const gridCol = Math.max(-1, Math.min(safeWidth, point.col - 1));
+            const gridRow = Math.max(-1, Math.min(safeHeight, point.row - 1));
+            const centerX = metrics.originX + (gridCol * metrics.stepX);
+            const centerY = metrics.originY + (gridRow * metrics.stepY);
+            return {
+                x: centerX - (metrics.cellWidth / 2),
+                y: centerY - (metrics.cellHeight / 2),
+                width: metrics.cellWidth,
+                height: metrics.cellHeight
+            };
+        }
+
+        function calculatePlayLinkBandRect(startPoint, endPoint, metrics, width, height) {
+            const startRect = calculatePlayLinkExtCellRect(startPoint, metrics, width, height);
+            const endRect = calculatePlayLinkExtCellRect(endPoint, metrics, width, height);
+            if (!startRect || !endRect) return null;
+            const left = Math.min(startRect.x, endRect.x);
+            const top = Math.min(startRect.y, endRect.y);
+            const right = Math.max(startRect.x + startRect.width, endRect.x + endRect.width);
+            const bottom = Math.max(startRect.y + startRect.height, endRect.y + endRect.height);
+            return {
+                x: left,
+                y: top,
+                width: right - left,
+                height: bottom - top
+            };
+        }
+
+        function calculatePlayLinkBandBorderLines(rectConfig, isHorizontal) {
+            if (!rectConfig) return [];
+            const left = rectConfig.x;
+            const right = rectConfig.x + rectConfig.width;
+            const top = rectConfig.y;
+            const bottom = rectConfig.y + rectConfig.height;
+            if (isHorizontal) {
+                return [
+                    { x1: left, y1: top, x2: right, y2: top },
+                    { x1: left, y1: bottom, x2: right, y2: bottom }
+                ];
+            }
+            return [
+                { x1: left, y1: top, x2: left, y2: bottom },
+                { x1: right, y1: top, x2: right, y2: bottom }
+            ];
+        }
+
+        function isPointInsidePlayLinkRect(rectConfig, x, y) {
+            if (!rectConfig) return false;
+            const EPSILON = 0.001;
+            return x > rectConfig.x + EPSILON &&
+                x < rectConfig.x + rectConfig.width - EPSILON &&
+                y > rectConfig.y + EPSILON &&
+                y < rectConfig.y + rectConfig.height - EPSILON;
+        }
+
+        function isPointInsideAnyPlayLinkRect(rects, x, y) {
+            return rects.some((rectConfig) => isPointInsidePlayLinkRect(rectConfig, x, y));
+        }
+
+        function isPlayLinkLineVertical(lineConfig) {
+            return Math.abs(lineConfig.x1 - lineConfig.x2) < 0.001;
+        }
+
+        function isPlayLinkLineHorizontal(lineConfig) {
+            return Math.abs(lineConfig.y1 - lineConfig.y2) < 0.001;
+        }
+
+        function isPlayLinkLineWithinCap(lineConfig, capLine) {
+            const EPSILON = 0.001;
+            if (isPlayLinkLineVertical(lineConfig) && isPlayLinkLineVertical(capLine)) {
+                if (Math.abs(lineConfig.x1 - capLine.x1) > EPSILON) return false;
+                const lineTop = Math.min(lineConfig.y1, lineConfig.y2);
+                const lineBottom = Math.max(lineConfig.y1, lineConfig.y2);
+                const capTop = Math.min(capLine.y1, capLine.y2);
+                const capBottom = Math.max(capLine.y1, capLine.y2);
+                return lineTop >= capTop - EPSILON && lineBottom <= capBottom + EPSILON;
+            }
+            if (isPlayLinkLineHorizontal(lineConfig) && isPlayLinkLineHorizontal(capLine)) {
+                if (Math.abs(lineConfig.y1 - capLine.y1) > EPSILON) return false;
+                const lineLeft = Math.min(lineConfig.x1, lineConfig.x2);
+                const lineRight = Math.max(lineConfig.x1, lineConfig.x2);
+                const capLeft = Math.min(capLine.x1, capLine.x2);
+                const capRight = Math.max(capLine.x1, capLine.x2);
+                return lineLeft >= capLeft - EPSILON && lineRight <= capRight + EPSILON;
+            }
+            return false;
+        }
+
+        function calculatePlayLinkBandOutlineLines(rects, capLines = []) {
+            if (!Array.isArray(rects) || rects.length === 0) return [];
+            const xCoords = [];
+            const yCoords = [];
+            rects.forEach((rectConfig) => {
+                xCoords.push(rectConfig.x, rectConfig.x + rectConfig.width);
+                yCoords.push(rectConfig.y, rectConfig.y + rectConfig.height);
+            });
+            const uniqueX = [...new Set(xCoords)].sort((a, b) => a - b);
+            const uniqueY = [...new Set(yCoords)].sort((a, b) => a - b);
+            const outlineLines = [];
+            const EPSILON = 0.001;
+
+            rects.forEach((rectConfig) => {
+                const left = rectConfig.x;
+                const right = rectConfig.x + rectConfig.width;
+                const top = rectConfig.y;
+                const bottom = rectConfig.y + rectConfig.height;
+
+                for (let index = 0; index < uniqueX.length - 1; index++) {
+                    const x1 = uniqueX[index];
+                    const x2 = uniqueX[index + 1];
+                    if (x1 < left - EPSILON || x2 > right + EPSILON || x2 - x1 <= EPSILON) continue;
+                    const midpointX = (x1 + x2) / 2;
+                    [
+                        { x1, y1: top, x2, y2: top, outsideY: top - EPSILON },
+                        { x1, y1: bottom, x2, y2: bottom, outsideY: bottom + EPSILON }
+                    ].forEach((lineConfig) => {
+                        if (isPointInsideAnyPlayLinkRect(rects, midpointX, lineConfig.outsideY)) return;
+                        const cleanLine = {
+                            x1: lineConfig.x1,
+                            y1: lineConfig.y1,
+                            x2: lineConfig.x2,
+                            y2: lineConfig.y2
+                        };
+                        if (capLines.some((capLine) => isPlayLinkLineWithinCap(cleanLine, capLine))) return;
+                        outlineLines.push(cleanLine);
+                    });
+                }
+
+                for (let index = 0; index < uniqueY.length - 1; index++) {
+                    const y1 = uniqueY[index];
+                    const y2 = uniqueY[index + 1];
+                    if (y1 < top - EPSILON || y2 > bottom + EPSILON || y2 - y1 <= EPSILON) continue;
+                    const midpointY = (y1 + y2) / 2;
+                    [
+                        { x1: left, y1, x2: left, y2, outsideX: left - EPSILON },
+                        { x1: right, y1, x2: right, y2, outsideX: right + EPSILON }
+                    ].forEach((lineConfig) => {
+                        if (isPointInsideAnyPlayLinkRect(rects, lineConfig.outsideX, midpointY)) return;
+                        const cleanLine = {
+                            x1: lineConfig.x1,
+                            y1: lineConfig.y1,
+                            x2: lineConfig.x2,
+                            y2: lineConfig.y2
+                        };
+                        if (capLines.some((capLine) => isPlayLinkLineWithinCap(cleanLine, capLine))) return;
+                        outlineLines.push(cleanLine);
+                    });
+                }
+            });
+
+            const seen = new Set();
+            return outlineLines.filter((lineConfig) => {
+                const key = `${lineConfig.x1},${lineConfig.y1},${lineConfig.x2},${lineConfig.y2}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+
+        function createPlayLinkOpacityStops(color, nearOpacity, farOpacity) {
+            return [
+                { offset: '0%', color, opacity: String(nearOpacity) },
+                { offset: '42%', color, opacity: String((nearOpacity + farOpacity) / 2) },
+                { offset: '100%', color, opacity: String(farOpacity) }
+            ];
+        }
+
+        function getPlayLinkTurnColorConfig(turnCount = 0) {
+            const safeTurnCount = Math.max(0, Math.min(2, Number(turnCount) || 0));
+            if (safeTurnCount === 0) {
+                return { color: '#58d66d', borderColor: '#b8ffbf', glowColor: '#58d66d' };
+            }
+            if (safeTurnCount === 1) {
+                return { color: '#ffd54f', borderColor: '#fff6a8', glowColor: '#ffd54f' };
+            }
+            return { color: '#ff9f1c', borderColor: '#ffe0a3', glowColor: '#ff9f1c' };
+        }
+
+        function createPlayLinkRectPathData(rects) {
+            if (!Array.isArray(rects)) return '';
+            return rects
+                .map((rectConfig) => [
+                    `M ${rectConfig.x} ${rectConfig.y}`,
+                    `H ${rectConfig.x + rectConfig.width}`,
+                    `V ${rectConfig.y + rectConfig.height}`,
+                    `H ${rectConfig.x}`,
+                    'Z'
+                ].join(' '))
+                .join(' ');
+        }
+
+        function calculatePlayLinkBandCapLines(compressedPath, metrics, width, height) {
+            if (!Array.isArray(compressedPath) || compressedPath.length < 2) return [];
+            const startPoint = compressedPath[0];
+            const startNextPoint = compressedPath[1];
+            const endPrevPoint = compressedPath[compressedPath.length - 2];
+            const endPoint = compressedPath[compressedPath.length - 1];
+            const startRect = calculatePlayLinkExtCellRect(startPoint, metrics, width, height);
+            const endRect = calculatePlayLinkExtCellRect(endPoint, metrics, width, height);
+            if (!startRect || !endRect) return [];
+
+            const makeCapLine = (fromPoint, toPoint, rectConfig, isEnd) => {
+                const rowDelta = toPoint.row - fromPoint.row;
+                const colDelta = toPoint.col - fromPoint.col;
+                if (colDelta !== 0) {
+                    const x = (colDelta > 0) === !isEnd
+                        ? rectConfig.x
+                        : rectConfig.x + rectConfig.width;
+                    return { x1: x, y1: rectConfig.y, x2: x, y2: rectConfig.y + rectConfig.height };
+                }
+                const y = (rowDelta > 0) === !isEnd
+                    ? rectConfig.y
+                    : rectConfig.y + rectConfig.height;
+                return { x1: rectConfig.x, y1: y, x2: rectConfig.x + rectConfig.width, y2: y };
+            };
+
+            return [
+                makeCapLine(startPoint, startNextPoint, startRect, false),
+                makeCapLine(endPrevPoint, endPoint, endRect, true)
+            ];
+        }
+
+        function createSvgElement(tagName) {
+            return document.createElementNS('http://www.w3.org/2000/svg', tagName);
+        }
+
+        function appendPlayLinkGradient(defs, gradientId, startPoint, endPoint, colorStops) {
+            const gradient = createSvgElement('linearGradient');
+            gradient.setAttribute('id', gradientId);
+            gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+            gradient.setAttribute('x1', startPoint.x);
+            gradient.setAttribute('y1', startPoint.y);
+            gradient.setAttribute('x2', endPoint.x);
+            gradient.setAttribute('y2', endPoint.y);
+            colorStops.forEach((stopConfig) => {
+                const stop = createSvgElement('stop');
+                stop.setAttribute('offset', stopConfig.offset);
+                stop.setAttribute('stop-color', stopConfig.color);
+                stop.setAttribute('stop-opacity', stopConfig.opacity);
+                gradient.appendChild(stop);
+            });
+            defs.appendChild(gradient);
+        }
+
+        function appendPlayLinkBandSegments(
+            overlay,
+            defs,
+            extPath,
+            metrics,
+            width,
+            height,
+            className,
+            prefix,
+            colorStops,
+            options = {}
+        ) {
+            if (!Array.isArray(extPath) || extPath.length < 2 || !metrics) return;
+            const gradientStartsAtEnd = Boolean(options.gradientStartsAtEnd);
+            const compressedPath = compressPathPoints(extPath);
+            const bandRects = [];
+            for (let index = 1; index < compressedPath.length; index++) {
+                const startPoint = compressedPath[index - 1];
+                const endPoint = compressedPath[index];
+                const rectConfig = calculatePlayLinkBandRect(startPoint, endPoint, metrics, width, height);
+                if (rectConfig) bandRects.push(rectConfig);
+            }
+            if (bandRects.length === 0) return;
+
+            const firstRect = calculatePlayLinkExtCellRect(compressedPath[0], metrics, width, height);
+            const lastRect = calculatePlayLinkExtCellRect(
+                compressedPath[compressedPath.length - 1],
+                metrics,
+                width,
+                height
+            );
+            if (!firstRect || !lastRect) return;
+            const firstCenter = {
+                x: firstRect.x + (firstRect.width / 2),
+                y: firstRect.y + (firstRect.height / 2)
+            };
+            const lastCenter = {
+                x: lastRect.x + (lastRect.width / 2),
+                y: lastRect.y + (lastRect.height / 2)
+            };
+            const gradientId = `${prefix}-${Math.round(firstCenter.x)}-${Math.round(firstCenter.y)}`;
+            appendPlayLinkGradient(
+                defs,
+                gradientId,
+                gradientStartsAtEnd ? lastCenter : firstCenter,
+                gradientStartsAtEnd ? firstCenter : lastCenter,
+                colorStops
+            );
+
+            const path = createSvgElement('path');
+            path.setAttribute('class', className);
+            path.setAttribute('d', createPlayLinkRectPathData(bandRects));
+            path.setAttribute('fill', `url(#${gradientId})`);
+            overlay.appendChild(path);
+
+            const capLines = calculatePlayLinkBandCapLines(compressedPath, metrics, width, height);
+            calculatePlayLinkBandOutlineLines(bandRects, capLines).forEach((lineConfig) => {
+                const borderLine = createSvgElement('line');
+                borderLine.setAttribute('class', 'play-link-band-border');
+                borderLine.setAttribute('x1', lineConfig.x1);
+                borderLine.setAttribute('y1', lineConfig.y1);
+                borderLine.setAttribute('x2', lineConfig.x2);
+                borderLine.setAttribute('y2', lineConfig.y2);
+                overlay.appendChild(borderLine);
+            });
+        }
+
+        function renderPlayLinkPath(extPath, width, height, options = {}) {
+            const board = document.getElementById('board');
+            const guideSegments = Array.isArray(options.guideSegments)
+                ? options.guideSegments
+                : [];
+            const hasCurrentPath = Array.isArray(extPath) && extPath.length >= 2;
+            if (!board || (!hasCurrentPath && guideSegments.length === 0)) return;
 
             const overlay = getOrCreatePlayLinkOverlay(board);
             if (!overlay) return;
             overlay.innerHTML = '';
             const boardRect = board.getBoundingClientRect();
             overlay.setAttribute('viewBox', `0 0 ${boardRect.width} ${boardRect.height}`);
+            const metrics = getPlayLinkGridMetrics();
+            if (!metrics) return;
 
-            const pixelPoints = convertExtPathToBoardPixels(extPath, width, height);
-            if (pixelPoints.length < 2) return;
+            const defs = createSvgElement('defs');
+            overlay.appendChild(defs);
+            const colorConfig = getPlayLinkTurnColorConfig(options.turnCount || 0);
+            overlay.style.setProperty('--play-link-border-color', colorConfig.borderColor);
+            overlay.style.setProperty('--play-link-glow-color', colorConfig.glowColor);
+            overlay.style.setProperty('--play-link-color', colorConfig.color);
+            const guideStops = createPlayLinkOpacityStops('var(--play-link-color)', 0.68, 0.14);
+            const currentStops = createPlayLinkOpacityStops('var(--play-link-color)', 0.92, 0.24);
 
-            const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-            polyline.setAttribute('class', 'play-link-path');
-            polyline.setAttribute('points', pixelPoints.map((pt) => `${pt.x},${pt.y}`).join(' '));
-            overlay.appendChild(polyline);
+            guideSegments.forEach((segment, segmentIndex) => {
+                appendPlayLinkBandSegments(
+                    overlay,
+                    defs,
+                    segment,
+                    metrics,
+                    width,
+                    height,
+                    'play-link-guide-band',
+                    `play-link-guide-${segmentIndex}`,
+                    guideStops
+                );
+            });
+
+            if (hasCurrentPath) {
+                appendPlayLinkBandSegments(
+                    overlay,
+                    defs,
+                    extPath,
+                    metrics,
+                    width,
+                    height,
+                    'play-link-current-band',
+                    'play-link-current',
+                    currentStops,
+                    { gradientStartsAtEnd: true }
+                );
+            }
         }
 
         function clearPlayLinkPath() {
@@ -7270,87 +8529,38 @@
             return false;
         }
 
-        async function processPlayCellSelection(row, col) {
+        async function resolvePlayMatchedPair(pair, linkPath, options = {}) {
             if (!playModeState || !playModeState.active || playModeState.isResolving) return;
-            if (playModeState.failed) return;
+            if (!pair || typeof pair !== 'object') return;
+            const suppressSelectionLift = Boolean(options.suppressSelectionLift);
+            const suppressLinkRender = Boolean(options.suppressLinkRender);
             const boardData = playModeState.boardData;
-            const currentValue = boardData?.[row]?.[col];
-            if (!isCellClickableInPlay(currentValue)) return;
-            const currentMatchBaseId = getMatchableBaseId(currentValue);
-            if (currentMatchBaseId === null) return;
-
-            const info = document.getElementById('info');
-            const selected = playModeState.selected;
-            if (!selected) {
-                setPlaySelection(row, col);
-                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
-                return;
-            }
-
-            if (selected.row === row && selected.col === col) {
-                clearPlaySelectionVisual();
-                recordPlaySelectionCancelReason('再次点击同一张牌，取消当前选择');
-                if (info) info.textContent = '试玩模式：已取消选择';
-                return;
-            }
-
-            const selectedValue = boardData?.[selected.row]?.[selected.col];
-            const selectedMatchBaseId = getMatchableBaseId(selectedValue);
-            if (selectedMatchBaseId === null) {
-                setPlaySelection(row, col);
-                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
-                return;
-            }
-
-            if (selectedMatchBaseId !== currentMatchBaseId) {
-                setPlaySelection(row, col);
-                recordPlaySelectionCancelReason('数字不同，切换为新选中的牌');
-                if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentMatchBaseId}`;
-                return;
-            }
-
-            const canConnect = canConnectByLianliankan(
-                boardData,
-                selected.row,
-                selected.col,
-                row,
-                col
-            );
-
-            if (!canConnect) {
-                setPlaySelection(row, col);
-                recordPlaySelectionCancelReason('路径不满足连连看规则，切换为新选中的牌');
-                if (info) info.textContent = '试玩模式：路径不满足连连看规则，请重选';
-                return;
-            }
-
+            const firstValue = boardData?.[pair.row1]?.[pair.col1];
+            const selectedMatchBaseId = getMatchableBaseId(firstValue);
+            if (selectedMatchBaseId === null) return;
             const width = boardData[0]?.length || 0;
             const height = boardData.length;
-            const linkPath = findConnectionPathByLianliankan(
-                boardData,
-                selected.row,
-                selected.col,
-                row,
-                col
-            );
             const connectionType = getPlayConnectionTypeByPath(linkPath);
             const boardSnapshotBefore = cloneBoardData(boardData);
             const move = {
-                row1: selected.row,
-                col1: selected.col,
-                row2: row,
-                col2: col
+                row1: pair.row1,
+                col1: pair.col1,
+                row2: pair.row2,
+                col2: pair.col2
             };
 
             playModeState.isResolving = true;
             updatePlayAutoPairButton();
-            const firstCell = document.getElementById(`cell-${selected.row}-${selected.col}`);
-            const secondCell = document.getElementById(`cell-${row}-${col}`);
-            if (firstCell) firstCell.classList.add('play-selected');
-            if (secondCell) secondCell.classList.add('play-selected');
+            const firstCell = document.getElementById(`cell-${pair.row1}-${pair.col1}`);
+            const secondCell = document.getElementById(`cell-${pair.row2}-${pair.col2}`);
+            if (!suppressSelectionLift) {
+                if (firstCell) firstCell.classList.add('play-selected');
+                if (secondCell) secondCell.classList.add('play-selected');
+            }
 
+            const info = document.getElementById('info');
             try {
-                if (linkPath && linkPath.length >= 2) {
+                if (!suppressLinkRender && linkPath && linkPath.length >= 2) {
                     renderPlayLinkPath(linkPath, width, height);
                 }
                 await waitForMs(150);
@@ -7365,8 +8575,8 @@
 
                 const tokenBoard = playModeState.tokenBoard;
                 const removedPositions = [
-                    { row: selected.row, col: selected.col },
-                    { row, col }
+                    { row: pair.row1, col: pair.col1 },
+                    { row: pair.row2, col: pair.col2 }
                 ];
                 for (const position of removedPositions) {
                     boardData[position.row][position.col] = EMPTY_CELL_ID;
@@ -7429,10 +8639,80 @@
             }
         }
 
+        async function processPlayCellSelection(row, col) {
+            if (!playModeState || !playModeState.active || playModeState.isResolving) return;
+            if (playModeState.failed) return;
+            const boardData = playModeState.boardData;
+            const currentValue = boardData?.[row]?.[col];
+            if (!isCellClickableInPlay(currentValue)) return;
+            const currentMatchBaseId = getMatchableBaseId(currentValue);
+            if (currentMatchBaseId === null) return;
+
+            const info = document.getElementById('info');
+            const selected = playModeState.selected;
+            if (!selected) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
+                return;
+            }
+
+            if (selected.row === row && selected.col === col) {
+                clearPlaySelectionVisual();
+                recordPlaySelectionCancelReason('再次点击同一张牌，取消当前选择');
+                if (info) info.textContent = '试玩模式：已取消选择';
+                return;
+            }
+
+            const selectedValue = boardData?.[selected.row]?.[selected.col];
+            const selectedMatchBaseId = getMatchableBaseId(selectedValue);
+            if (selectedMatchBaseId === null) {
+                setPlaySelection(row, col);
+                if (info) info.textContent = `试玩模式：已选中 ${currentMatchBaseId}`;
+                return;
+            }
+
+            if (selectedMatchBaseId !== currentMatchBaseId) {
+                setPlaySelection(row, col);
+                recordPlaySelectionCancelReason('数字不同，切换为新选中的牌');
+                if (info) info.textContent = `试玩模式：数字不同，重新选中 ${currentMatchBaseId}`;
+                return;
+            }
+
+            const canConnect = canConnectByLianliankan(
+                boardData,
+                selected.row,
+                selected.col,
+                row,
+                col
+            );
+
+            if (!canConnect) {
+                setPlaySelection(row, col);
+                recordPlaySelectionCancelReason('路径不满足连连看规则，切换为新选中的牌');
+                if (info) info.textContent = '试玩模式：路径不满足连连看规则，请重选';
+                return;
+            }
+
+            const linkPath = findConnectionPathByLianliankan(
+                boardData,
+                selected.row,
+                selected.col,
+                row,
+                col
+            );
+            await resolvePlayMatchedPair({
+                row1: selected.row,
+                col1: selected.col,
+                row2: row,
+                col2: col
+            }, linkPath);
+        }
+
         function exitPlayMode(options = {}) {
             const { restoreBoard = true, silent = false } = options;
             if (!playModeState || !playModeState.active) return;
             stopAgentRun({ silent: true });
+            clearAdjacentPlayChoiceOverlay();
 
             if (restoreBoard && Array.isArray(playModeState.originalBoard)) {
                 syncBoardDisplayByData(playModeState.originalBoard);
@@ -7441,6 +8721,7 @@
 
             const board = document.getElementById('board');
             if (board) board.classList.remove('play-mode');
+            cancelPlayDragLink();
             clearPlayLinkPath();
             hideSavedLevelPreview();
             updatePlayRetryButton(false);
@@ -7475,6 +8756,11 @@
                 stepLogs: [],
                 currentStepIndex: 0,
                 selected: null,
+                dragLink: null,
+                dragGhost: null,
+                dragSource: null,
+                adjacentChoiceOverlay: null,
+                adjacentChoice: null,
                 isResolving: false,
                 failed: false,
                 clearedPairs: 0,
@@ -7489,7 +8775,7 @@
             updatePlayModeButton();
             resetPlayStepLog('试玩模式：开始记录消除连接类型');
             const info = document.getElementById('info');
-            if (info) info.textContent = '试玩模式：点击两张相同且可连通的牌进行消除';
+            if (info) info.textContent = getPlayOperationHintText();
             checkAndHandlePlayFailure(playModeState.boardData);
             ensureAgentPlaySession(true);
         }
@@ -7521,11 +8807,19 @@
 
         function handleBoardCellMouseDown(event) {
             if (!event) return;
-            if (isEditorOperationBlocked()) return;
             const cellElement = event.target.closest('.cell');
             if (!cellElement) return;
             const position = getCellPositionByElement(cellElement);
             if (!position) return;
+
+            if (playModeState && playModeState.active) {
+                if (event.button === 0 && !isPlayOperationMode('click')) {
+                    startPlayDragLink(event, position.row, position.col);
+                }
+                return;
+            }
+
+            if (isEditorOperationBlocked()) return;
 
             if (event.button === 2) {
                 event.preventDefault();
@@ -7546,6 +8840,15 @@
         }
 
         function handleBoardCellMouseMove(event) {
+            if (playModeState && playModeState.active) {
+                if (isPlayOperationMode('click')) return;
+                if (!event || event.buttons === 0) {
+                    cancelPlayDragLink('松开后未连接到相同牌，取消当前连线');
+                    return;
+                }
+                updatePlayDragLink(event);
+                return;
+            }
             if (!editorBrushState.active) return;
             if (isEditorOperationBlocked()) {
                 stopEditorBrush();
@@ -7564,13 +8867,31 @@
         }
 
         function handleBoardCellMouseLeave(event) {
+            if (playModeState && playModeState.active) {
+                return;
+            }
             if (!editorBrushState.active) return;
             if (!event || event.buttons === 0) {
                 stopEditorBrush();
             }
         }
 
+        function handlePlayDragDocumentMouseMove(event) {
+            if (!playModeState || !playModeState.active || !playModeState.dragLink) return;
+            if (!event || event.buttons === 0) {
+                cancelPlayDragLink('松开后未连接到相同牌，取消当前连线');
+                return;
+            }
+            updatePlayDragLink(event);
+        }
+
         function handleEditorBrushMouseUp() {
+            if (playModeState && playModeState.active) {
+                if (!isPlayOperationMode('click')) {
+                    finishPlayDragLink();
+                }
+                return;
+            }
             stopEditorBrush();
         }
 
@@ -7580,8 +8901,13 @@
             const position = getCellPositionByElement(cellElement);
             if (!position) return;
             if (playModeState && playModeState.active) {
-                if (playModeState.isResolving) return;
-                processPlayCellSelection(position.row, position.col);
+                if (isPlayOperationMode('click')) {
+                    if (playModeState.isResolving) return;
+                    processPlayCellSelection(position.row, position.col);
+                    return;
+                }
+                event.preventDefault();
+                processAdjacentPlayCellClick(position.row, position.col);
                 return;
             }
             applyEditorToolOnCell(position.row, position.col);
@@ -13693,6 +15019,1785 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             return rebalanceGeneratedBoard(workingBoard, direction);
         }
 
+        const REVERSE_GENERATION_DIFFICULTY_CONFIGS = {
+            easy: {
+                targetPairCount: 8,
+                maxPairCount: 14,
+                distanceTarget: 4,
+                connectionWeights: {
+                    '直线连接': 5,
+                    '1拐连接': 3,
+                    '同向2拐': 1,
+                    '反向2拐': 0.5
+                }
+            },
+            normal: {
+                targetPairCount: 6,
+                maxPairCount: 10,
+                distanceTarget: 6,
+                connectionWeights: {
+                    '直线连接': 3,
+                    '1拐连接': 4,
+                    '同向2拐': 2,
+                    '反向2拐': 1
+                }
+            },
+            hard: {
+                targetPairCount: 4,
+                maxPairCount: 7,
+                distanceTarget: 9,
+                connectionWeights: {
+                    '直线连接': 1,
+                    '1拐连接': 2,
+                    '同向2拐': 4,
+                    '反向2拐': 5
+                }
+            }
+        };
+
+        function getReverseGenerationDifficultyConfig(difficulty) {
+            const key = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            return REVERSE_GENERATION_DIFFICULTY_CONFIGS[key] ||
+                REVERSE_GENERATION_DIFFICULTY_CONFIGS.normal;
+        }
+
+        function normalizeReverseGenerationDifficulty(difficulty, defaultValue = 'normal') {
+            const fallback = REVERSE_GENERATION_DIFFICULTY_CONFIGS[defaultValue]
+                ? defaultValue
+                : 'normal';
+            const key = String(difficulty || fallback).trim().toLowerCase();
+            return REVERSE_GENERATION_DIFFICULTY_CONFIGS[key] ? key : fallback;
+        }
+
+        function getReverseGenerationDifficultyValue(defaultValue = 'normal') {
+            const select = document.getElementById('reverseDifficulty');
+            return normalizeReverseGenerationDifficulty(select?.value, defaultValue);
+        }
+
+        function isSameBoardData(leftBoard, rightBoard) {
+            if (!Array.isArray(leftBoard) || !Array.isArray(rightBoard)) return false;
+            if (leftBoard.length !== rightBoard.length) return false;
+            for (let row = 0; row < leftBoard.length; row++) {
+                const leftRow = leftBoard[row];
+                const rightRow = rightBoard[row];
+                if (!Array.isArray(leftRow) || !Array.isArray(rightRow)) return false;
+                if (leftRow.length !== rightRow.length) return false;
+                for (let col = 0; col < leftRow.length; col++) {
+                    if ((leftRow[col] ?? EMPTY_CELL_ID) !== (rightRow[col] ?? EMPTY_CELL_ID)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function buildReverseGenerationPool(
+            totalCellCount,
+            count8Override = null,
+            count6Override = null,
+            reservedBaseIds = null
+        ) {
+            const totalCells = Number.isInteger(totalCellCount) && totalCellCount > 0
+                ? totalCellCount
+                : 0;
+            if (totalCells <= 0 || totalCells % 2 !== 0) {
+                return { success: false, message: '可生成格子数量必须为正偶数。' };
+            }
+            const count8 = Number.isFinite(Number(count8Override))
+                ? Math.max(0, Math.floor(Number(count8Override)))
+                : 0;
+            const count6 = Number.isFinite(Number(count6Override))
+                ? Math.max(0, Math.floor(Number(count6Override)))
+                : 0;
+            const usedCards = (count8 * 8) + (count6 * 6);
+            if (usedCards > totalCells) {
+                return { success: false, message: '8张/6张数量超过可生成格子数量。' };
+            }
+
+            const remainingCards = totalCells - usedCards;
+            const count4 = Math.floor(remainingCards / 4);
+            const count2 = remainingCards % 4 >= 2 ? 1 : 0;
+            const reservedSet = reservedBaseIds instanceof Set
+                ? new Set(Array.from(reservedBaseIds).map((value) => Number(value)))
+                : new Set();
+            const pool = [];
+            let nextBaseId = 1;
+            const allocateNextBaseId = () => {
+                while (
+                    nextBaseId < BOMB_CELL_ID &&
+                    (reservedSet.has(nextBaseId) || nextBaseId === PLACEHOLDER_CELL_ID)
+                ) {
+                    nextBaseId++;
+                }
+                if (nextBaseId >= BOMB_CELL_ID) return null;
+                const allocated = nextBaseId;
+                nextBaseId++;
+                return allocated;
+            };
+            const appendPoolItems = (itemCount, cardCount) => {
+                for (let index = 0; index < itemCount; index++) {
+                    const allocated = allocateNextBaseId();
+                    if (allocated === null) return false;
+                    pool.push({ number: allocated, count: cardCount });
+                }
+                return true;
+            };
+
+            if (!appendPoolItems(count8, 8) ||
+                !appendPoolItems(count6, 6) ||
+                !appendPoolItems(count4, 4) ||
+                !appendPoolItems(count2, 2)) {
+                return { success: false, message: '可用花色ID不足，无法生成。' };
+            }
+
+            const cards = [];
+            const pairNumbers = [];
+            for (const poolItem of pool) {
+                for (let index = 0; index < poolItem.count; index++) {
+                    cards.push(poolItem.number);
+                }
+                for (let pairIndex = 0; pairIndex < Math.floor(poolItem.count / 2); pairIndex++) {
+                    pairNumbers.push(poolItem.number);
+                }
+            }
+            if (cards.length !== totalCells) {
+                return { success: false, message: '数字池与可生成格子数量不匹配。' };
+            }
+            return {
+                success: true,
+                pool,
+                cards: shuffleArray(cards),
+                pairNumbers: shuffleArray(pairNumbers)
+            };
+        }
+
+        function buildReverseGenerationTargetMaps(targetOrder) {
+            const targetKeySet = new Set();
+            const attachmentMap = new Map();
+            for (const target of targetOrder || []) {
+                const row = Math.trunc(Number(target?.i));
+                const col = Math.trunc(Number(target?.j));
+                if (!Number.isInteger(row) || !Number.isInteger(col)) continue;
+                const key = `${row},${col}`;
+                targetKeySet.add(key);
+                attachmentMap.set(key, ATTACHMENT_IDS.has(target.attachmentId)
+                    ? target.attachmentId
+                    : null);
+            }
+            return { targetKeySet, attachmentMap };
+        }
+
+        function collectReverseGenerationEmptyTargets(boardData, targetOrder) {
+            const emptyTargets = [];
+            for (const target of targetOrder || []) {
+                const row = Math.trunc(Number(target?.i));
+                const col = Math.trunc(Number(target?.j));
+                if (!Number.isInteger(row) || !Number.isInteger(col)) continue;
+                const parsed = decodeCellId(boardData[row]?.[col]);
+                if (!isEmptyCellId(parsed.baseId)) continue;
+                emptyTargets.push({ row, col });
+            }
+            return shuffleArray(emptyTargets);
+        }
+
+        function hasAdjacentTargetPerfectMatching(emptyTargets) {
+            if (!Array.isArray(emptyTargets) || emptyTargets.length === 0) return true;
+            if (emptyTargets.length % 2 !== 0) return false;
+            const keySet = new Set(emptyTargets.map((cell) => `${cell.row},${cell.col}`));
+            const memo = new Set();
+            const search = (remainingKeys) => {
+                if (remainingKeys.length === 0) return true;
+                const signature = remainingKeys.slice().sort().join('|');
+                if (memo.has(signature)) return false;
+                const [firstKey] = remainingKeys;
+                const [rowText, colText] = firstKey.split(',');
+                const row = Number(rowText);
+                const col = Number(colText);
+                const neighbors = [
+                    `${row - 1},${col}`,
+                    `${row + 1},${col}`,
+                    `${row},${col - 1}`,
+                    `${row},${col + 1}`
+                ];
+                for (const neighborKey of neighbors) {
+                    if (!keySet.has(neighborKey) || !remainingKeys.includes(neighborKey)) continue;
+                    const nextKeys = remainingKeys.filter(
+                        (key) => key !== firstKey && key !== neighborKey
+                    );
+                    if (search(nextKeys)) return true;
+                }
+                memo.add(signature);
+                return false;
+            };
+            return search(Array.from(keySet));
+        }
+
+        function leavesDenseReverseTargetsPairable(candidateBoard, targetOrder) {
+            const emptyTargets = collectReverseGenerationEmptyTargets(candidateBoard, targetOrder);
+            if (emptyTargets.length > 20) return true;
+            return hasAdjacentTargetPerfectMatching(emptyTargets);
+        }
+
+        function applyReverseGenerationAttachments(boardData, attachmentMap) {
+            const result = cloneBoardData(boardData);
+            if (!(attachmentMap instanceof Map)) return result;
+            attachmentMap.forEach((attachmentId, key) => {
+                if (!ATTACHMENT_IDS.has(attachmentId)) return;
+                const [rowText, colText] = String(key).split(',');
+                const row = Number(rowText);
+                const col = Number(colText);
+                const parsed = decodeCellId(result[row]?.[col]);
+                if (!isRemovableBaseId(parsed.baseId) || parsed.baseId === PLACEHOLDER_CELL_ID) return;
+                result[row][col] = encodeAttachedCellId(parsed.baseId, attachmentId);
+            });
+            return result;
+        }
+
+        function simulateReverseCandidateForward(candidateBoard, direction, pair) {
+            const replayBoard = cloneBoardData(candidateBoard);
+            const selectedBaseId = getMatchableBaseId(replayBoard[pair.row1]?.[pair.col1]);
+            if (selectedBaseId === null) {
+                return { success: false, boardData: replayBoard };
+            }
+            const removedPositions = removePairFromBoard(replayBoard, null, pair);
+            triggerAdjacentMechanisms(replayBoard, null, removedPositions);
+            if (selectedBaseId === BOMB_CELL_ID) {
+                triggerBombEffect(replayBoard, null);
+            }
+            applyDirectionShiftUntilStable(replayBoard, direction, null);
+            return { success: true, boardData: replayBoard };
+        }
+
+        function isReverseCandidateStable(candidateBoard, direction) {
+            const shiftedBoard = cloneBoardData(candidateBoard);
+            applyDirectionShiftUntilStable(shiftedBoard, direction, null);
+            return isSameBoardData(candidateBoard, shiftedBoard);
+        }
+
+        function scoreReverseGenerationCandidate(candidateBoard, direction, pair, difficultyConfig) {
+            const path = findConnectionPathByLianliankan(
+                candidateBoard,
+                pair.row1,
+                pair.col1,
+                pair.row2,
+                pair.col2
+            );
+            const connectionType = getPlayConnectionTypeByPath(path);
+            const distance = computePathLengthByGridSteps(path) || 0;
+            const pairCount = countRemainingPairCountByBoard(candidateBoard);
+            const remainingEmptyCount = countEmptyRegenerateCells(candidateBoard);
+            const targetPairCount = Math.max(1, Number(difficultyConfig.targetPairCount) || 6);
+            const maxPairCount = Math.max(targetPairCount, Number(difficultyConfig.maxPairCount) || targetPairCount);
+            const distanceTarget = Math.max(1, Number(difficultyConfig.distanceTarget) || 6);
+            const connectionWeight = Number(difficultyConfig.connectionWeights?.[connectionType]) || 0;
+            const adjacentPair = Math.abs(pair.row1 - pair.row2) + Math.abs(pair.col1 - pair.col2) === 1;
+            const denseBoardPressure = remainingEmptyCount <= 14
+                ? (14 - remainingEmptyCount) / 14
+                : 0;
+            const pairCountPenalty = Math.abs(pairCount - targetPairCount) * 2.2 +
+                Math.max(0, pairCount - maxPairCount) * 3;
+            const distancePenalty = Math.abs(distance - distanceTarget) * 0.35;
+            return (
+                connectionWeight +
+                (adjacentPair ? 5 : 0) * denseBoardPressure +
+                (connectionType === '直线连接' ? 3 : 0) * denseBoardPressure -
+                distance * denseBoardPressure * 0.8 +
+                Math.random() * 0.75 -
+                pairCountPenalty -
+                distancePenalty
+            );
+        }
+
+        function countEmptyRegenerateCells(boardData) {
+            if (!Array.isArray(boardData)) return 0;
+            let count = 0;
+            for (const row of boardData) {
+                if (!Array.isArray(row)) continue;
+                for (const rawId of row) {
+                    const parsed = decodeCellId(rawId);
+                    if (isEmptyCellId(parsed.baseId)) count++;
+                }
+            }
+            return count;
+        }
+
+        function findReverseGenerationCandidates(
+            currentBoard,
+            targetOrder,
+            direction,
+            baseId,
+            difficultyConfig,
+            options = {}
+        ) {
+            const emptyTargets = collectReverseGenerationEmptyTargets(currentBoard, targetOrder);
+            const maxChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(100, Math.floor(Number(options.maxCandidateChecks)))
+                : 3000;
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : 24;
+            const stopAtMaxChecks = options.stopAtMaxCandidateChecks === true;
+            const candidates = [];
+            let checkedCount = 0;
+
+            for (let left = 0; left < emptyTargets.length - 1; left++) {
+                for (let right = left + 1; right < emptyTargets.length; right++) {
+                    if (checkedCount >= maxChecks && (stopAtMaxChecks || candidates.length > 0)) break;
+                    checkedCount++;
+                    const first = emptyTargets[left];
+                    const second = emptyTargets[right];
+                    const candidateBoard = cloneBoardData(currentBoard);
+                    candidateBoard[first.row][first.col] = baseId;
+                    candidateBoard[second.row][second.col] = baseId;
+                    if (!isReverseCandidateStable(candidateBoard, direction)) continue;
+                    if (!canConnectByLianliankan(
+                        candidateBoard,
+                        first.row,
+                        first.col,
+                        second.row,
+                        second.col
+                    )) {
+                        continue;
+                    }
+                    const pair = {
+                        row1: first.row,
+                        col1: first.col,
+                        row2: second.row,
+                        col2: second.col
+                    };
+                    const replay = simulateReverseCandidateForward(candidateBoard, direction, pair);
+                    if (!replay.success || !isSameBoardData(replay.boardData, currentBoard)) continue;
+                    const score = scoreReverseGenerationCandidate(
+                    candidateBoard,
+                    direction,
+                    pair,
+                    difficultyConfig
+                );
+                    if (!leavesDenseReverseTargetsPairable(candidateBoard, targetOrder)) {
+                        continue;
+                    }
+                    candidates.push({ boardData: candidateBoard, pair, score });
+                    candidates.sort((a, b) => b.score - a.score);
+                    if (candidates.length > maxCandidates) candidates.length = maxCandidates;
+                }
+                if (checkedCount >= maxChecks && (stopAtMaxChecks || candidates.length > 0)) break;
+            }
+            return candidates;
+        }
+
+        function buildReverseGenerationAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            direction,
+            difficultyConfig,
+            options = {}
+        ) {
+            const currentBoard = cloneBoardData(sourceBoard);
+            for (const target of targetOrder) {
+                if (!currentBoard[target.i]) continue;
+                currentBoard[target.i][target.j] = EMPTY_CELL_ID;
+            }
+            const solutionTrace = [];
+            const orderedPairNumbers = shuffleArray(pairNumbers);
+            for (let index = 0; index < orderedPairNumbers.length; index++) {
+                const baseId = orderedPairNumbers[index];
+                const candidates = findReverseGenerationCandidates(
+                    currentBoard,
+                    targetOrder,
+                    direction,
+                    baseId,
+                    difficultyConfig,
+                    options
+                );
+                if (candidates.length === 0) {
+                    return {
+                        success: false,
+                        message: `第${index + 1}对反向插入失败。`
+                    };
+                }
+                const pickLimit = Math.min(4, candidates.length);
+                const selected = candidates[Math.floor(Math.random() * pickLimit)];
+                const path = findConnectionPathByLianliankan(
+                    selected.boardData,
+                    selected.pair.row1,
+                    selected.pair.col1,
+                    selected.pair.row2,
+                    selected.pair.col2
+                );
+                currentBoard.splice(0, currentBoard.length, ...cloneBoardData(selected.boardData));
+                solutionTrace.unshift({
+                    baseId,
+                    row1: selected.pair.row1,
+                    col1: selected.pair.col1,
+                    row2: selected.pair.row2,
+                    col2: selected.pair.col2,
+                    connectionType: getPlayConnectionTypeByPath(path),
+                    distance: computePathLengthByGridSteps(path) || 0
+                });
+            }
+            return {
+                success: true,
+                boardData: currentBoard,
+                solutionTrace
+            };
+        }
+
+        function buildAdjacentTargetPairs(targetOrder) {
+            const targetCells = (targetOrder || []).map((target) => ({
+                row: Math.trunc(Number(target?.i)),
+                col: Math.trunc(Number(target?.j))
+            })).filter((cell) => Number.isInteger(cell.row) && Number.isInteger(cell.col));
+            const remaining = new Set(targetCells.map((cell) => `${cell.row},${cell.col}`));
+            const cellMap = new Map(targetCells.map((cell) => [`${cell.row},${cell.col}`, cell]));
+            const pairs = [];
+            const orderedKeys = Array.from(remaining).sort((left, right) => {
+                const [leftRow, leftCol] = left.split(',').map(Number);
+                const [rightRow, rightCol] = right.split(',').map(Number);
+                if (leftRow !== rightRow) return leftRow - rightRow;
+                return leftCol - rightCol;
+            });
+
+            for (const key of orderedKeys) {
+                if (!remaining.has(key)) continue;
+                const cell = cellMap.get(key);
+                const neighborKeys = [
+                    `${cell.row},${cell.col + 1}`,
+                    `${cell.row + 1},${cell.col}`,
+                    `${cell.row},${cell.col - 1}`,
+                    `${cell.row - 1},${cell.col}`
+                ];
+                const matchKey = neighborKeys.find((neighborKey) => remaining.has(neighborKey));
+                if (!matchKey) return null;
+                remaining.delete(key);
+                remaining.delete(matchKey);
+                const match = cellMap.get(matchKey);
+                pairs.push({
+                    row1: cell.row,
+                    col1: cell.col,
+                    row2: match.row,
+                    col2: match.col
+                });
+            }
+
+            return remaining.size === 0 ? pairs : null;
+        }
+
+        function orderReversePairNumbersForDifficulty(pairNumbers, difficulty) {
+            const safeNumbers = Array.isArray(pairNumbers) ? [...pairNumbers] : [];
+            const difficultyKey = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            if (difficultyKey === 'easy') {
+                return safeNumbers.sort((left, right) => left - right);
+            }
+            if (difficultyKey !== 'hard') {
+                return shuffleArray(safeNumbers);
+            }
+            const groups = new Map();
+            for (const number of safeNumbers.sort((left, right) => left - right)) {
+                if (!groups.has(number)) groups.set(number, []);
+                groups.get(number).push(number);
+            }
+            const result = [];
+            while (result.length < safeNumbers.length) {
+                let appended = false;
+                for (const group of groups.values()) {
+                    if (group.length === 0) continue;
+                    result.push(group.shift());
+                    appended = true;
+                }
+                if (!appended) break;
+            }
+            return result;
+        }
+
+        function isAdjacentReversePair(pair) {
+            return Math.abs(pair.row1 - pair.row2) + Math.abs(pair.col1 - pair.col2) === 1;
+        }
+
+        function getReverseGenerationVarietyTarget(pairCount, difficulty) {
+            const safePairCount = Math.max(0, Math.floor(Number(pairCount) || 0));
+            const difficultyKey = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            if (safePairCount <= 0 || difficultyKey === 'easy') return 0;
+            const ratio = difficultyKey === 'hard' ? 0.34 : 0.2;
+            return Math.min(safePairCount, Math.ceil(safePairCount * ratio));
+        }
+
+        function shouldTryVariedReverseCandidate(
+            difficulty,
+            pairIndex,
+            totalPairCount,
+            variedPairCount,
+            emptyTargetCount
+        ) {
+            const difficultyKey = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            if (totalPairCount < 32) return false;
+            const varietyTarget = getReverseGenerationVarietyTarget(totalPairCount, difficultyKey);
+            if (variedPairCount >= varietyTarget || emptyTargetCount <= 12) return false;
+            const remainingPairs = Math.max(1, totalPairCount - pairIndex);
+            const remainingNeeded = varietyTarget - variedPairCount;
+            if (remainingNeeded >= remainingPairs) return true;
+            const cadence = difficultyKey === 'hard' ? 2 : 3;
+            return pairIndex % cadence === 0 ||
+                (remainingNeeded / remainingPairs) > (difficultyKey === 'hard' ? 0.45 : 0.35);
+        }
+
+        function buildReverseTraceStep(baseId, boardData, pair) {
+            const path = findConnectionPathByLianliankan(
+                boardData,
+                pair.row1,
+                pair.col1,
+                pair.row2,
+                pair.col2
+            );
+            return {
+                baseId,
+                row1: pair.row1,
+                col1: pair.col1,
+                row2: pair.row2,
+                col2: pair.col2,
+                connectionType: getPlayConnectionTypeByPath(path),
+                distance: computePathLengthByGridSteps(path) || 0
+            };
+        }
+
+        function buildReverseCandidateFromPair(currentBoard, direction, baseId, pair, difficultyConfig) {
+            if (!pair) return null;
+            const firstParsed = decodeCellId(currentBoard[pair.row1]?.[pair.col1]);
+            const secondParsed = decodeCellId(currentBoard[pair.row2]?.[pair.col2]);
+            if (!isEmptyCellId(firstParsed.baseId) || !isEmptyCellId(secondParsed.baseId)) {
+                return null;
+            }
+            const candidateBoard = cloneBoardData(currentBoard);
+            candidateBoard[pair.row1][pair.col1] = baseId;
+            candidateBoard[pair.row2][pair.col2] = baseId;
+            if (!isReverseCandidateStable(candidateBoard, direction)) return null;
+            const path = findConnectionPathByLianliankan(
+                candidateBoard,
+                pair.row1,
+                pair.col1,
+                pair.row2,
+                pair.col2
+            );
+            if (!Array.isArray(path) || path.length < 2) return null;
+            const replay = simulateReverseCandidateForward(candidateBoard, direction, pair);
+            if (!replay.success || !isSameBoardData(replay.boardData, currentBoard)) return null;
+            const connectionType = getPlayConnectionTypeByPath(path);
+            const distance = computePathLengthByGridSteps(path) || 0;
+            const connectionWeight = Number(difficultyConfig.connectionWeights?.[connectionType]) || 0;
+            return {
+                boardData: candidateBoard,
+                pair,
+                score: connectionWeight + (isAdjacentReversePair(pair) ? 0 : 8) + (distance * 0.12)
+            };
+        }
+
+        function findStableFallbackReverseCandidate(
+            currentBoard,
+            stablePairs,
+            direction,
+            baseId,
+            difficultyConfig
+        ) {
+            for (const pair of stablePairs || []) {
+                const candidate = buildReverseCandidateFromPair(
+                    currentBoard,
+                    direction,
+                    baseId,
+                    pair,
+                    difficultyConfig
+                );
+                if (candidate) return candidate;
+            }
+            return null;
+        }
+
+        function scoreRandomReverseCandidate(candidate, difficultyConfig) {
+            const pair = candidate?.pair;
+            if (!pair) return -Infinity;
+            const connectionWeight = Number(candidate.connectionWeight) || 0;
+            const distance = Number(candidate.distance) || 0;
+            const distanceTarget = Math.max(1, Number(difficultyConfig.distanceTarget) || 6);
+            const distancePenalty = Math.abs(distance - distanceTarget) * 0.18;
+            return connectionWeight +
+                (isAdjacentReversePair(pair) ? -4 : 5) +
+                (Math.min(distance, distanceTarget * 2) * 0.12) -
+                distancePenalty +
+                (Math.random() * 1.5);
+        }
+
+        function buildRandomReverseCandidateFromPair(
+            currentBoard,
+            targetOrder,
+            direction,
+            baseId,
+            pair,
+            difficultyConfig
+        ) {
+            if (!pair) return null;
+            const firstParsed = decodeCellId(currentBoard[pair.row1]?.[pair.col1]);
+            const secondParsed = decodeCellId(currentBoard[pair.row2]?.[pair.col2]);
+            if (!isEmptyCellId(firstParsed.baseId) || !isEmptyCellId(secondParsed.baseId)) {
+                return null;
+            }
+            const candidateBoard = cloneBoardData(currentBoard);
+            candidateBoard[pair.row1][pair.col1] = baseId;
+            candidateBoard[pair.row2][pair.col2] = baseId;
+            if (!isReverseCandidateStable(candidateBoard, direction)) return null;
+            const path = findConnectionPathByLianliankan(
+                candidateBoard,
+                pair.row1,
+                pair.col1,
+                pair.row2,
+                pair.col2
+            );
+            if (!Array.isArray(path) || path.length < 2) return null;
+            const replay = simulateReverseCandidateForward(candidateBoard, direction, pair);
+            if (!replay.success || !isSameBoardData(replay.boardData, currentBoard)) return null;
+            const connectionType = getPlayConnectionTypeByPath(path);
+            const distance = computePathLengthByGridSteps(path) || 0;
+            const connectionWeight = Number(difficultyConfig.connectionWeights?.[connectionType]) || 0;
+            const candidate = {
+                boardData: candidateBoard,
+                pair,
+                connectionType,
+                distance,
+                connectionWeight,
+                generationSource: 'random-candidate'
+            };
+            candidate.score = scoreRandomReverseCandidate(candidate, difficultyConfig);
+            return candidate;
+        }
+
+        function findRandomReverseGenerationCandidates(
+            currentBoard,
+            targetOrder,
+            direction,
+            baseId,
+            difficultyConfig,
+            options = {}
+        ) {
+            const emptyTargets = collectReverseGenerationEmptyTargets(currentBoard, targetOrder);
+            if (emptyTargets.length < 2) return [];
+            const stableTargets = emptyTargets.filter((target) => {
+                const probeBoard = cloneBoardData(currentBoard);
+                probeBoard[target.row][target.col] = baseId;
+                return isReverseCandidateStable(probeBoard, direction);
+            });
+            const candidateTargets = stableTargets.length >= 2 ? stableTargets : emptyTargets;
+
+            const maxChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : 600;
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : 16;
+            const exhaustiveLimit = Number.isFinite(Number(options.exhaustiveEmptyLimit))
+                ? Math.max(4, Math.floor(Number(options.exhaustiveEmptyLimit)))
+                : 18;
+            const candidates = [];
+            const checkedKeys = new Set();
+
+            const tryPair = (leftIndex, rightIndex) => {
+                if (leftIndex === rightIndex) return false;
+                const left = Math.min(leftIndex, rightIndex);
+                const right = Math.max(leftIndex, rightIndex);
+                const key = `${left},${right}`;
+                if (checkedKeys.has(key)) return false;
+                checkedKeys.add(key);
+
+                const first = candidateTargets[left];
+                const second = candidateTargets[right];
+                const candidate = buildRandomReverseCandidateFromPair(
+                    currentBoard,
+                    targetOrder,
+                    direction,
+                    baseId,
+                    {
+                        row1: first.row,
+                        col1: first.col,
+                        row2: second.row,
+                        col2: second.col
+                    },
+                    difficultyConfig
+                );
+                if (!candidate) return false;
+                candidates.push(candidate);
+                candidates.sort((leftCandidate, rightCandidate) =>
+                    rightCandidate.score - leftCandidate.score
+                );
+                if (candidates.length > maxCandidates) candidates.length = maxCandidates;
+                return candidates.length >= maxCandidates;
+            };
+
+            if (candidateTargets.length <= exhaustiveLimit) {
+                for (let left = 0; left < candidateTargets.length - 1; left++) {
+                    for (let right = left + 1; right < candidateTargets.length; right++) {
+                        tryPair(left, right);
+                    }
+                }
+                return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+            }
+
+            for (
+                let checkIndex = 0;
+                checkIndex < maxChecks && checkedKeys.size < (candidateTargets.length * (candidateTargets.length - 1)) / 2;
+                checkIndex++
+            ) {
+                const left = Math.floor(Math.random() * candidateTargets.length);
+                let right = Math.floor(Math.random() * (candidateTargets.length - 1));
+                if (right >= left) right++;
+                if (tryPair(left, right) && checkIndex >= Math.floor(maxChecks * 0.35)) {
+                    break;
+                }
+            }
+            return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+        }
+
+        function scoreRandomPeelCandidate(candidate, difficultyConfig) {
+            const distance = Number(candidate.distance) || 0;
+            const distanceTarget = Math.max(1, Number(difficultyConfig.distanceTarget) || 6);
+            const connectionWeight = Number(difficultyConfig.connectionWeights?.[candidate.connectionType]) || 0;
+            return connectionWeight +
+                (isAdjacentReversePair(candidate.pair) ? -5 : 6) +
+                (Math.min(distance, distanceTarget * 2) * 0.16) -
+                (Math.abs(distance - distanceTarget) * 0.12) +
+                (Math.random() * 1.6);
+        }
+
+        function findDirectionZeroRandomPeelCandidates(
+            boardData,
+            remainingCells,
+            difficultyConfig,
+            options = {}
+        ) {
+            if (!Array.isArray(remainingCells) || remainingCells.length < 2) return [];
+            const maxChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : 700;
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : 18;
+            const exhaustiveLimit = Number.isFinite(Number(options.exhaustiveRemainingLimit))
+                ? Math.max(4, Math.floor(Number(options.exhaustiveRemainingLimit)))
+                : 28;
+            const candidates = [];
+            const checkedKeys = new Set();
+
+            const tryPair = (leftIndex, rightIndex) => {
+                if (leftIndex === rightIndex) return false;
+                const left = Math.min(leftIndex, rightIndex);
+                const right = Math.max(leftIndex, rightIndex);
+                const key = `${left},${right}`;
+                if (checkedKeys.has(key)) return false;
+                checkedKeys.add(key);
+
+                const first = remainingCells[left];
+                const second = remainingCells[right];
+                const path = findConnectionPathByLianliankan(
+                    boardData,
+                    first.row,
+                    first.col,
+                    second.row,
+                    second.col
+                );
+                if (!Array.isArray(path) || path.length < 2) return false;
+                const pair = {
+                    row1: first.row,
+                    col1: first.col,
+                    row2: second.row,
+                    col2: second.col
+                };
+                const candidate = {
+                    pair,
+                    connectionType: getPlayConnectionTypeByPath(path),
+                    distance: computePathLengthByGridSteps(path) || 0
+                };
+                candidate.score = scoreRandomPeelCandidate(candidate, difficultyConfig);
+                candidates.push(candidate);
+                candidates.sort((leftCandidate, rightCandidate) =>
+                    rightCandidate.score - leftCandidate.score
+                );
+                if (candidates.length > maxCandidates) candidates.length = maxCandidates;
+                return candidates.length >= maxCandidates;
+            };
+
+            if (remainingCells.length <= exhaustiveLimit) {
+                for (let left = 0; left < remainingCells.length - 1; left++) {
+                    for (let right = left + 1; right < remainingCells.length; right++) {
+                        tryPair(left, right);
+                    }
+                }
+                return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+            }
+
+            for (
+                let checkIndex = 0;
+                checkIndex < maxChecks && checkedKeys.size < (remainingCells.length * (remainingCells.length - 1)) / 2;
+                checkIndex++
+            ) {
+                const left = Math.floor(Math.random() * remainingCells.length);
+                let right = Math.floor(Math.random() * (remainingCells.length - 1));
+                if (right >= left) right++;
+                if (tryPair(left, right) && checkIndex >= Math.floor(maxChecks * 0.25)) {
+                    break;
+                }
+            }
+
+            if (candidates.length > 0) {
+                return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+            }
+
+            for (let left = 0; left < remainingCells.length - 1; left++) {
+                for (let right = left + 1; right < remainingCells.length; right++) {
+                    if (tryPair(left, right) && candidates.length >= Math.min(4, maxCandidates)) {
+                        return shuffleArray(candidates).sort((a, b) => b.score - a.score);
+                    }
+                }
+            }
+            return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+        }
+
+        function buildDirectionZeroRandomCandidateAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            difficultyConfig,
+            options = {}
+        ) {
+            const boardData = cloneBoardData(sourceBoard);
+            const remainingCells = [];
+            for (const target of targetOrder || []) {
+                const row = Math.trunc(Number(target?.i));
+                const col = Math.trunc(Number(target?.j));
+                if (!Number.isInteger(row) || !Number.isInteger(col) || !boardData[row]) continue;
+                boardData[row][col] = 1;
+                remainingCells.push({ row, col });
+            }
+            const difficultyKey = normalizeReverseGenerationDifficulty(options.difficulty, 'normal');
+            const orderedPairNumbers = orderReversePairNumbersForDifficulty(pairNumbers, difficultyKey);
+            const removalPairs = [];
+            const maxCandidateChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : 800;
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : (difficultyKey === 'hard' ? 22 : 18);
+
+            for (let pairIndex = 0; pairIndex < orderedPairNumbers.length; pairIndex++) {
+                const candidates = findDirectionZeroRandomPeelCandidates(
+                    boardData,
+                    remainingCells,
+                    difficultyConfig,
+                    {
+                        maxCandidateChecks,
+                        maxCandidates,
+                        exhaustiveRemainingLimit: 30
+                    }
+                );
+                if (candidates.length === 0) {
+                    return {
+                        success: false,
+                        message: `无规则随机候选生成失败，停在第${pairIndex + 1}对。`
+                    };
+                }
+                const pickLimit = Math.min(candidates.length, difficultyKey === 'hard' ? 5 : 4);
+                const selected = candidates[Math.floor(Math.random() * pickLimit)];
+                boardData[selected.pair.row1][selected.pair.col1] = EMPTY_CELL_ID;
+                boardData[selected.pair.row2][selected.pair.col2] = EMPTY_CELL_ID;
+                const removeKeys = new Set([
+                    `${selected.pair.row1},${selected.pair.col1}`,
+                    `${selected.pair.row2},${selected.pair.col2}`
+                ]);
+                for (let index = remainingCells.length - 1; index >= 0; index--) {
+                    const cell = remainingCells[index];
+                    if (removeKeys.has(`${cell.row},${cell.col}`)) {
+                        remainingCells.splice(index, 1);
+                    }
+                }
+                removalPairs.push(selected);
+            }
+
+            const resultBoard = cloneBoardData(sourceBoard);
+            for (const target of targetOrder || []) {
+                if (resultBoard[target.i]) resultBoard[target.i][target.j] = EMPTY_CELL_ID;
+            }
+            const solutionTrace = removalPairs.map((candidate, index) => {
+                const baseId = orderedPairNumbers[index];
+                resultBoard[candidate.pair.row1][candidate.pair.col1] = baseId;
+                resultBoard[candidate.pair.row2][candidate.pair.col2] = baseId;
+                return {
+                    baseId,
+                    row1: candidate.pair.row1,
+                    col1: candidate.pair.col1,
+                    row2: candidate.pair.row2,
+                    col2: candidate.pair.col2,
+                    connectionType: candidate.connectionType,
+                    distance: candidate.distance,
+                    generationSource: 'random-candidate'
+                };
+            });
+
+            return {
+                success: true,
+                boardData: resultBoard,
+                solutionTrace,
+                generationStrategy: 'random-candidate-backtracking',
+                usedStableAdjacentFallback: false
+            };
+        }
+
+        function collectTokenTraceCells(tokenBoard) {
+            const cells = [];
+            if (!Array.isArray(tokenBoard)) return cells;
+            for (let row = 0; row < tokenBoard.length; row++) {
+                const tokenRow = tokenBoard[row];
+                if (!Array.isArray(tokenRow)) continue;
+                for (let col = 0; col < tokenRow.length; col++) {
+                    const token = tokenRow[col];
+                    if (!Number.isInteger(token) || token <= 0) continue;
+                    cells.push({ row, col, token });
+                }
+            }
+            return shuffleArray(cells);
+        }
+
+        function findRandomTokenTraceCandidates(
+            boardData,
+            tokenBoard,
+            currentCells,
+            difficultyConfig,
+            options = {}
+        ) {
+            if (!Array.isArray(currentCells) || currentCells.length < 2) return [];
+            const maxChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : 800;
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : 18;
+            const exhaustiveLimit = Number.isFinite(Number(options.exhaustiveRemainingLimit))
+                ? Math.max(4, Math.floor(Number(options.exhaustiveRemainingLimit)))
+                : 30;
+            const candidates = [];
+            const checkedKeys = new Set();
+
+            const tryPair = (leftIndex, rightIndex) => {
+                if (leftIndex === rightIndex) return false;
+                const left = Math.min(leftIndex, rightIndex);
+                const right = Math.max(leftIndex, rightIndex);
+                const key = `${left},${right}`;
+                if (checkedKeys.has(key)) return false;
+                checkedKeys.add(key);
+
+                const first = currentCells[left];
+                const second = currentCells[right];
+                if (first.token === second.token) return false;
+                const path = findConnectionPathByLianliankan(
+                    boardData,
+                    first.row,
+                    first.col,
+                    second.row,
+                    second.col
+                );
+                if (!Array.isArray(path) || path.length < 2) return false;
+                const pair = {
+                    row1: first.row,
+                    col1: first.col,
+                    row2: second.row,
+                    col2: second.col
+                };
+                const candidate = {
+                    pair,
+                    token1: first.token,
+                    token2: second.token,
+                    connectionType: getPlayConnectionTypeByPath(path),
+                    distance: computePathLengthByGridSteps(path) || 0
+                };
+                candidate.score = scoreRandomPeelCandidate(candidate, difficultyConfig);
+                candidates.push(candidate);
+                candidates.sort((leftCandidate, rightCandidate) =>
+                    rightCandidate.score - leftCandidate.score
+                );
+                if (candidates.length > maxCandidates) candidates.length = maxCandidates;
+                return candidates.length >= maxCandidates;
+            };
+
+            if (currentCells.length <= exhaustiveLimit) {
+                for (let left = 0; left < currentCells.length - 1; left++) {
+                    for (let right = left + 1; right < currentCells.length; right++) {
+                        tryPair(left, right);
+                    }
+                }
+                return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+            }
+
+            for (
+                let checkIndex = 0;
+                checkIndex < maxChecks && checkedKeys.size < (currentCells.length * (currentCells.length - 1)) / 2;
+                checkIndex++
+            ) {
+                const left = Math.floor(Math.random() * currentCells.length);
+                let right = Math.floor(Math.random() * (currentCells.length - 1));
+                if (right >= left) right++;
+                if (tryPair(left, right) && checkIndex >= Math.floor(maxChecks * 0.25)) {
+                    break;
+                }
+            }
+
+            if (candidates.length > 0) {
+                return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+            }
+
+            for (let left = 0; left < currentCells.length - 1; left++) {
+                for (let right = left + 1; right < currentCells.length; right++) {
+                    if (tryPair(left, right) && candidates.length >= Math.min(4, maxCandidates)) {
+                        return shuffleArray(candidates).sort((a, b) => b.score - a.score);
+                    }
+                }
+            }
+            return shuffleArray(candidates).sort((left, right) => right.score - left.score);
+        }
+
+        function buildRandomTokenTraceAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            direction,
+            difficultyConfig,
+            options = {}
+        ) {
+            const boardData = cloneBoardData(sourceBoard);
+            const tokenBoard = sourceBoard.map((row) => Array(row.length).fill(null));
+            const initialTokenPositions = new Map();
+            let nextToken = 1;
+            for (const target of targetOrder || []) {
+                const row = Math.trunc(Number(target?.i));
+                const col = Math.trunc(Number(target?.j));
+                if (!Number.isInteger(row) || !Number.isInteger(col) || !boardData[row]) continue;
+                boardData[row][col] = 1;
+                tokenBoard[row][col] = nextToken;
+                initialTokenPositions.set(nextToken, { row, col });
+                nextToken++;
+            }
+
+            const difficultyKey = normalizeReverseGenerationDifficulty(options.difficulty, 'normal');
+            const orderedPairNumbers = orderReversePairNumbersForDifficulty(pairNumbers, difficultyKey);
+            const removalSteps = [];
+            const maxCandidateChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : (difficultyKey === 'hard' ? 1000 : 800);
+            const maxCandidates = Number.isFinite(Number(options.maxCandidates))
+                ? Math.max(1, Math.floor(Number(options.maxCandidates)))
+                : (difficultyKey === 'hard' ? 24 : 18);
+
+            for (let pairIndex = 0; pairIndex < orderedPairNumbers.length; pairIndex++) {
+                const currentCells = collectTokenTraceCells(tokenBoard);
+                const candidates = findRandomTokenTraceCandidates(
+                    boardData,
+                    tokenBoard,
+                    currentCells,
+                    difficultyConfig,
+                    {
+                        maxCandidateChecks,
+                        maxCandidates,
+                        exhaustiveRemainingLimit: 32
+                    }
+                );
+                if (candidates.length === 0) {
+                    return {
+                        success: false,
+                        message: `随机解法轨迹生成失败，停在第${pairIndex + 1}对。`
+                    };
+                }
+
+                const pickLimit = Math.min(candidates.length, difficultyKey === 'hard' ? 5 : 4);
+                const selected = candidates[Math.floor(Math.random() * pickLimit)];
+                boardData[selected.pair.row1][selected.pair.col1] = EMPTY_CELL_ID;
+                boardData[selected.pair.row2][selected.pair.col2] = EMPTY_CELL_ID;
+                tokenBoard[selected.pair.row1][selected.pair.col1] = null;
+                tokenBoard[selected.pair.row2][selected.pair.col2] = null;
+                removalSteps.push(selected);
+                applyDirectionShiftUntilStable(boardData, direction, tokenBoard);
+            }
+
+            const resultBoard = cloneBoardData(sourceBoard);
+            for (const target of targetOrder || []) {
+                if (resultBoard[target.i]) resultBoard[target.i][target.j] = EMPTY_CELL_ID;
+            }
+            const solutionTrace = removalSteps.map((step, index) => {
+                const baseId = orderedPairNumbers[index];
+                const firstInitial = initialTokenPositions.get(step.token1);
+                const secondInitial = initialTokenPositions.get(step.token2);
+                if (firstInitial && secondInitial) {
+                    resultBoard[firstInitial.row][firstInitial.col] = baseId;
+                    resultBoard[secondInitial.row][secondInitial.col] = baseId;
+                }
+                return {
+                    baseId,
+                    row1: step.pair.row1,
+                    col1: step.pair.col1,
+                    row2: step.pair.row2,
+                    col2: step.pair.col2,
+                    connectionType: step.connectionType,
+                    distance: step.distance,
+                    generationSource: 'random-candidate'
+                };
+            });
+
+            return {
+                success: true,
+                boardData: resultBoard,
+                solutionTrace,
+                generationStrategy: 'random-candidate-backtracking',
+                usedStableAdjacentFallback: false
+            };
+        }
+
+        function buildRandomCandidateReverseAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            direction,
+            difficultyConfig,
+            options = {}
+        ) {
+            const traceResult = buildRandomTokenTraceAttempt(
+                sourceBoard,
+                targetOrder,
+                pairNumbers,
+                direction,
+                difficultyConfig,
+                options
+            );
+            if (traceResult.success) return traceResult;
+
+            if (direction === 0) {
+                return buildDirectionZeroRandomCandidateAttempt(
+                    sourceBoard,
+                    targetOrder,
+                    pairNumbers,
+                    difficultyConfig,
+                    options
+                );
+            }
+            const currentBoard = cloneBoardData(sourceBoard);
+            for (const target of targetOrder) {
+                if (!currentBoard[target.i]) continue;
+                currentBoard[target.i][target.j] = EMPTY_CELL_ID;
+            }
+
+            const difficultyKey = normalizeReverseGenerationDifficulty(options.difficulty, 'normal');
+            const orderedPairNumbers = orderReversePairNumbersForDifficulty(pairNumbers, difficultyKey);
+            const maxSearchNodes = Number.isFinite(Number(options.maxSearchNodes))
+                ? Math.max(orderedPairNumbers.length, Math.floor(Number(options.maxSearchNodes)))
+                : Math.max(600, orderedPairNumbers.length * (difficultyKey === 'hard' ? 32 : 22));
+            const branchLimit = Number.isFinite(Number(options.branchLimit))
+                ? Math.max(1, Math.floor(Number(options.branchLimit)))
+                : (difficultyKey === 'hard' ? 7 : 6);
+            const maxCandidateChecks = Number.isFinite(Number(options.maxCandidateChecks))
+                ? Math.max(24, Math.floor(Number(options.maxCandidateChecks)))
+                : (difficultyKey === 'hard' ? 900 : 650);
+            let visitedNodes = 0;
+            let deepestIndex = 0;
+
+            const search = (pairIndex, boardData, solutionTrace) => {
+                deepestIndex = Math.max(deepestIndex, pairIndex);
+                if (pairIndex >= orderedPairNumbers.length) {
+                    return {
+                        success: true,
+                        boardData,
+                        solutionTrace,
+                        generationStrategy: 'random-candidate-backtracking',
+                        usedStableAdjacentFallback: false
+                    };
+                }
+                visitedNodes++;
+                if (visitedNodes > maxSearchNodes) return null;
+
+                const baseId = orderedPairNumbers[pairIndex];
+                const emptyCount = collectReverseGenerationEmptyTargets(boardData, targetOrder).length;
+                const localBranchLimit = emptyCount <= 16
+                    ? Math.max(branchLimit, 32)
+                    : (emptyCount <= 28 ? Math.max(branchLimit, 14) : branchLimit);
+                const candidates = findRandomReverseGenerationCandidates(
+                    boardData,
+                    targetOrder,
+                    direction,
+                    baseId,
+                    difficultyConfig,
+                    {
+                        maxCandidateChecks: emptyCount <= 24 ? maxCandidateChecks * 2 : maxCandidateChecks,
+                        maxCandidates: localBranchLimit * 2,
+                        exhaustiveEmptyLimit: 32
+                    }
+                ).slice(0, localBranchLimit);
+
+                for (const candidate of candidates) {
+                    const step = {
+                        baseId,
+                        row1: candidate.pair.row1,
+                        col1: candidate.pair.col1,
+                        row2: candidate.pair.row2,
+                        col2: candidate.pair.col2,
+                        connectionType: candidate.connectionType,
+                        distance: candidate.distance,
+                        generationSource: 'random-candidate'
+                    };
+                    const result = search(
+                        pairIndex + 1,
+                        candidate.boardData,
+                        [step, ...solutionTrace]
+                    );
+                    if (result) return result;
+                }
+                return null;
+            };
+
+            const result = search(0, currentBoard, []);
+            if (result) return result;
+            return {
+                success: false,
+                message: `随机候选反向生成失败，最深生成到第${deepestIndex + 1}对。`
+            };
+        }
+
+        function getStablePairSlotCells(stablePair) {
+            return [
+                { row: stablePair.row1, col: stablePair.col1 },
+                { row: stablePair.row2, col: stablePair.col2 }
+            ];
+        }
+
+        function findVariedStableReverseBlock(
+            currentBoard,
+            stablePairs,
+            direction,
+            firstBaseId,
+            secondBaseId,
+            difficultyConfig,
+            difficulty
+        ) {
+            const difficultyKey = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            const emptyStablePairs = (stablePairs || []).filter((pair) => {
+                const firstParsed = decodeCellId(currentBoard[pair.row1]?.[pair.col1]);
+                const secondParsed = decodeCellId(currentBoard[pair.row2]?.[pair.col2]);
+                return isEmptyCellId(firstParsed.baseId) && isEmptyCellId(secondParsed.baseId);
+            });
+            if (emptyStablePairs.length < 2) return null;
+
+            const maxChecks = difficultyKey === 'hard' ? 320 : 180;
+            const startOffset = Math.floor(Math.random() * emptyStablePairs.length);
+            let checkedCount = 0;
+            let bestBlock = null;
+            for (let leftIndex = 0; leftIndex < emptyStablePairs.length - 1; leftIndex++) {
+                const leftPair = emptyStablePairs[(leftIndex + startOffset) % emptyStablePairs.length];
+                const leftCells = getStablePairSlotCells(leftPair);
+                for (let rightIndex = leftIndex + 1; rightIndex < emptyStablePairs.length; rightIndex++) {
+                    if (checkedCount >= maxChecks) break;
+                    checkedCount++;
+                    const rightPair = emptyStablePairs[(rightIndex + startOffset) % emptyStablePairs.length];
+                    const rightCells = getStablePairSlotCells(rightPair);
+                    const pairVariants = [
+                        [
+                            {
+                                row1: leftCells[0].row,
+                                col1: leftCells[0].col,
+                                row2: rightCells[0].row,
+                                col2: rightCells[0].col
+                            },
+                            {
+                                row1: leftCells[1].row,
+                                col1: leftCells[1].col,
+                                row2: rightCells[1].row,
+                                col2: rightCells[1].col
+                            }
+                        ],
+                        [
+                            {
+                                row1: leftCells[0].row,
+                                col1: leftCells[0].col,
+                                row2: rightCells[1].row,
+                                col2: rightCells[1].col
+                            },
+                            {
+                                row1: leftCells[1].row,
+                                col1: leftCells[1].col,
+                                row2: rightCells[0].row,
+                                col2: rightCells[0].col
+                            }
+                        ]
+                    ];
+
+                    for (const [firstPair, secondPair] of pairVariants) {
+                        if (isAdjacentReversePair(firstPair) && isAdjacentReversePair(secondPair)) {
+                            continue;
+                        }
+                        const firstSelection = buildReverseCandidateFromPair(
+                            currentBoard,
+                            direction,
+                            firstBaseId,
+                            firstPair,
+                            difficultyConfig
+                        );
+                        if (!firstSelection) continue;
+                        const secondSelection = buildReverseCandidateFromPair(
+                            firstSelection.boardData,
+                            direction,
+                            secondBaseId,
+                            secondPair,
+                            difficultyConfig
+                        );
+                        if (!secondSelection) continue;
+                        const varietyScore =
+                            (isAdjacentReversePair(firstPair) ? 0 : 8) +
+                            (isAdjacentReversePair(secondPair) ? 0 : 8) +
+                            firstSelection.score +
+                            secondSelection.score;
+                        if (!bestBlock || varietyScore > bestBlock.score) {
+                            bestBlock = {
+                                score: varietyScore,
+                                selections: [
+                                    { ...firstSelection, baseId: firstBaseId },
+                                    { ...secondSelection, baseId: secondBaseId }
+                                ]
+                            };
+                        }
+                    }
+                }
+                if (checkedCount >= maxChecks) break;
+            }
+            return bestBlock;
+        }
+
+        function buildDirectionZeroAdjacentReverseAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            difficulty = 'normal'
+        ) {
+            const adjacentPairs = buildAdjacentTargetPairs(targetOrder);
+            if (!Array.isArray(adjacentPairs) || adjacentPairs.length !== pairNumbers.length) {
+                return { success: false, message: '无规则方向未找到完整相邻配对。' };
+            }
+            const boardData = cloneBoardData(sourceBoard);
+            for (const target of targetOrder) {
+                if (!boardData[target.i]) continue;
+                boardData[target.i][target.j] = EMPTY_CELL_ID;
+            }
+
+            const solutionTrace = [];
+            const orderedPairNumbers = orderReversePairNumbersForDifficulty(pairNumbers, difficulty);
+            for (let index = 0; index < adjacentPairs.length; index++) {
+                const pair = adjacentPairs[index];
+                const baseId = orderedPairNumbers[index];
+                boardData[pair.row1][pair.col1] = baseId;
+                boardData[pair.row2][pair.col2] = baseId;
+                solutionTrace.push({
+                    baseId,
+                    row1: pair.row1,
+                    col1: pair.col1,
+                    row2: pair.row2,
+                    col2: pair.col2,
+                    connectionType: '直线连接',
+                    distance: 1
+                });
+            }
+            return {
+                success: true,
+                boardData,
+                solutionTrace
+            };
+        }
+
+        function isFullBoardReverseTarget(sourceBoard, targetOrder) {
+            const height = Array.isArray(sourceBoard) ? sourceBoard.length : 0;
+            const width = height > 0 && Array.isArray(sourceBoard[0]) ? sourceBoard[0].length : 0;
+            if (width <= 0) return false;
+            return Array.isArray(targetOrder) && targetOrder.length === width * height;
+        }
+
+        function buildSequentialAdjacentPairs(indices) {
+            const pairs = [];
+            for (let index = 0; index + 1 < indices.length; index += 2) {
+                pairs.push([indices[index], indices[index + 1]]);
+            }
+            return {
+                pairs,
+                leftover: indices.length % 2 === 1 ? indices[indices.length - 1] : null
+            };
+        }
+
+        function buildSplitAxisAdjacentPairs(length, inward) {
+            const firstPart = getPartitionIndices(length, true);
+            const secondPart = getPartitionIndices(length, false);
+            const firstOrder = inward ? [...firstPart].reverse() : [...firstPart];
+            const secondOrder = inward ? [...secondPart] : [...secondPart].reverse();
+            const pairs = [];
+
+            if (inward && firstOrder.length % 2 === 1 && secondOrder.length % 2 === 1) {
+                pairs.push([firstOrder.shift(), secondOrder.shift()]);
+            }
+
+            const firstResult = buildSequentialAdjacentPairs(firstOrder);
+            const secondResult = buildSequentialAdjacentPairs(secondOrder);
+            pairs.push(...firstResult.pairs, ...secondResult.pairs);
+
+            if (!inward && firstResult.leftover !== null && secondResult.leftover !== null) {
+                pairs.push([firstResult.leftover, secondResult.leftover]);
+            }
+            return pairs;
+        }
+
+        function buildStableAdjacentPairsForDirection(width, height, direction) {
+            const pairs = [];
+            const appendVerticalPairs = (rowPairs) => {
+                for (let col = 0; col < width; col++) {
+                    for (const [row1, row2] of rowPairs) {
+                        pairs.push({ row1, col1: col, row2, col2: col });
+                    }
+                }
+            };
+            const appendHorizontalPairs = (colPairs) => {
+                for (let row = 0; row < height; row++) {
+                    for (const [col1, col2] of colPairs) {
+                        pairs.push({ row1: row, col1, row2: row, col2 });
+                    }
+                }
+            };
+
+            if (direction === 0) return null;
+            if (direction === 1) {
+                appendVerticalPairs(buildSequentialAdjacentPairs(
+                    Array.from({ length: height }, (_, row) => row)
+                ).pairs);
+            } else if (direction === 2) {
+                appendVerticalPairs(buildSequentialAdjacentPairs(
+                    Array.from({ length: height }, (_, index) => height - 1 - index)
+                ).pairs);
+            } else if (direction === 3) {
+                appendHorizontalPairs(buildSequentialAdjacentPairs(
+                    Array.from({ length: width }, (_, col) => col)
+                ).pairs);
+            } else if (direction === 4) {
+                appendHorizontalPairs(buildSequentialAdjacentPairs(
+                    Array.from({ length: width }, (_, index) => width - 1 - index)
+                ).pairs);
+            } else if (direction === 5) {
+                appendVerticalPairs(buildSplitAxisAdjacentPairs(height, true));
+            } else if (direction === 6) {
+                appendHorizontalPairs(buildSplitAxisAdjacentPairs(width, true));
+            } else if (direction === 7) {
+                appendVerticalPairs(buildSplitAxisAdjacentPairs(height, false));
+            } else if (direction === 8) {
+                appendHorizontalPairs(buildSplitAxisAdjacentPairs(width, false));
+            }
+            return pairs;
+        }
+
+        function buildStableAdjacentReverseAttempt(
+            sourceBoard,
+            targetOrder,
+            pairNumbers,
+            direction,
+            difficulty = 'normal'
+        ) {
+            if (!isFullBoardReverseTarget(sourceBoard, targetOrder)) {
+                return { success: false, message: '稳定相邻快路径仅支持全棋盘生成。' };
+            }
+            const height = sourceBoard.length;
+            const width = sourceBoard[0]?.length || 0;
+            const stablePairs = direction === 0
+                ? buildAdjacentTargetPairs(targetOrder)
+                : buildStableAdjacentPairsForDirection(width, height, direction);
+            if (!Array.isArray(stablePairs) || stablePairs.length !== pairNumbers.length) {
+                return { success: false, message: '当前方向未找到完整稳定相邻配对。' };
+            }
+            const boardData = cloneBoardData(sourceBoard);
+            for (const target of targetOrder) {
+                if (!boardData[target.i]) continue;
+                boardData[target.i][target.j] = EMPTY_CELL_ID;
+            }
+            const solutionTrace = [];
+            const difficultyKey = normalizeReverseGenerationDifficulty(difficulty, 'normal');
+            const difficultyConfig = getReverseGenerationDifficultyConfig(difficultyKey);
+            const orderedPairNumbers = orderReversePairNumbersForDifficulty(pairNumbers, difficulty);
+            let variedPairCount = 0;
+            for (let index = 0; index < stablePairs.length; index++) {
+                const baseId = orderedPairNumbers[index];
+                const emptyTargetCount = collectReverseGenerationEmptyTargets(boardData, targetOrder).length;
+                let selected = null;
+                if (shouldTryVariedReverseCandidate(
+                    difficultyKey,
+                    index,
+                    orderedPairNumbers.length,
+                    variedPairCount,
+                    emptyTargetCount
+                ) && index + 1 < orderedPairNumbers.length) {
+                    const variedBlock = findVariedStableReverseBlock(
+                        boardData,
+                        stablePairs,
+                        direction,
+                        baseId,
+                        orderedPairNumbers[index + 1],
+                        difficultyConfig,
+                        difficultyKey
+                    );
+                    if (variedBlock) {
+                        for (const blockSelection of variedBlock.selections) {
+                            boardData.splice(
+                                0,
+                                boardData.length,
+                                ...cloneBoardData(blockSelection.boardData)
+                            );
+                            if (!isAdjacentReversePair(blockSelection.pair)) variedPairCount++;
+                            solutionTrace.unshift(buildReverseTraceStep(
+                                blockSelection.baseId,
+                                blockSelection.boardData,
+                                blockSelection.pair
+                            ));
+                        }
+                        index++;
+                        continue;
+                    }
+                }
+                if (!selected) {
+                    selected = findStableFallbackReverseCandidate(
+                        boardData,
+                        stablePairs,
+                        direction,
+                        baseId,
+                        difficultyConfig
+                    );
+                }
+                if (!selected) {
+                    const candidates = findReverseGenerationCandidates(
+                        boardData,
+                        targetOrder,
+                        direction,
+                        baseId,
+                        difficultyConfig,
+                        {
+                            maxCandidateChecks: 600,
+                            maxCandidates: 8,
+                            stopAtMaxCandidateChecks: true
+                        }
+                    );
+                    selected = candidates[0] || null;
+                }
+                if (!selected) {
+                    return {
+                        success: false,
+                        message: `第${index + 1}对稳定反向插入失败。`
+                    };
+                }
+                boardData.splice(0, boardData.length, ...cloneBoardData(selected.boardData));
+                if (!isAdjacentReversePair(selected.pair)) variedPairCount++;
+                solutionTrace.unshift(buildReverseTraceStep(baseId, selected.boardData, selected.pair));
+            }
+            return {
+                success: true,
+                boardData,
+                solutionTrace
+            };
+        }
+
+        function buildReverseGenerationPlanForBoard(sourceBoard, options = {}) {
+            if (!Array.isArray(sourceBoard) || sourceBoard.length === 0) {
+                return { success: false, message: '棋盘数据为空。' };
+            }
+            const height = sourceBoard.length;
+            const width = sourceBoard[0]?.length || 0;
+            if (width <= 0) return { success: false, message: '棋盘宽度无效。' };
+            const isRectBoard = sourceBoard.every((row) => Array.isArray(row) && row.length === width);
+            if (!isRectBoard) return { success: false, message: '棋盘数据必须是规则二维数组。' };
+
+            const direction = Number.isFinite(Number(options.direction))
+                ? Math.max(0, Math.min(8, Math.round(Number(options.direction))))
+                : 0;
+            const autoBombPairCount = Number.isFinite(Number(options.autoBombPairCount))
+                ? Math.max(0, Math.min(AUTO_BOMB_PAIR_COUNT_MAX, Math.round(Number(options.autoBombPairCount))))
+                : 0;
+            const fillOrder = getFillOrder(width, height, direction);
+            const fixedManualBindings = normalizeManualFaceBindings(
+                options.manualFaceBindings,
+                sourceBoard
+            );
+            const targetOrder = collectRegenerateFillOrder(
+                fillOrder,
+                sourceBoard,
+                fixedManualBindings,
+                { includeBombs: autoBombPairCount > 0 }
+            );
+            if (!Array.isArray(targetOrder) || targetOrder.length === 0) {
+                return { success: false, message: '当前棋盘没有可重新生成的数字或占位块。' };
+            }
+            if (targetOrder.length % 2 !== 0) {
+                return { success: false, message: '可生成格子数量必须为偶数。' };
+            }
+
+            const count8 = Number.isFinite(Number(options.count8))
+                ? Math.max(0, Math.floor(Number(options.count8)))
+                : 0;
+            const count6 = Number.isFinite(Number(options.count6))
+                ? Math.max(0, Math.floor(Number(options.count6)))
+                : 0;
+            const poolResult = buildReverseGenerationPool(
+                targetOrder.length,
+                count8,
+                count6,
+                getReservedManualBaseIdSet(fixedManualBindings)
+            );
+            if (!poolResult.success) return poolResult;
+
+            const difficultyKey = normalizeReverseGenerationDifficulty(options.difficulty, 'normal');
+            const difficultyConfig = getReverseGenerationDifficultyConfig(difficultyKey);
+            const maxAttempts = Number.isFinite(Number(options.maxAttempts))
+                ? Math.max(1, Math.floor(Number(options.maxAttempts)))
+                : 24;
+            const hasAttachedTargets = targetOrder.some((target) => ATTACHMENT_IDS.has(target.attachmentId));
+            if (!hasAttachedTargets && autoBombPairCount <= 0 && difficultyKey === 'easy') {
+                const adjacentResult = buildStableAdjacentReverseAttempt(
+                    sourceBoard,
+                    targetOrder,
+                    poolResult.pairNumbers,
+                    direction,
+                    difficultyKey
+                );
+                if (adjacentResult.success) {
+                    currentPool = poolResult.pool.map((item) => ({ ...item }));
+                    poolCards = shuffleArray(poolResult.cards);
+                    return {
+                        success: true,
+                        boardData: adjacentResult.boardData,
+                        direction,
+                        generatedCellCount: targetOrder.length,
+                        targetOrder,
+                        solutionTrace: adjacentResult.solutionTrace,
+                        generationStrategy: 'stable-adjacent-fallback',
+                        usedStableAdjacentFallback: true,
+                        pool: poolResult.pool
+                    };
+                }
+            }
+            let lastMessage = '';
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                const attemptResult = difficultyKey === 'easy'
+                    ? buildReverseGenerationAttempt(
+                        sourceBoard,
+                        targetOrder,
+                        poolResult.pairNumbers,
+                        direction,
+                        difficultyConfig,
+                        options
+                    )
+                    : buildRandomCandidateReverseAttempt(
+                        sourceBoard,
+                        targetOrder,
+                        poolResult.pairNumbers,
+                        direction,
+                        difficultyConfig,
+                        {
+                            ...options,
+                            difficulty: difficultyKey
+                        }
+                    );
+                if (!attemptResult.success) {
+                    lastMessage = attemptResult.message || '反向生成失败。';
+                    continue;
+                }
+                const { attachmentMap } = buildReverseGenerationTargetMaps(targetOrder);
+                const boardWithAttachments = applyReverseGenerationAttachments(
+                    attemptResult.boardData,
+                    attachmentMap
+                );
+                const autoBombResult = applyAutoBombPairsToGeneratedBoard(
+                    boardWithAttachments,
+                    targetOrder,
+                    autoBombPairCount
+                );
+                if (!autoBombResult.success) {
+                    lastMessage = autoBombResult.message || '自动炸弹生成失败。';
+                    continue;
+                }
+                currentPool = poolResult.pool.map((item) => ({ ...item }));
+                poolCards = shuffleArray(poolResult.cards);
+                return {
+                    success: true,
+                    boardData: boardWithAttachments,
+                    direction,
+                    generatedCellCount: targetOrder.length,
+                    targetOrder,
+                    solutionTrace: attemptResult.solutionTrace,
+                    generationStrategy: attemptResult.generationStrategy ||
+                        (difficultyKey === 'easy'
+                            ? 'legacy-random-candidate'
+                            : 'random-candidate-backtracking'),
+                    usedStableAdjacentFallback: attemptResult.usedStableAdjacentFallback === true,
+                    pool: poolResult.pool
+                };
+            }
+            return {
+                success: false,
+                message: lastMessage || '反向生成未找到可用解，请调整棋盘尺寸或数字配置。'
+            };
+        }
+
+        function verifyReverseSolutionTrace(boardData, direction, solutionTrace) {
+            if (!Array.isArray(boardData) || boardData.length === 0) {
+                return { success: false, cleared: false, message: '棋盘数据为空。' };
+            }
+            if (!Array.isArray(solutionTrace)) {
+                return { success: false, cleared: false, message: '解法轨迹无效。' };
+            }
+            const replayBoard = cloneBoardData(boardData);
+            for (let stepIndex = 0; stepIndex < solutionTrace.length; stepIndex++) {
+                const step = solutionTrace[stepIndex];
+                const pair = {
+                    row1: Math.trunc(Number(step?.row1)),
+                    col1: Math.trunc(Number(step?.col1)),
+                    row2: Math.trunc(Number(step?.row2)),
+                    col2: Math.trunc(Number(step?.col2))
+                };
+                const firstBaseId = getMatchableBaseId(replayBoard[pair.row1]?.[pair.col1]);
+                const secondBaseId = getMatchableBaseId(replayBoard[pair.row2]?.[pair.col2]);
+                if (firstBaseId === null || secondBaseId === null || firstBaseId !== secondBaseId) {
+                    return {
+                        success: false,
+                        cleared: false,
+                        message: `第${stepIndex + 1}步不是可消同牌。`
+                    };
+                }
+                if (!canConnectByLianliankan(
+                    replayBoard,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                )) {
+                    return {
+                        success: false,
+                        cleared: false,
+                        message: `第${stepIndex + 1}步不满足连连看路径。`
+                    };
+                }
+                const result = simulateReverseCandidateForward(replayBoard, direction, pair);
+                if (!result.success) {
+                    return {
+                        success: false,
+                        cleared: false,
+                        message: `第${stepIndex + 1}步模拟失败。`
+                    };
+                }
+                replayBoard.splice(0, replayBoard.length, ...result.boardData);
+            }
+            const cleared = isPlayBoardCleared(replayBoard);
+            return {
+                success: cleared,
+                cleared,
+                message: cleared ? '' : '解法轨迹执行完后仍有可消牌。'
+            };
+        }
+
         function buildRegenerateFillPlan(direction) {
             const width = parseInt(document.getElementById('width')?.value, 10) || 8;
             const height = parseInt(document.getElementById('height')?.value, 10) || 14;
@@ -13718,64 +16823,26 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 return null;
             }
 
-            calculatePool();
-            calculatePoolForGenerate(
-                width,
-                height,
-                targetOrder.length,
-                countCandidate.count8,
-                countCandidate.count6,
-                getReservedManualBaseIdSet(manualFaceBindings)
-            );
-            if (!Array.isArray(poolCards) || poolCards.length !== targetOrder.length) {
-                alert('数字池与可生成格子数量不匹配，请调整数字配置。');
-                return null;
-            }
-            const sameLie = getProbabilityValue('sameLie', 0.1);
-            const sameNum = getProbabilityValue('sameNum', 0.1);
-            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
-            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
-            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
-
             const boardBefore = cloneBoardData(filledCells);
-            const boardAfter = cloneBoardData(filledCells);
-            const generatedBoard = generateNumbersForTargetOrder(
-                targetOrder,
-                width,
-                height,
+            const reverseResult = buildReverseGenerationPlanForBoard(filledCells, {
                 direction,
-                sameLie,
-                sameNum,
-                xianglinSame,
-                directionBothCtrl,
-                distanceCtrl
-            );
-
-            for (let index = 0; index < targetOrder.length; index++) {
-                const target = targetOrder[index];
-                const cardNumber = generatedBoard[target.i]?.[target.j];
-                if (!Number.isInteger(cardNumber) || cardNumber <= 0) continue;
-                const attachmentId = target.attachmentId;
-                boardAfter[target.i][target.j] = ATTACHMENT_IDS.has(attachmentId)
-                    ? encodeAttachedCellId(cardNumber, attachmentId)
-                    : cardNumber;
-            }
-
-            const autoBombResult = applyAutoBombPairsToGeneratedBoard(
-                boardAfter,
-                targetOrder,
-                autoBombPairCount
-            );
-            if (!autoBombResult.success) {
-                alert(autoBombResult.message || '自动炸弹生成失败。');
+                count8: countCandidate.count8,
+                count6: countCandidate.count6,
+                manualFaceBindings,
+                autoBombPairCount,
+                difficulty: getReverseGenerationDifficultyValue('normal')
+            });
+            if (!reverseResult.success) {
+                alert(reverseResult.message || '反向生成失败，请调整数字配置。');
                 return null;
             }
 
             const groups = buildStepGroups(targetOrder, direction);
             return {
                 boardBefore,
-                boardAfter,
-                groups
+                boardAfter: reverseResult.boardData,
+                groups,
+                solutionTrace: reverseResult.solutionTrace
             };
         }
 
@@ -13822,47 +16889,6 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 return { success: false, message: '可生成格子数量必须为偶数。' };
             }
 
-            const sameLie = Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number.isFinite(Number(options.sameLie)) ? Number(options.sameLie) : 0.1
-                )
-            );
-            const sameNum = Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number.isFinite(Number(options.sameNum)) ? Number(options.sameNum) : 0.1
-                )
-            );
-            const xianglinSame = Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number.isFinite(Number(options.xianglinSame))
-                        ? Number(options.xianglinSame)
-                        : 0.1
-                )
-            );
-            const directionBothCtrl = Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number.isFinite(Number(options.directionBothCtrl))
-                        ? Number(options.directionBothCtrl)
-                        : 0.5
-                )
-            );
-            const distanceCtrl = Math.max(
-                0,
-                Math.min(
-                    1,
-                    Number.isFinite(Number(options.distanceCtrl))
-                        ? Number(options.distanceCtrl)
-                        : 0.1
-                )
-            );
             const count8Override = Number.isFinite(Number(options.count8))
                 ? Math.max(0, Math.floor(Number(options.count8)))
                 : null;
@@ -13870,55 +16896,25 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 ? Math.max(0, Math.floor(Number(options.count6)))
                 : null;
 
-            calculatePoolForGenerate(
-                width,
-                height,
-                targetOrder.length,
-                count8Override,
-                count6Override,
-                getReservedManualBaseIdSet(fixedManualBindings)
-            );
-            if (!Array.isArray(poolCards) || poolCards.length !== targetOrder.length) {
-                return { success: false, message: '数字池与可生成格子数量不匹配。' };
-            }
-
-            const boardAfter = cloneBoardData(sourceBoard);
-            const generatedBoard = generateNumbersForTargetOrder(
-                targetOrder,
-                width,
-                height,
-                safeDirection,
-                sameLie,
-                sameNum,
-                xianglinSame,
-                directionBothCtrl,
-                distanceCtrl
-            );
-
-            for (let index = 0; index < targetOrder.length; index++) {
-                const target = targetOrder[index];
-                const cardNumber = generatedBoard[target.i]?.[target.j];
-                if (!Number.isInteger(cardNumber) || cardNumber <= 0) continue;
-                const attachmentId = target.attachmentId;
-                boardAfter[target.i][target.j] = ATTACHMENT_IDS.has(attachmentId)
-                    ? encodeAttachedCellId(cardNumber, attachmentId)
-                    : cardNumber;
-            }
-
-            const autoBombResult = applyAutoBombPairsToGeneratedBoard(
-                boardAfter,
-                targetOrder,
-                autoBombPairCount
-            );
-            if (!autoBombResult.success) {
-                return { success: false, message: autoBombResult.message || '自动炸弹生成失败。' };
-            }
+            const reverseResult = buildReverseGenerationPlanForBoard(sourceBoard, {
+                direction: safeDirection,
+                count8: count8Override,
+                count6: count6Override,
+                manualFaceBindings: fixedManualBindings,
+                autoBombPairCount,
+                difficulty: options.difficulty || 'normal',
+                maxAttempts: options.maxAttempts,
+                maxCandidateChecks: options.maxCandidateChecks,
+                maxCandidates: options.maxCandidates
+            });
+            if (!reverseResult.success) return reverseResult;
 
             return {
                 success: true,
-                boardData: boardAfter,
+                boardData: reverseResult.boardData,
                 direction: safeDirection,
-                generatedCellCount: targetOrder.length
+                generatedCellCount: targetOrder.length,
+                solutionTrace: reverseResult.solutionTrace
             };
         }
 
@@ -14230,13 +17226,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 document.querySelector('input[name="direction"]:checked')?.value,
                 10
             ) || 0;
-            const sameLie = getProbabilityValue('sameLie', 0.1);
-            const sameNum = getProbabilityValue('sameNum', 0.1);
-            const xianglinSame = getProbabilityValue('xianglinSame', 0.1);
-            const directionBothCtrl = getProbabilityValue('directionBothCtrl', 0.5);
-            const distanceCtrl = getProbabilityValue('distanceCtrl', 0.1);
+            const reverseDifficulty = getReverseGenerationDifficultyValue('normal');
 
-            const toCompactNumber = (value) => String(Number(value.toFixed(2)));
             const values = [
                 width,
                 height,
@@ -14245,11 +17236,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 count6Range[0],
                 count6Range[1],
                 direction,
-                toCompactNumber(sameLie),
-                toCompactNumber(sameNum),
-                toCompactNumber(xianglinSame),
-                toCompactNumber(directionBothCtrl),
-                toCompactNumber(distanceCtrl)
+                reverseDifficulty
             ];
 
             const tsvText = values.join('\t');
@@ -16356,6 +19343,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const variable4Raw = getCampaignConfigValue(rawItem, ['Variable_4', 'variable4']);
             const variable5Raw = getCampaignConfigValue(rawItem, ['Variable_5', 'variable5']);
             const shenglvRaw = getCampaignConfigValue(rawItem, ['shenglv', 'winrate']);
+            const difficultyRaw = getCampaignConfigValue(
+                rawItem,
+                ['difficulty', 'reverseDifficulty', 'nandu', '难度', '反向生成难度', '生成难度']
+            );
             const matchNumRaw = getCampaignConfigValue(rawItem, ['match_num', 'matchnum', 'matchNum']);
             const remainRaw = getCampaignConfigValue(
                 rawItem,
@@ -16396,6 +19387,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const distanceRange = normalizeFloatRange(variable5Raw, [0.1, 0.1], 0, 1);
             const winRateRange = normalizeFloatRange(shenglvRaw, [0, 100], 0, 100);
             const remainRange = normalizeFloatRange(remainRaw, [0, 100], 0, 100);
+            const difficulty = normalizeReverseGenerationDifficulty(difficultyRaw, 'normal');
             const testNum = Number.isFinite(Number(testNumRaw))
                 ? Math.max(1, Math.min(10000, Math.round(Number(testNumRaw))))
                 : 100;
@@ -16431,6 +19423,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 xianglinSameRange,
                 directionBothRange,
                 distanceRange,
+                difficulty,
                 winRateRange,
                 remainRange,
                 testNum,
@@ -16553,6 +19546,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                     xianglinSame: pickRandomFloatInRange(parsedLevel.xianglinSameRange),
                                     directionBothCtrl: pickRandomFloatInRange(parsedLevel.directionBothRange),
                                     distanceCtrl: pickRandomFloatInRange(parsedLevel.distanceRange),
+                                    difficulty: parsedLevel.difficulty,
                                     autoBombPairCount: parsedLevel.autoBombPairCount
                                 }
                             );
@@ -20971,6 +23965,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             initInfoMutationObserver();
             renderBoardBackgroundDropdown();
             applyBoardBackground(selectedBoardBackgroundIndex);
+            updatePlayOperationSettingsUi();
             updateSaveCurrentLevelButtonState();
             updateSimulateUiLabels();
             renderStatsLocalHumanModeToggle();
@@ -20993,6 +23988,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     renderEditorTools();
                     renderBoardBackgroundDropdown();
                     applyBoardBackground(selectedBoardBackgroundIndex);
+                    updatePlayOperationSettingsUi();
                     const readyBoard = document.getElementById('board');
                     if (readyBoard) {
                         readyBoard.addEventListener('mousedown', handleBoardCellMouseDown);
@@ -21010,17 +24006,21 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
                 closeBoardBackgroundDropdown();
+                closePlaySettingsPanel();
             });
             document.addEventListener('contextmenu', (event) => {
                 const target = event.target;
                 if (target && target.closest && target.closest('#savedLevelContextMenu')) return;
                 if (target && target.closest && target.closest('.saved-level-item')) return;
                 if (target && target.closest && target.closest('#boardBgDropdown')) return;
+                if (target && target.closest && target.closest('#playSettingsPanel')) return;
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
                 closeBoardBackgroundDropdown();
+                closePlaySettingsPanel();
             });
             document.addEventListener('mouseup', handleEditorBrushMouseUp);
+            document.addEventListener('mousemove', handlePlayDragDocumentMouseMove);
             const savedMenu = document.getElementById('savedLevelContextMenu');
             if (savedMenu) {
                 savedMenu.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -21030,8 +24030,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
                 closeBoardBackgroundDropdown();
+                closePlaySettingsPanel();
             });
             window.addEventListener('blur', () => {
+                cancelPlayDragLink('窗口失焦，取消当前连线');
                 stopEditorBrush();
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
