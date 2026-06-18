@@ -72,10 +72,85 @@
             gap: 8px;
         }
 
+        .rhythm-config-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rhythm-config-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            position: relative;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            transition: background 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .rhythm-config-group.rhythm-config-group-active {
+            background: rgba(56,189,248,0.10);
+            box-shadow:
+                0 0 0 1px rgba(125,211,252,0.42),
+                0 0 18px rgba(56,189,248,0.30);
+        }
+
+        .rhythm-config-group.rhythm-config-group-active::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: -3px;
+            height: 3px;
+            border-radius: 999px;
+            background: rgba(125,211,252,0.85);
+            box-shadow: 0 0 12px rgba(125,211,252,0.75);
+        }
+
+        .rhythm-config-group[data-rhythm-logic="stage"].rhythm-config-group-active {
+            background: rgba(255,255,255,0.03);
+            box-shadow: none;
+        }
+
+        .rhythm-config-group[data-rhythm-logic="stage"].rhythm-config-group-active::after {
+            display: none;
+        }
+
+        .config-item.rhythm-phase-range-active {
+            border-radius: 6px;
+            background: rgba(56,189,248,0.10);
+            box-shadow:
+                0 0 0 1px rgba(125,211,252,0.36),
+                0 0 12px rgba(56,189,248,0.26);
+        }
+
+        .config-item.rhythm-phase-range-active::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: -3px;
+            height: 3px;
+            border-radius: 999px;
+            background: rgba(125,211,252,0.86);
+            box-shadow: 0 0 10px rgba(125,211,252,0.70);
+        }
+
+        .rhythm-config-group-title {
+            grid-column: 1 / -1;
+            color: #dbeafe;
+            font-size: 0.86em;
+            font-weight: 700;
+            padding-bottom: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+        }
+
         .config-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            position: relative;
         }
 
         .config-item label {
@@ -640,7 +715,7 @@
             position: absolute;
             left: 0;
             bottom: calc(100% + 8px);
-            width: 178px;
+            width: 218px;
             display: none;
             padding: 10px;
             border-radius: 8px;
@@ -677,6 +752,23 @@
 
         .play-operation-option input {
             margin: 0;
+        }
+
+        .play-click-hint-mode-button {
+            margin-left: auto;
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 3px 7px;
+            font-size: 0.78em;
+            line-height: 1.2;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .play-click-hint-mode-button:hover {
+            background: rgba(255,255,255,0.18);
         }
 
         .play-drag-ghost {
@@ -735,6 +827,17 @@
             opacity: var(--play-drag-match-hint-strength);
         }
 
+        .board.play-mode .cell.play-click-match-hint {
+            filter: brightness(1.28);
+            box-shadow: 0 0 18px rgba(255, 246, 168, 0.92),
+                inset 0 0 0 2px rgba(255, 246, 168, 0.88);
+            z-index: 7;
+        }
+
+        .board.play-mode .cell.play-click-match-hint .card-image-guide {
+            opacity: 0.9;
+        }
+
         .board {
             display: grid;
             gap: 1px;
@@ -777,7 +880,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 30;
+            z-index: 1;
             overflow: visible;
             transition: --play-link-color 0.18s ease,
                 --play-link-border-color 0.18s ease,
@@ -855,10 +958,18 @@
             padding: 2px;
         }
 
+        .cell.step-generation-recent-pair {
+            box-shadow:
+                inset 0 0 0 4px rgba(56,189,248,0.95),
+                0 0 16px rgba(56,189,248,0.78);
+            z-index: 6;
+        }
+
         .board.play-mode .cell.playable-card {
             cursor: pointer;
             transition: transform 0.15s ease;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+            z-index: 2;
         }
 
         .board.play-mode .cell.play-selected {
@@ -3100,18 +3211,87 @@
                 </div>
 
                 <div class="config-section">
-                    <div class="config-title">反向生成</div>
-                    <div class="config-grid">
-                        <div class="config-item">
-                            <label for="reverseDifficulty">反向生成难度：</label>
-                            <select
-                                id="reverseDifficulty"
-                                title="控制反向生成时的可消对数量、连接类型和配对距离倾向"
-                            >
-                                <option value="easy">简单</option>
-                                <option value="normal" selected>普通</option>
-                                <option value="hard">困难</option>
-                            </select>
+                    <div class="config-title">节奏生成</div>
+                    <div class="rhythm-config-groups">
+                        <div class="rhythm-config-group" data-rhythm-logic="stage">
+                            <div class="rhythm-config-group-title">阶段范围</div>
+                            <div class="config-item" data-rhythm-phase="early">
+                                <label>前期配对数：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmEarlyPairMin" min="1" max="99" value="8" title="前15%可消对子数最小值" aria-label="前期配对数最小值">
+                                    <input type="number" id="rhythmEarlyPairMax" min="1" max="99" value="18" title="前15%可消对子数最大值" aria-label="前期配对数最大值">
+                                </div>
+                            </div>
+                            <div class="config-item" data-rhythm-phase="early">
+                                <label>前期距离：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmEarlyDistanceMin" min="1" max="99" value="1" title="前15%路径距离最小值" aria-label="前期距离最小值">
+                                    <input type="number" id="rhythmEarlyDistanceMax" min="1" max="99" value="7" title="前15%路径距离最大值" aria-label="前期距离最大值">
+                                </div>
+                            </div>
+                            <div class="config-item" data-rhythm-phase="middle">
+                                <label>中期配对数：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmMiddlePairMin" min="1" max="99" value="4" title="15%-65%可消对子数最小值" aria-label="中期配对数最小值">
+                                    <input type="number" id="rhythmMiddlePairMax" min="1" max="99" value="12" title="15%-65%可消对子数最大值" aria-label="中期配对数最大值">
+                                </div>
+                            </div>
+                            <div class="config-item" data-rhythm-phase="middle">
+                                <label>中期距离：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmMiddleDistanceMin" min="1" max="99" value="3" title="15%-65%路径距离最小值" aria-label="中期距离最小值">
+                                    <input type="number" id="rhythmMiddleDistanceMax" min="1" max="99" value="12" title="15%-65%路径距离最大值" aria-label="中期距离最大值">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rhythm-config-group" data-rhythm-logic="wave">
+                            <div class="rhythm-config-group-title">中期起伏</div>
+                            <div class="config-item">
+                                <label>中期波动：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmWaveMin" min="0" max="3" value="0" disabled title="中期波动逻辑已屏蔽" aria-label="中期波动次数最小值">
+                                    <input type="number" id="rhythmWaveMax" min="0" max="3" value="0" disabled title="中期波动逻辑已屏蔽" aria-label="中期波动次数最大值">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rhythm-config-group" data-rhythm-logic="placement">
+                            <div class="rhythm-config-group-title">放置偏好</div>
+                            <div class="config-item">
+                                <label for="rhythmSameLayerChance">同层概率：</label>
+                                <input type="number" id="rhythmSameLayerChance" min="0" max="1" step="0.05" value="0.5" title="第一张牌落在某层后，第二张优先同层的概率" aria-label="同层放置概率">
+                            </div>
+                        </div>
+
+                        <div class="rhythm-config-group" data-rhythm-logic="stuck">
+                            <div class="rhythm-config-group-title">卡点</div>
+                            <div class="config-item">
+                                <label for="rhythmStuckPairChance">卡点概率：</label>
+                                <input type="number" id="rhythmStuckPairChance" min="0" max="1" step="0.05" value="0" title="中期尝试放置初始不可配对卡点对的概率" aria-label="卡点概率">
+                            </div>
+                            <div class="config-item">
+                                <label for="rhythmStuckPairCount">卡点数量：</label>
+                                <input type="number" id="rhythmStuckPairCount" min="0" max="99" value="0" title="每关最多放置的卡点对数量" aria-label="卡点数量">
+                            </div>
+                        </div>
+
+                        <div class="rhythm-config-group" data-rhythm-logic="connection">
+                            <div class="rhythm-config-group-title">连接类型权重</div>
+                            <div class="config-item">
+                                <label>直线/1拐权重：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmWeightStraight" min="0" max="20" step="0.5" value="2.5" title="直线连接权重" aria-label="直线连接权重">
+                                    <input type="number" id="rhythmWeightOneTurn" min="0" max="20" step="0.5" value="4" title="1拐连接权重" aria-label="1拐连接权重">
+                                </div>
+                            </div>
+                            <div class="config-item">
+                                <label>2拐权重：</label>
+                                <div class="count-range-inline">
+                                    <input type="number" id="rhythmWeightSameTwoTurn" min="0" max="20" step="0.5" value="3" title="同向2拐权重" aria-label="同向2拐权重">
+                                    <input type="number" id="rhythmWeightReverseTwoTurn" min="0" max="20" step="0.5" value="2" title="反向2拐权重" aria-label="反向2拐权重">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3245,6 +3425,12 @@
                                         id="btnStatsLocalHumanMode"
                                         onclick="toggleStatsLocalHumanMode()"
                                     >人类模式：关</button>
+                                    <button
+                                        type="button"
+                                        class="stats-local-human-toggle"
+                                        id="btnStepPairExportScope"
+                                        onclick="toggleStepPairExportScope()"
+                                    >每步数据：所有局</button>
                                     <input
                                         type="number"
                                         id="humanModeBesidePercent"
@@ -3378,6 +3564,12 @@
                                         checked
                                     >
                                     <span>点击操作</span>
+                                    <button
+                                        type="button"
+                                        class="play-click-hint-mode-button"
+                                        id="playClickHintModeButton"
+                                        onclick="togglePlayClickHintMode(event)"
+                                    >始终提示</button>
                                 </label>
                                 <label class="play-operation-option">
                                     <input
@@ -3572,12 +3764,24 @@
         let playModeState = null;
         let playStepTypeCounts = null;
         const PLAY_OPERATION_MODES = new Set(['click', 'link', 'drag']);
+        const PLAY_CLICK_HINT_MODES = new Set(['hold', 'selected']);
+        const PLAY_CLICK_HOLD_HINT_DELAY_MS = 180;
         let selectedPlayOperationMode = 'click';
+        let selectedPlayClickHintMode = 'selected';
+        let playClickHoldHintTimer = null;
         let isSimulatingPlayGames = false;
         let isBatchGenerating = false;
         let isBatchCampaignRunning = false;
+        // 模拟导出的阶段配对字段按消除进度核对：
+        // 前20%：消除进度 [0%, 20%)；20%-70%：消除进度 [20%, 70%)；
+        // 最后30%：消除进度 [70%, 100%)。
+        const SIMULATION_PROGRESS_PHASE_LABELS = ['前20%', '20%-70%', '最后30%'];
+        const SIMULATION_PROGRESS_PHASE_COUNT = SIMULATION_PROGRESS_PHASE_LABELS.length;
+        const STEP_PAIR_EXPORT_SCOPE_ALL = 'all';
+        const STEP_PAIR_EXPORT_SCOPE_WIN = 'win';
         let statsLocalHumanModeEnabled = false;
         let humanModeBesidePercent = 70;
+        let stepPairExportScope = STEP_PAIR_EXPORT_SCOPE_ALL;
         let savedLevels = [];
         let savedLevelFileHandle = null;
         let savedLevelSourceFileName = '';
@@ -5401,6 +5605,8 @@
             const count8Max = parseInt(document.getElementById('count8Max')?.value, 10) || 0;
             const count6Min = parseInt(document.getElementById('count6Min')?.value, 10) || 0;
             const count6Max = parseInt(document.getElementById('count6Max')?.value, 10) || 0;
+            const rhythmOptions = getRhythmGenerationOptionsFromInputs();
+            const rhythmMiddleWeights = rhythmOptions.phaseConfigs.middle.typeWeights;
             return {
                 width: parseInt(document.getElementById('width')?.value, 10) || 8,
                 height: parseInt(document.getElementById('height')?.value, 10) || 14,
@@ -5410,17 +5616,30 @@
                 count6Max,
                 count8: count8Min,
                 count6: count6Min,
-                direction: parseInt(
-                    document.querySelector('input[name="direction"]:checked')?.value,
-                    10
-                ) || 0,
-                reverseDifficulty: getReverseGenerationDifficultyValue('normal'),
                 autoBombPairCount: getAutoBombPairCount(),
+                rhythmEarlyPairMin: rhythmOptions.phaseConfigs.early.pairCountRange[0],
+                rhythmEarlyPairMax: rhythmOptions.phaseConfigs.early.pairCountRange[1],
+                rhythmEarlyDistanceMin: rhythmOptions.phaseConfigs.early.distanceRange[0],
+                rhythmEarlyDistanceMax: rhythmOptions.phaseConfigs.early.distanceRange[1],
+                rhythmMiddlePairMin: rhythmOptions.phaseConfigs.middle.pairCountRange[0],
+                rhythmMiddlePairMax: rhythmOptions.phaseConfigs.middle.pairCountRange[1],
+                rhythmMiddleDistanceMin: rhythmOptions.phaseConfigs.middle.distanceRange[0],
+                rhythmMiddleDistanceMax: rhythmOptions.phaseConfigs.middle.distanceRange[1],
+                rhythmWaveMin: rhythmOptions.waveCountMin,
+                rhythmWaveMax: rhythmOptions.waveCountMax,
+                rhythmSameLayerChance: rhythmOptions.sameLayerChance,
+                rhythmStuckPairChance: rhythmOptions.stuckPairChance,
+                rhythmStuckPairCount: rhythmOptions.stuckPairCount,
+                rhythmWeightStraight: rhythmMiddleWeights['直线连接'],
+                rhythmWeightOneTurn: rhythmMiddleWeights['1拐连接'],
+                rhythmWeightSameTwoTurn: rhythmMiddleWeights['同向2拐'],
+                rhythmWeightReverseTwoTurn: rhythmMiddleWeights['反向2拐'],
                 batchCount: parseInt(document.getElementById('batchCount')?.value, 10) || 100,
                 batchCampaignRounds:
                     parseInt(document.getElementById('batchCampaignRounds')?.value, 10) || 1,
                 simulateGameCount:
-                    parseInt(document.getElementById('simulateGameCount')?.value, 10) || 100
+                    parseInt(document.getElementById('simulateGameCount')?.value, 10) || 100,
+                stepPairExportScope: getStepPairExportScope()
             };
         }
 
@@ -5483,14 +5702,96 @@
                 0,
                 20
             ));
-            const direction = Math.round(clamp(
-                Number.isFinite(Number(config.direction)) ? Number(config.direction) : 0,
+            const rhythmEarlyPairMin = clamp(
+                Number.isFinite(Number(config.rhythmEarlyPairMin)) ? Number(config.rhythmEarlyPairMin) : 8,
+                1,
+                99
+            );
+            const rhythmEarlyPairMax = clamp(
+                Number.isFinite(Number(config.rhythmEarlyPairMax)) ? Number(config.rhythmEarlyPairMax) : 18,
+                1,
+                99
+            );
+            const rhythmEarlyDistanceMin = clamp(
+                Number.isFinite(Number(config.rhythmEarlyDistanceMin)) ? Number(config.rhythmEarlyDistanceMin) : 1,
+                1,
+                99
+            );
+            const rhythmEarlyDistanceMax = clamp(
+                Number.isFinite(Number(config.rhythmEarlyDistanceMax)) ? Number(config.rhythmEarlyDistanceMax) : 7,
+                1,
+                99
+            );
+            const rhythmMiddlePairMin = clamp(
+                Number.isFinite(Number(config.rhythmMiddlePairMin)) ? Number(config.rhythmMiddlePairMin) : 4,
+                1,
+                99
+            );
+            const rhythmMiddlePairMax = clamp(
+                Number.isFinite(Number(config.rhythmMiddlePairMax)) ? Number(config.rhythmMiddlePairMax) : 12,
+                1,
+                99
+            );
+            const rhythmMiddleDistanceMin = clamp(
+                Number.isFinite(Number(config.rhythmMiddleDistanceMin)) ? Number(config.rhythmMiddleDistanceMin) : 3,
+                1,
+                99
+            );
+            const rhythmMiddleDistanceMax = clamp(
+                Number.isFinite(Number(config.rhythmMiddleDistanceMax)) ? Number(config.rhythmMiddleDistanceMax) : 12,
+                1,
+                99
+            );
+            const rhythmWaveMin = clamp(
+                Number.isFinite(Number(config.rhythmWaveMin)) ? Number(config.rhythmWaveMin) : 0,
                 0,
-                8
+                3
+            );
+            const rhythmWaveMax = clamp(
+                Number.isFinite(Number(config.rhythmWaveMax)) ? Number(config.rhythmWaveMax) : 3,
+                0,
+                3
+            );
+            const rhythmSameLayerChance = clamp(
+                Number.isFinite(Number(config.rhythmSameLayerChance))
+                    ? Number(config.rhythmSameLayerChance)
+                    : 0.5,
+                0,
+                1
+            );
+            const rhythmStuckPairChance = clamp(
+                Number.isFinite(Number(config.rhythmStuckPairChance))
+                    ? Number(config.rhythmStuckPairChance)
+                    : 0,
+                0,
+                1
+            );
+            const rhythmStuckPairCount = Math.round(clamp(
+                Number.isFinite(Number(config.rhythmStuckPairCount))
+                    ? Number(config.rhythmStuckPairCount)
+                    : 0,
+                0,
+                99
             ));
-            const reverseDifficulty = normalizeReverseGenerationDifficulty(
-                config.reverseDifficulty || config.difficulty,
-                'normal'
+            const rhythmWeightStraight = clamp(
+                Number.isFinite(Number(config.rhythmWeightStraight)) ? Number(config.rhythmWeightStraight) : 2.5,
+                0,
+                20
+            );
+            const rhythmWeightOneTurn = clamp(
+                Number.isFinite(Number(config.rhythmWeightOneTurn)) ? Number(config.rhythmWeightOneTurn) : 4,
+                0,
+                20
+            );
+            const rhythmWeightSameTwoTurn = clamp(
+                Number.isFinite(Number(config.rhythmWeightSameTwoTurn)) ? Number(config.rhythmWeightSameTwoTurn) : 3,
+                0,
+                20
+            );
+            const rhythmWeightReverseTwoTurn = clamp(
+                Number.isFinite(Number(config.rhythmWeightReverseTwoTurn)) ? Number(config.rhythmWeightReverseTwoTurn) : 2,
+                0,
+                20
             );
             const batchCount = Math.round(clamp(
                 Number.isFinite(Number(config.batchCount)) ? Number(config.batchCount) : 100,
@@ -5511,6 +5812,9 @@
                 1,
                 10000
             ));
+            const nextStepPairExportScope = normalizeStepPairExportScope(
+                config.stepPairExportScope || config.stepPairScope
+            );
             const autoBombPairCount = Math.round(clamp(
                 Number.isFinite(Number(config.autoBombPairCount))
                     ? Number(config.autoBombPairCount)
@@ -5525,8 +5829,27 @@
 
             setSliderControlValue('width', 'widthValue', Math.round(width), 0);
             setSliderControlValue('height', 'heightValue', Math.round(height), 0);
-            const reverseDifficultySelect = document.getElementById('reverseDifficulty');
-            if (reverseDifficultySelect) reverseDifficultySelect.value = reverseDifficulty;
+            const setInputValue = (inputId, value) => {
+                const input = document.getElementById(inputId);
+                if (input) input.value = String(value);
+            };
+            setInputValue('rhythmEarlyPairMin', Math.min(rhythmEarlyPairMin, rhythmEarlyPairMax));
+            setInputValue('rhythmEarlyPairMax', Math.max(rhythmEarlyPairMin, rhythmEarlyPairMax));
+            setInputValue('rhythmEarlyDistanceMin', Math.min(rhythmEarlyDistanceMin, rhythmEarlyDistanceMax));
+            setInputValue('rhythmEarlyDistanceMax', Math.max(rhythmEarlyDistanceMin, rhythmEarlyDistanceMax));
+            setInputValue('rhythmMiddlePairMin', Math.min(rhythmMiddlePairMin, rhythmMiddlePairMax));
+            setInputValue('rhythmMiddlePairMax', Math.max(rhythmMiddlePairMin, rhythmMiddlePairMax));
+            setInputValue('rhythmMiddleDistanceMin', Math.min(rhythmMiddleDistanceMin, rhythmMiddleDistanceMax));
+            setInputValue('rhythmMiddleDistanceMax', Math.max(rhythmMiddleDistanceMin, rhythmMiddleDistanceMax));
+            setInputValue('rhythmWaveMin', Math.min(Math.round(rhythmWaveMin), Math.round(rhythmWaveMax)));
+            setInputValue('rhythmWaveMax', Math.max(Math.round(rhythmWaveMin), Math.round(rhythmWaveMax)));
+            setInputValue('rhythmSameLayerChance', rhythmSameLayerChance);
+            setInputValue('rhythmStuckPairChance', rhythmStuckPairChance);
+            setInputValue('rhythmStuckPairCount', rhythmStuckPairCount);
+            setInputValue('rhythmWeightStraight', rhythmWeightStraight);
+            setInputValue('rhythmWeightOneTurn', rhythmWeightOneTurn);
+            setInputValue('rhythmWeightSameTwoTurn', rhythmWeightSameTwoTurn);
+            setInputValue('rhythmWeightReverseTwoTurn', rhythmWeightReverseTwoTurn);
 
             const count8MinInput = document.getElementById('count8Min');
             if (count8MinInput) count8MinInput.value = String(Math.min(count8Min, count8Max));
@@ -5551,22 +5874,14 @@
                 autoBombPairCountInput.value = String(autoBombPairCount);
             }
             updateSimulateUiLabels(simulateGameCount);
+            setStepPairExportScope(nextStepPairExportScope);
 
-            selectDirection(direction);
             calculatePool();
             setDefaultInfoText();
         }
 
         function buildDefaultConfigName(config) {
-            const directionTitle = getDirectionTitleById(config.direction);
-            const difficultyTitleMap = {
-                easy: '简单',
-                normal: '普通',
-                hard: '困难'
-            };
-            const difficultyTitle =
-                difficultyTitleMap[normalizeReverseGenerationDifficulty(config.reverseDifficulty, 'normal')];
-            return `${config.width}x${config.height}_${directionTitle}_${difficultyTitle}`;
+            return `${config.width}x${config.height}`;
         }
 
         function persistConfigGroups() {
@@ -5928,14 +6243,6 @@
                 ),
                 count8: importedCount8,
                 count6: importedCount6,
-                direction: toNumber(item?.['方向'], 0),
-                reverseDifficulty: normalizeReverseGenerationDifficulty(
-                    item?.['反向生成难度'] ??
-                    item?.['生成难度'] ??
-                    item?.['difficulty'] ??
-                    item?.['reverseDifficulty'],
-                    'normal'
-                ),
                 batchCount: toNumber(item?.['计算局数'] ?? item?.['batchCount'], 100),
                 batchCampaignRounds: toNumber(item?.['跑关轮数'] ?? item?.['campaignRounds'], 1),
                 simulateGameCount: toNumber(
@@ -6224,6 +6531,22 @@
             return selectedPlayOperationMode;
         }
 
+        function getPlayClickHintMode() {
+            return selectedPlayClickHintMode;
+        }
+
+        function getPlayClickHintModeLabel(mode = selectedPlayClickHintMode) {
+            return mode === 'hold' ? '按住提示' : '始终提示';
+        }
+
+        function shouldUsePlayClickHoldHints() {
+            return isPlayOperationMode('click') && selectedPlayClickHintMode === 'hold';
+        }
+
+        function shouldUsePlayClickSelectedHints() {
+            return isPlayOperationMode('click') && selectedPlayClickHintMode === 'selected';
+        }
+
         function getPlayOperationHintText(mode = selectedPlayOperationMode) {
             switch (mode) {
                 case 'link':
@@ -6245,6 +6568,46 @@
             radios.forEach((radio) => {
                 radio.checked = radio.value === selectedPlayOperationMode;
             });
+            updatePlayClickHintModeUi();
+        }
+
+        function updatePlayClickHintModeUi() {
+            const button = document.getElementById('playClickHintModeButton');
+            if (!button) return;
+            button.textContent = getPlayClickHintModeLabel();
+            button.title = `点击操作：${getPlayClickHintModeLabel()}`;
+            button.setAttribute('aria-label', `点击操作提示方式：${getPlayClickHintModeLabel()}`);
+        }
+
+        function refreshPlayClickHintModeState() {
+            cancelPlayClickHoldHint();
+            clearPlayClickMatchHints();
+            if (
+                shouldUsePlayClickSelectedHints() &&
+                playModeState &&
+                playModeState.active &&
+                playModeState.selected
+            ) {
+                updatePlayClickMatchHints(playModeState.selected.row, playModeState.selected.col);
+            }
+        }
+
+        function setPlayClickHintMode(mode) {
+            if (!PLAY_CLICK_HINT_MODES.has(mode)) {
+                updatePlayClickHintModeUi();
+                return;
+            }
+            selectedPlayClickHintMode = mode;
+            refreshPlayClickHintModeState();
+            updatePlayClickHintModeUi();
+        }
+
+        function togglePlayClickHintMode(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            setPlayClickHintMode(selectedPlayClickHintMode === 'hold' ? 'selected' : 'hold');
         }
 
         function setPlayOperationMode(mode) {
@@ -6259,6 +6622,8 @@
             selectedPlayOperationMode = mode;
             if (playModeState && playModeState.active) {
                 clearAdjacentPlayChoiceOverlay();
+                cancelPlayClickHoldHint();
+                clearPlayClickMatchHints();
                 cancelPlayDragLink();
                 clearPlaySelectionVisual();
                 clearPlayLinkPath();
@@ -6421,6 +6786,8 @@
 
             clearAdjacentPlayChoiceOverlay();
             cancelPlayDragLink();
+            cancelPlayClickHoldHint();
+            clearPlayClickMatchHints();
             clearPlaySelectionVisual();
             clearPlayLinkPath();
 
@@ -6600,6 +6967,7 @@
             if (!playModeState || !playModeState.active) return;
             clearAdjacentPlayChoiceOverlay();
             cancelPlayDragLink();
+            clearPlayClickMatchHints();
             clearPlaySelectionVisual();
             clearPlayLinkPath();
             playModeState.failed = true;
@@ -6715,6 +7083,65 @@
                     String(Math.max(0, Math.min(1, hint.strength)))
                 );
             });
+        }
+
+        function clearPlayClickMatchHints() {
+            const board = document.getElementById('board');
+            if (!board) return;
+            board.querySelectorAll('.cell.play-click-match-hint').forEach((cell) => {
+                cell.classList.remove('play-click-match-hint');
+            });
+        }
+
+        function cancelPlayClickHoldHint() {
+            if (playClickHoldHintTimer !== null) {
+                window.clearTimeout(playClickHoldHintTimer);
+                playClickHoldHintTimer = null;
+            }
+            if (shouldUsePlayClickHoldHints()) {
+                clearPlayClickMatchHints();
+            }
+        }
+
+        function calculatePlayClickMatchHintTargets(boardData, row, col) {
+            const sourceValue = boardData?.[row]?.[col];
+            if (!isCellClickableInPlay(sourceValue)) return [];
+            const sourceMatchBaseId = getMatchableBaseId(sourceValue);
+            if (sourceMatchBaseId === null) return [];
+            const targets = [];
+            for (let targetRow = 0; targetRow < boardData.length; targetRow++) {
+                const rowData = boardData[targetRow];
+                if (!Array.isArray(rowData)) continue;
+                for (let targetCol = 0; targetCol < rowData.length; targetCol++) {
+                    if (targetRow === row && targetCol === col) continue;
+                    const targetValue = rowData[targetCol];
+                    if (!isCellClickableInPlay(targetValue)) continue;
+                    if (getMatchableBaseId(targetValue) !== sourceMatchBaseId) continue;
+                    targets.push({ row: targetRow, col: targetCol });
+                }
+            }
+            return targets;
+        }
+
+        function updatePlayClickMatchHints(row, col) {
+            clearPlayClickMatchHints();
+            if (!isPlayOperationMode('click')) return;
+            if (!playModeState || !playModeState.active || playModeState.isResolving || playModeState.failed) return;
+            const boardData = playModeState.boardData;
+            if (!Array.isArray(boardData)) return;
+            calculatePlayClickMatchHintTargets(boardData, row, col).forEach((hint) => {
+                const cell = document.getElementById(`cell-${hint.row}-${hint.col}`);
+                if (cell) cell.classList.add('play-click-match-hint');
+            });
+        }
+
+        function schedulePlayClickHoldHint(row, col) {
+            cancelPlayClickHoldHint();
+            playClickHoldHintTimer = window.setTimeout(() => {
+                playClickHoldHintTimer = null;
+                if (!shouldUsePlayClickHoldHints()) return;
+                updatePlayClickMatchHints(row, col);
+            }, PLAY_CLICK_HOLD_HINT_DELAY_MS);
         }
 
         function clearAdjacentPlayChoiceOverlay() {
@@ -6838,6 +7265,7 @@
         }
 
         function clearPlaySelectionVisual() {
+            clearPlayClickMatchHints();
             if (!playModeState || !playModeState.selected) return;
             const { row, col } = playModeState.selected;
             const selectedCell = document.getElementById(`cell-${row}-${col}`);
@@ -6854,6 +7282,9 @@
             const selectedCell = document.getElementById(`cell-${row}-${col}`);
             if (selectedCell) selectedCell.classList.add('play-selected');
             playModeState.selected = { row, col };
+            if (shouldUsePlayClickSelectedHints()) {
+                updatePlayClickMatchHints(row, col);
+            }
         }
 
         function getPlayDragLinkExtCellFromEvent(event) {
@@ -7022,6 +7453,30 @@
                 row2: target.row,
                 col2: target.col
             }, linkPath, { suppressSelectionLift: true });
+        }
+
+        function renderFailedClickPlayLinkPath(boardData, selected, row, col) {
+            if (!Array.isArray(boardData) || !selected) return false;
+            const failedPath = findConnectionPathByLianliankanWithMaxTurns(
+                boardData,
+                selected.row,
+                selected.col,
+                row,
+                col,
+                6
+            );
+            if (!failedPath || getPlayLinkTurnCount(failedPath) <= 2) return false;
+            renderPlayLinkPath(
+                failedPath,
+                boardData[0]?.length || 0,
+                boardData.length,
+                { turnCount: getPlayLinkTurnCount(failedPath) }
+            );
+            flashPlayDragOverturnWarning();
+            window.setTimeout(() => {
+                clearPlayLinkPath();
+            }, 420);
+            return true;
         }
 
         function createAdjacentChoiceTile(source, target) {
@@ -7338,7 +7793,7 @@
 
         function getPlayConnectionTypeByPath(pathPoints) {
             if (!Array.isArray(pathPoints) || pathPoints.length < 2) return '直线连接';
-            const turnCount = Math.max(0, pathPoints.length - 2);
+            const turnCount = getPlayLinkTurnCount(pathPoints);
             if (turnCount <= 0) return '直线连接';
             if (turnCount === 1) return '1拐连接';
 
@@ -7355,6 +7810,11 @@
                 return '同向2拐';
             }
             return '反向2拐';
+        }
+
+        function getPlayLinkTurnCount(pathPoints) {
+            if (!Array.isArray(pathPoints) || pathPoints.length < 2) return 0;
+            return Math.max(0, compressPathPoints(pathPoints).length - 2);
         }
 
         function computePathLengthByGridSteps(pathPoints) {
@@ -7507,6 +7967,107 @@
                 : 0;
             const distanceFriendlyScore = 20 / (20 + safeDistance);
             return distanceFriendlyScore * getConnectionTypeFriendlyWeight(connectionType);
+        }
+
+        function calculatePairDistanceDifficultyScore(pairDistance) {
+            const safeDistance = Number(pairDistance);
+            if (!Number.isFinite(safeDistance)) return 0;
+            if (safeDistance < 3) return -1;
+            if (safeDistance >= 5 && safeDistance <= 10) return 1;
+            if (safeDistance > 10) return 2;
+            return 0;
+        }
+
+        function calculateConnectionTypeDifficultyScore(connectionType) {
+            switch (connectionType) {
+                case '直线连接':
+                    return -1;
+                case '1拐连接':
+                    return 1;
+                case '同向2拐':
+                    return 2;
+                case '反向2拐':
+                    return 3;
+                default:
+                    return 0;
+            }
+        }
+
+        function getAvailablePairConnectionDetails(boardData, pair) {
+            if (!pair) {
+                return { distance: null, connectionType: '' };
+            }
+            const explicitDistance = Number(pair.connectionDistance ?? pair.distance);
+            let distance = Number.isFinite(explicitDistance) && explicitDistance >= 0
+                ? explicitDistance
+                : null;
+            let connectionType = typeof pair.connectionType === 'string'
+                ? pair.connectionType
+                : '';
+            let path = null;
+            if ((distance === null || !connectionType) && Array.isArray(boardData)) {
+                path = findConnectionPathByLianliankan(
+                    boardData,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                );
+                if (distance === null) {
+                    const pathDistance = computePathLengthByGridSteps(path);
+                    distance = Number.isFinite(pathDistance) && pathDistance >= 0
+                        ? pathDistance
+                        : null;
+                }
+                if (!connectionType) {
+                    connectionType = getPlayConnectionTypeByPath(path);
+                }
+            }
+            return { distance, connectionType };
+        }
+
+        function calculateAvailablePairDifficultyScore(boardData, pair) {
+            const details = getAvailablePairConnectionDetails(boardData, pair);
+            return calculatePairDistanceDifficultyScore(details.distance) +
+                calculateConnectionTypeDifficultyScore(details.connectionType);
+        }
+
+        function calculateAvailablePairSceneDifficultyScore(boardData, removablePairs) {
+            if (!Array.isArray(removablePairs) || removablePairs.length === 0) return 0;
+            const totalScore = removablePairs.reduce((total, pair) => {
+                const pairScore = calculateAvailablePairDifficultyScore(boardData, pair);
+                return total + (Number.isFinite(pairScore) ? pairScore : 0);
+            }, 0);
+            return totalScore / removablePairs.length;
+        }
+
+        function calculatePairAvailabilityPressure(remainingCardCount, availablePairCount) {
+            const remainingCards = Number.isFinite(Number(remainingCardCount))
+                ? Math.max(0, Number(remainingCardCount))
+                : 0;
+            const availablePairs = Number.isFinite(Number(availablePairCount))
+                ? Math.max(0, Number(availablePairCount))
+                : 0;
+            const remainingPairCount = Math.max(0, remainingCards / 2);
+            if (remainingPairCount <= 0) return 0;
+            const unavailablePairGap = Math.max(0, remainingPairCount - availablePairs);
+            return Math.max(0, Math.min(1, unavailablePairGap / remainingPairCount));
+        }
+
+        function calculateNormalizedStepDifficultyScore({
+            remainingCardCountBefore,
+            availablePairCountBefore,
+            sceneDifficultyScoreBefore
+        } = {}) {
+            const pairPressure = calculatePairAvailabilityPressure(
+                remainingCardCountBefore,
+                availablePairCountBefore
+            );
+            if (pairPressure <= 0) return 0;
+            const safeSceneDifficultyScore = Number.isFinite(Number(sceneDifficultyScoreBefore))
+                ? Number(sceneDifficultyScoreBefore)
+                : 0;
+            return Math.max(0, pairPressure * safeSceneDifficultyScore);
         }
 
         function calculateBoardDifficultyScore(
@@ -7880,12 +8441,20 @@
             });
         }
 
-        function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
+        function findConnectionPathByLianliankanWithMaxTurns(
+            boardData,
+            startRow,
+            startCol,
+            targetRow,
+            targetCol,
+            maxTurns = 2
+        ) {
             if (!Array.isArray(boardData) || boardData.length === 0) return null;
             const height = boardData.length;
             const width = boardData[0]?.length || 0;
             if (width === 0) return null;
             if (startRow === targetRow && startCol === targetCol) return null;
+            const safeMaxTurns = Math.max(0, Math.round(Number(maxTurns) || 0));
 
             const extHeight = height + 2;
             const extWidth = width + 2;
@@ -7960,7 +8529,7 @@
 
                 for (let nextDir = 0; nextDir < 4; nextDir++) {
                     const nextTurns = current.turns + (nextDir === current.dir ? 0 : 1);
-                    if (nextTurns > 2) continue;
+                    if (nextTurns > safeMaxTurns) continue;
 
                     const [dr, dc] = directions[nextDir];
                     let nextRow = current.row + dr;
@@ -8221,14 +8790,17 @@
         }
 
         function getPlayLinkTurnColorConfig(turnCount = 0) {
-            const safeTurnCount = Math.max(0, Math.min(2, Number(turnCount) || 0));
+            const safeTurnCount = Math.max(0, Number(turnCount) || 0);
             if (safeTurnCount === 0) {
                 return { color: '#58d66d', borderColor: '#b8ffbf', glowColor: '#58d66d' };
             }
             if (safeTurnCount === 1) {
                 return { color: '#ffd54f', borderColor: '#fff6a8', glowColor: '#ffd54f' };
             }
-            return { color: '#ff9f1c', borderColor: '#ffe0a3', glowColor: '#ff9f1c' };
+            if (safeTurnCount === 2) {
+                return { color: '#ff9f1c', borderColor: '#ffe0a3', glowColor: '#ff9f1c' };
+            }
+            return { color: '#ff3b30', borderColor: '#ffc2bd', glowColor: '#ff3b30' };
         }
 
         function createPlayLinkRectPathData(rects) {
@@ -8550,6 +9122,8 @@
             };
 
             playModeState.isResolving = true;
+            cancelPlayClickHoldHint();
+            clearPlayClickMatchHints();
             updatePlayAutoPairButton();
             const firstCell = document.getElementById(`cell-${pair.row1}-${pair.col1}`);
             const secondCell = document.getElementById(`cell-${pair.row2}-${pair.col2}`);
@@ -8561,7 +9135,9 @@
             const info = document.getElementById('info');
             try {
                 if (!suppressLinkRender && linkPath && linkPath.length >= 2) {
-                    renderPlayLinkPath(linkPath, width, height);
+                    renderPlayLinkPath(linkPath, width, height, {
+                        turnCount: getPlayLinkTurnCount(linkPath)
+                    });
                 }
                 await waitForMs(150);
                 if (!playModeState || !playModeState.active) return;
@@ -8687,6 +9263,7 @@
             );
 
             if (!canConnect) {
+                renderFailedClickPlayLinkPath(boardData, selected, row, col);
                 setPlaySelection(row, col);
                 recordPlaySelectionCancelReason('路径不满足连连看规则，切换为新选中的牌');
                 if (info) info.textContent = '试玩模式：路径不满足连连看规则，请重选';
@@ -8713,6 +9290,8 @@
             if (!playModeState || !playModeState.active) return;
             stopAgentRun({ silent: true });
             clearAdjacentPlayChoiceOverlay();
+            cancelPlayClickHoldHint();
+            clearPlayClickMatchHints();
 
             if (restoreBoard && Array.isArray(playModeState.originalBoard)) {
                 syncBoardDisplayByData(playModeState.originalBoard);
@@ -8813,6 +9392,12 @@
             if (!position) return;
 
             if (playModeState && playModeState.active) {
+                if (event.button === 0 && isPlayOperationMode('click')) {
+                    if (shouldUsePlayClickHoldHints()) {
+                        schedulePlayClickHoldHint(position.row, position.col);
+                    }
+                    return;
+                }
                 if (event.button === 0 && !isPlayOperationMode('click')) {
                     startPlayDragLink(event, position.row, position.col);
                 }
@@ -8887,6 +9472,7 @@
 
         function handleEditorBrushMouseUp() {
             if (playModeState && playModeState.active) {
+                cancelPlayClickHoldHint();
                 if (!isPlayOperationMode('click')) {
                     finishPlayDragLink();
                 }
@@ -9737,6 +10323,27 @@
             };
         }
 
+        function getSimulationProgressPhaseIndex(stepIndex, totalProgressSteps) {
+            const safeTotalProgressSteps = Number.isFinite(Number(totalProgressSteps))
+                ? Math.max(1, Math.floor(Number(totalProgressSteps)))
+                : 1;
+            const safeStepIndex = Number.isFinite(Number(stepIndex))
+                ? Math.max(0, Math.floor(Number(stepIndex)))
+                : 0;
+            // 用本步开始时的进度归段，保证 10 步时正好是 2 / 5 / 3 步。
+            const progressRatio = Math.max(
+                0,
+                Math.min(0.999999, safeStepIndex / safeTotalProgressSteps)
+            );
+            if (progressRatio < 0.2) return 0;
+            if (progressRatio < 0.7) return 1;
+            return 2;
+        }
+
+        function createEmptySimulationProgressPhaseSummary() {
+            return Array.from({ length: SIMULATION_PROGRESS_PHASE_COUNT }, () => 0);
+        }
+
         function summarizeStepPairCounts(stepPairCounts, totalProgressSteps = null) {
             if (!Array.isArray(stepPairCounts) || stepPairCounts.length === 0) {
                 return {
@@ -9749,48 +10356,47 @@
                     secondHalfStepCount: 0,
                     secondHalfPairCountSum: 0,
                     secondHalfAveragePairCount: 0,
-                    quartileStepCounts: [0, 0, 0, 0],
-                    quartilePairCountSums: [0, 0, 0, 0],
-                    quartileAveragePairCounts: [0, 0, 0, 0]
+                    progressPhaseStepCounts: createEmptySimulationProgressPhaseSummary(),
+                    progressPhasePairCountSums: createEmptySimulationProgressPhaseSummary(),
+                    progressPhaseAveragePairCounts: createEmptySimulationProgressPhaseSummary(),
+                    stepPairCounts: []
                 };
             }
 
             let totalPairCountSum = 0;
+            const normalizedStepPairCounts = stepPairCounts.map((rawValue) => {
+                const value = Number(rawValue);
+                return Number.isFinite(value) && value >= 0 ? value : 0;
+            });
             const safeTotalProgressSteps = Number.isFinite(Number(totalProgressSteps))
                 ? Math.max(1, Math.floor(Number(totalProgressSteps)))
-                : Math.max(1, stepPairCounts.length);
-            const quartileStepCounts = [0, 0, 0, 0];
-            const quartilePairCountSums = [0, 0, 0, 0];
-            for (const rawValue of stepPairCounts) {
-                const value = Number(rawValue);
-                if (!Number.isFinite(value) || value < 0) continue;
+                : Math.max(1, normalizedStepPairCounts.length);
+            const progressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+            const progressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+            for (const value of normalizedStepPairCounts) {
                 totalPairCountSum += value;
             }
-            for (let index = 0; index < stepPairCounts.length; index++) {
-                const value = Number(stepPairCounts[index]);
-                if (!Number.isFinite(value) || value < 0) continue;
-                const quartileIndex = Math.max(
-                    0,
-                    Math.min(3, Math.floor((index * 4) / safeTotalProgressSteps))
-                );
-                quartileStepCounts[quartileIndex] += 1;
-                quartilePairCountSums[quartileIndex] += value;
+            for (let index = 0; index < normalizedStepPairCounts.length; index++) {
+                const value = normalizedStepPairCounts[index];
+                const phaseIndex = getSimulationProgressPhaseIndex(index, safeTotalProgressSteps);
+                progressPhaseStepCounts[phaseIndex] += 1;
+                progressPhasePairCountSums[phaseIndex] += value;
             }
-            const quartileAveragePairCounts = quartilePairCountSums.map((sum, index) =>
-                quartileStepCounts[index] > 0
-                    ? (sum / quartileStepCounts[index])
+            const progressPhaseAveragePairCounts = progressPhasePairCountSums.map((sum, index) =>
+                progressPhaseStepCounts[index] > 0
+                    ? (sum / progressPhaseStepCounts[index])
                     : 0
             );
-            const totalStepCount = stepPairCounts.length;
+            const totalStepCount = normalizedStepPairCounts.length;
             const splitIndex = Math.ceil(totalStepCount / 2);
-            const firstHalfCounts = stepPairCounts.slice(0, splitIndex);
-            const secondHalfCounts = stepPairCounts.slice(splitIndex);
+            const firstHalfCounts = normalizedStepPairCounts.slice(0, splitIndex);
+            const secondHalfCounts = normalizedStepPairCounts.slice(splitIndex);
             const firstHalfPairCountSum = firstHalfCounts.reduce(
-                (sum, value) => sum + (Number.isFinite(Number(value)) ? Number(value) : 0),
+                (sum, value) => sum + value,
                 0
             );
             const secondHalfPairCountSum = secondHalfCounts.reduce(
-                (sum, value) => sum + (Number.isFinite(Number(value)) ? Number(value) : 0),
+                (sum, value) => sum + value,
                 0
             );
             const firstHalfStepCount = firstHalfCounts.length;
@@ -9810,10 +10416,76 @@
                 secondHalfAveragePairCount: secondHalfStepCount > 0
                     ? (secondHalfPairCountSum / secondHalfStepCount)
                     : 0,
-                quartileStepCounts,
-                quartilePairCountSums,
-                quartileAveragePairCounts
+                progressPhaseStepCounts,
+                progressPhasePairCountSums,
+                progressPhaseAveragePairCounts,
+                stepPairCounts: normalizedStepPairCounts
             };
+        }
+
+        function addStepPairCountsToAggregation(stepPairCountSums, stepPairCountSampleCounts, stepPairCounts) {
+            if (!Array.isArray(stepPairCountSums) || !Array.isArray(stepPairCountSampleCounts)) return;
+            if (!Array.isArray(stepPairCounts)) return;
+            for (let index = 0; index < stepPairCounts.length; index++) {
+                const value = Number(stepPairCounts[index]);
+                if (!Number.isFinite(value) || value < 0) continue;
+                stepPairCountSums[index] = (Number(stepPairCountSums[index]) || 0) + value;
+                stepPairCountSampleCounts[index] =
+                    (Number(stepPairCountSampleCounts[index]) || 0) + 1;
+            }
+        }
+
+        function normalizeStepPairExportScope(scope) {
+            return scope === STEP_PAIR_EXPORT_SCOPE_WIN
+                ? STEP_PAIR_EXPORT_SCOPE_WIN
+                : STEP_PAIR_EXPORT_SCOPE_ALL;
+        }
+
+        function resolveAverageStepPairCounts(metrics, scope = STEP_PAIR_EXPORT_SCOPE_ALL) {
+            const safeScope = normalizeStepPairExportScope(scope);
+            if (
+                safeScope === STEP_PAIR_EXPORT_SCOPE_WIN &&
+                Array.isArray(metrics?.winAverageStepPairCounts)
+            ) {
+                return metrics.winAverageStepPairCounts
+                    .map((value) => Number(value))
+                    .filter((value) => Number.isFinite(value) && value >= 0);
+            }
+            if (
+                safeScope === STEP_PAIR_EXPORT_SCOPE_ALL &&
+                Array.isArray(metrics?.averageStepPairCounts)
+            ) {
+                return metrics.averageStepPairCounts
+                    .map((value) => Number(value))
+                    .filter((value) => Number.isFinite(value) && value >= 0);
+            }
+
+            const sums = safeScope === STEP_PAIR_EXPORT_SCOPE_WIN
+                ? (Array.isArray(metrics?.winStepPairCountSums)
+                    ? metrics.winStepPairCountSums
+                    : [])
+                : (Array.isArray(metrics?.stepPairCountSums)
+                    ? metrics.stepPairCountSums
+                    : []);
+            const sampleCounts = safeScope === STEP_PAIR_EXPORT_SCOPE_WIN
+                ? (Array.isArray(metrics?.winStepPairCountSampleCounts)
+                    ? metrics.winStepPairCountSampleCounts
+                    : [])
+                : (Array.isArray(metrics?.stepPairCountSampleCounts)
+                    ? metrics.stepPairCountSampleCounts
+                    : []);
+            const result = [];
+            const maxStepCount = Math.max(sums.length, sampleCounts.length);
+            for (let index = 0; index < maxStepCount; index++) {
+                const sum = Number(sums[index]);
+                const sampleCount = Number(sampleCounts[index]);
+                const safeSum = Number.isFinite(sum) && sum >= 0 ? sum : 0;
+                const safeSampleCount =
+                    Number.isFinite(sampleCount) && sampleCount > 0 ? sampleCount : 0;
+                if (safeSampleCount <= 0) continue;
+                result[index] = safeSum / safeSampleCount;
+            }
+            return result;
         }
 
         function createConnectionTypeCountSummary() {
@@ -9843,6 +10515,28 @@
                 default:
                     break;
             }
+        }
+
+        function countAvailableConnectionTypeCounts(boardData, removablePairs = null) {
+            const summary = createConnectionTypeCountSummary();
+            if (!Array.isArray(boardData) || boardData.length === 0) return summary;
+            const pairs = Array.isArray(removablePairs)
+                ? removablePairs
+                : getRemovablePairsForBoard(boardData);
+            if (!Array.isArray(pairs) || pairs.length === 0) return summary;
+            for (const pair of pairs) {
+                if (!pair || typeof pair !== 'object') continue;
+                const path = findConnectionPathByLianliankan(
+                    boardData,
+                    pair.row1,
+                    pair.col1,
+                    pair.row2,
+                    pair.col2
+                );
+                const connectionType = pair.connectionType || getPlayConnectionTypeByPath(path);
+                accumulateConnectionTypeCount(summary, connectionType);
+            }
+            return summary;
         }
 
         function buildHumanModeSimulationSnapshot(boardData, direction, removablePairs) {
@@ -9924,6 +10618,7 @@
                 : countRemovableCellCount(baseBoardData);
             const estimatedTotalSteps = Math.max(1, Math.floor(baseCount / 2));
             const connectionTypeCounts = createConnectionTypeCountSummary();
+            const availableConnectionTypeCountTotals = createConnectionTypeCountSummary();
             let totalTrialErrorCount = 0;
             let maxTrialErrorCount = 0;
             let totalActualPairDistance = 0;
@@ -9943,6 +10638,7 @@
                     failedProgressPercent: 0,
                     pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
                     connectionTypeCounts,
+                    availableConnectionTypeCountTotals,
                     totalTrialErrorCount: 0,
                     maxTrialErrorCount: 0,
                     totalActualPairDistance: 0,
@@ -9972,6 +10668,7 @@
                             failedProgressPercent: null,
                             pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                             connectionTypeCounts,
+                            availableConnectionTypeCountTotals,
                             totalTrialErrorCount,
                             maxTrialErrorCount,
                             totalActualPairDistance,
@@ -9997,6 +10694,7 @@
                         failedProgressPercent: failureProgressPercent,
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                         connectionTypeCounts,
+                        availableConnectionTypeCountTotals,
                         totalTrialErrorCount,
                         maxTrialErrorCount,
                         totalActualPairDistance,
@@ -10010,9 +10708,22 @@
                 }
 
                 stepPairCounts.push(removablePairs.length);
-                const beforeBoardScore = calculateBoardDifficultyScore(
+                const availableConnectionTypeCounts = countAvailableConnectionTypeCounts(
                     boardData,
-                    baseCount,
+                    removablePairs
+                );
+                availableConnectionTypeCountTotals.zeroTurnCount +=
+                    Number(availableConnectionTypeCounts.zeroTurnCount) || 0;
+                availableConnectionTypeCountTotals.oneTurnCount +=
+                    Number(availableConnectionTypeCounts.oneTurnCount) || 0;
+                availableConnectionTypeCountTotals.sameDirTwoTurnCount +=
+                    Number(availableConnectionTypeCounts.sameDirTwoTurnCount) || 0;
+                availableConnectionTypeCountTotals.reverseTwoTurnCount +=
+                    Number(availableConnectionTypeCounts.reverseTwoTurnCount) || 0;
+                const remainingCardCountBefore = countRemovableCellCount(boardData);
+                const availablePairCountBefore = removablePairs.length;
+                const sceneDifficultyScoreBefore = calculateAvailablePairSceneDifficultyScore(
+                    boardData,
                     removablePairs
                 );
                 const availableDistanceSummary =
@@ -10052,6 +10763,7 @@
                         failedProgressPercent: failureProgressPercent,
                         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                         connectionTypeCounts,
+                        availableConnectionTypeCountTotals,
                         totalTrialErrorCount,
                         maxTrialErrorCount,
                         totalActualPairDistance,
@@ -10080,10 +10792,6 @@
                 }
                 const connectionType = getPlayConnectionTypeByPath(linkPath);
                 accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
-                const moveDifficultyFactor = calculateMoveDifficultyFactor(
-                    actualPairDistance,
-                    connectionType
-                );
 
                 const firstValue = boardData[selectedPair.row1]?.[selectedPair.col1];
                 const selectedBaseId = getMatchableBaseId(firstValue);
@@ -10093,9 +10801,11 @@
                     triggerBombEffect(boardData, null);
                 }
                 applyDirectionShiftUntilStable(boardData, direction);
-                const afterBoardScore = calculateBoardDifficultyScore(boardData, baseCount);
-                const stepDifficultyScore =
-                    ((beforeBoardScore + afterBoardScore) / 2) * moveDifficultyFactor;
+                const stepDifficultyScore = calculateNormalizedStepDifficultyScore({
+                    remainingCardCountBefore,
+                    availablePairCountBefore,
+                    sceneDifficultyScoreBefore
+                });
                 if (Number.isFinite(stepDifficultyScore) && stepDifficultyScore >= 0) {
                     totalStepDifficultyScore += stepDifficultyScore;
                     maxStepDifficultyScore = Math.max(maxStepDifficultyScore, stepDifficultyScore);
@@ -10116,6 +10826,7 @@
                 ),
                 pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
                 connectionTypeCounts,
+                availableConnectionTypeCountTotals,
                 totalTrialErrorCount,
                 maxTrialErrorCount,
                 totalActualPairDistance,
@@ -10171,12 +10882,17 @@
             let maxStepDifficultyScore = 0;
             const initialFaceDistributionDistance =
                 calculateInitialFaceDistributionDistance(sourceBoard);
-            let quartileStepCounts = [0, 0, 0, 0];
-            let quartilePairCountSums = [0, 0, 0, 0];
+            let progressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+            let progressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+            let stepPairCountSums = [];
+            let stepPairCountSampleCounts = [];
+            let winStepPairCountSums = [];
+            let winStepPairCountSampleCounts = [];
             let usedWorkers = false;
             let stoppedEarly = false;
             let unreachable = false;
             const connectionTypeTotals = createConnectionTypeCountSummary();
+            const availableConnectionTypeStepTotals = createConnectionTypeCountSummary();
 
             if (targetWinRange && targetWinRange.minWins > targetWinRange.maxWins) {
                 return {
@@ -10191,13 +10907,23 @@
                     averagePairPerStep: 0,
                     firstHalfAveragePairCount: 0,
                     secondHalfAveragePairCount: 0,
-                    quartileStepCounts: [0, 0, 0, 0],
-                    quartilePairCountSums: [0, 0, 0, 0],
-                    quartileAveragePairCounts: [0, 0, 0, 0],
+                    progressPhaseStepCounts: createEmptySimulationProgressPhaseSummary(),
+                    progressPhasePairCountSums: createEmptySimulationProgressPhaseSummary(),
+                    progressPhaseAveragePairCounts: createEmptySimulationProgressPhaseSummary(),
+                    stepPairCountSums: [],
+                    stepPairCountSampleCounts: [],
+                    averageStepPairCounts: [],
+                    winStepPairCountSums: [],
+                    winStepPairCountSampleCounts: [],
+                    winAverageStepPairCounts: [],
                     zeroTurnCount: 0,
                     oneTurnCount: 0,
                     sameDirTwoTurnCount: 0,
                     reverseTwoTurnCount: 0,
+                    averageAvailableZeroTurnCountPerStep: 0,
+                    averageAvailableOneTurnCountPerStep: 0,
+                    averageAvailableSameDirTwoTurnCountPerStep: 0,
+                    averageAvailableReverseTwoTurnCountPerStep: 0,
                     averageTrialErrorPerStep: 0,
                     maxTrialErrorCount: 0,
                     averageActualPairDistance: 0,
@@ -10299,17 +11025,35 @@
                         Number.isFinite(Number(workerResult.maxStepDifficultyScore))
                             ? Number(workerResult.maxStepDifficultyScore)
                             : 0;
-                    const toQuartileArray = (raw) => {
-                        const result = [0, 0, 0, 0];
+                    const toProgressPhaseArray = (raw) => {
+                        const result = createEmptySimulationProgressPhaseSummary();
                         if (!Array.isArray(raw)) return result;
-                        for (let index = 0; index < 4; index++) {
+                        for (let index = 0; index < SIMULATION_PROGRESS_PHASE_COUNT; index++) {
                             const value = Number(raw[index]);
                             result[index] = Number.isFinite(value) && value > 0 ? value : 0;
                         }
                         return result;
                     };
-                    quartileStepCounts = toQuartileArray(workerResult.quartileStepCounts);
-                    quartilePairCountSums = toQuartileArray(workerResult.quartilePairCountSums);
+                    progressPhaseStepCounts =
+                        toProgressPhaseArray(workerResult.progressPhaseStepCounts);
+                    progressPhasePairCountSums =
+                        toProgressPhaseArray(workerResult.progressPhasePairCountSums);
+                    const toDynamicNumberArray = (raw) => {
+                        if (!Array.isArray(raw)) return [];
+                        return raw.map((value) => {
+                            const numericValue = Number(value);
+                            return Number.isFinite(numericValue) && numericValue >= 0
+                                ? numericValue
+                                : 0;
+                        });
+                    };
+                    stepPairCountSums = toDynamicNumberArray(workerResult.stepPairCountSums);
+                    stepPairCountSampleCounts =
+                        toDynamicNumberArray(workerResult.stepPairCountSampleCounts);
+                    winStepPairCountSums =
+                        toDynamicNumberArray(workerResult.winStepPairCountSums);
+                    winStepPairCountSampleCounts =
+                        toDynamicNumberArray(workerResult.winStepPairCountSampleCounts);
                     connectionTypeTotals.zeroTurnCount =
                         Number(workerResult.zeroTurnCount) || 0;
                     connectionTypeTotals.oneTurnCount =
@@ -10318,6 +11062,14 @@
                         Number(workerResult.sameDirTwoTurnCount) || 0;
                     connectionTypeTotals.reverseTwoTurnCount =
                         Number(workerResult.reverseTwoTurnCount) || 0;
+                    availableConnectionTypeStepTotals.zeroTurnCount =
+                        Number(workerResult.availableZeroTurnCountSum) || 0;
+                    availableConnectionTypeStepTotals.oneTurnCount =
+                        Number(workerResult.availableOneTurnCountSum) || 0;
+                    availableConnectionTypeStepTotals.sameDirTwoTurnCount =
+                        Number(workerResult.availableSameDirTwoTurnCountSum) || 0;
+                    availableConnectionTypeStepTotals.reverseTwoTurnCount =
+                        Number(workerResult.availableReverseTwoTurnCountSum) || 0;
                     stoppedEarly = Boolean(workerResult.stoppedEarly);
                     unreachable = stoppedEarly &&
                         isTargetWinRateRangeUnreachable(
@@ -10361,6 +11113,18 @@
                     const pairSummary = gameResult?.pairSummary || {};
                     totalStepCount += Number(pairSummary.totalStepCount) || 0;
                     totalPairCountSum += Number(pairSummary.totalPairCountSum) || 0;
+                    addStepPairCountsToAggregation(
+                        stepPairCountSums,
+                        stepPairCountSampleCounts,
+                        pairSummary.stepPairCounts
+                    );
+                    if (gameResult?.cleared) {
+                        addStepPairCountsToAggregation(
+                            winStepPairCountSums,
+                            winStepPairCountSampleCounts,
+                            pairSummary.stepPairCounts
+                        );
+                    }
                     totalTrialErrorCountSum += Number(gameResult?.totalTrialErrorCount) || 0;
                     maxTrialErrorCount = Math.max(
                         maxTrialErrorCount,
@@ -10380,20 +11144,21 @@
                     firstHalfPairCountSum += Number(pairSummary.firstHalfPairCountSum) || 0;
                     secondHalfStepCount += Number(pairSummary.secondHalfStepCount) || 0;
                     secondHalfPairCountSum += Number(pairSummary.secondHalfPairCountSum) || 0;
-                    const pairQuartileStepCounts = Array.isArray(pairSummary.quartileStepCounts)
-                        ? pairSummary.quartileStepCounts
+                    const pairProgressPhaseStepCounts = Array.isArray(pairSummary.progressPhaseStepCounts)
+                        ? pairSummary.progressPhaseStepCounts
                         : [];
-                    const pairQuartilePairCountSums = Array.isArray(pairSummary.quartilePairCountSums)
-                        ? pairSummary.quartilePairCountSums
-                        : [];
-                    for (let quartileIndex = 0; quartileIndex < 4; quartileIndex++) {
-                        const stepCountValue = Number(pairQuartileStepCounts[quartileIndex]);
-                        const pairSumValue = Number(pairQuartilePairCountSums[quartileIndex]);
-                        quartileStepCounts[quartileIndex] +=
+                    const pairProgressPhasePairCountSums =
+                        Array.isArray(pairSummary.progressPhasePairCountSums)
+                            ? pairSummary.progressPhasePairCountSums
+                            : [];
+                    for (let phaseIndex = 0; phaseIndex < SIMULATION_PROGRESS_PHASE_COUNT; phaseIndex++) {
+                        const stepCountValue = Number(pairProgressPhaseStepCounts[phaseIndex]);
+                        const pairSumValue = Number(pairProgressPhasePairCountSums[phaseIndex]);
+                        progressPhaseStepCounts[phaseIndex] +=
                             Number.isFinite(stepCountValue) && stepCountValue > 0
                                 ? stepCountValue
                                 : 0;
-                        quartilePairCountSums[quartileIndex] +=
+                        progressPhasePairCountSums[phaseIndex] +=
                             Number.isFinite(pairSumValue) && pairSumValue > 0
                                 ? pairSumValue
                                 : 0;
@@ -10405,6 +11170,16 @@
                         Number(connectionTypeCounts.sameDirTwoTurnCount) || 0;
                     connectionTypeTotals.reverseTwoTurnCount +=
                         Number(connectionTypeCounts.reverseTwoTurnCount) || 0;
+                    const availableConnectionTypeCounts =
+                        gameResult?.availableConnectionTypeCountTotals || {};
+                    availableConnectionTypeStepTotals.zeroTurnCount +=
+                        Number(availableConnectionTypeCounts.zeroTurnCount) || 0;
+                    availableConnectionTypeStepTotals.oneTurnCount +=
+                        Number(availableConnectionTypeCounts.oneTurnCount) || 0;
+                    availableConnectionTypeStepTotals.sameDirTwoTurnCount +=
+                        Number(availableConnectionTypeCounts.sameDirTwoTurnCount) || 0;
+                    availableConnectionTypeStepTotals.reverseTwoTurnCount +=
+                        Number(availableConnectionTypeCounts.reverseTwoTurnCount) || 0;
 
                     completedGames = gameIndex + 1;
                     if (typeof onProgress === 'function') {
@@ -10457,11 +11232,19 @@
             const secondHalfAveragePairCount = secondHalfStepCount > 0
                 ? (secondHalfPairCountSum / secondHalfStepCount)
                 : 0;
-            const quartileAveragePairCounts = quartilePairCountSums.map((sum, index) =>
-                quartileStepCounts[index] > 0
-                    ? (sum / quartileStepCounts[index])
+            const progressPhaseAveragePairCounts = progressPhasePairCountSums.map((sum, index) =>
+                progressPhaseStepCounts[index] > 0
+                    ? (sum / progressPhaseStepCounts[index])
                     : 0
             );
+            const averageStepPairCounts = resolveAverageStepPairCounts({
+                stepPairCountSums,
+                stepPairCountSampleCounts
+            });
+            const winAverageStepPairCounts = resolveAverageStepPairCounts({
+                winStepPairCountSums,
+                winStepPairCountSampleCounts
+            }, STEP_PAIR_EXPORT_SCOPE_WIN);
             const averageZeroTurnCount = completedGames > 0
                 ? (connectionTypeTotals.zeroTurnCount / completedGames)
                 : 0;
@@ -10473,6 +11256,18 @@
                 : 0;
             const averageReverseTwoTurnCount = completedGames > 0
                 ? (connectionTypeTotals.reverseTwoTurnCount / completedGames)
+                : 0;
+            const averageAvailableZeroTurnCountPerStep = totalStepCount > 0
+                ? (availableConnectionTypeStepTotals.zeroTurnCount / totalStepCount)
+                : 0;
+            const averageAvailableOneTurnCountPerStep = totalStepCount > 0
+                ? (availableConnectionTypeStepTotals.oneTurnCount / totalStepCount)
+                : 0;
+            const averageAvailableSameDirTwoTurnCountPerStep = totalStepCount > 0
+                ? (availableConnectionTypeStepTotals.sameDirTwoTurnCount / totalStepCount)
+                : 0;
+            const averageAvailableReverseTwoTurnCountPerStep = totalStepCount > 0
+                ? (availableConnectionTypeStepTotals.reverseTwoTurnCount / totalStepCount)
                 : 0;
 
             return {
@@ -10487,9 +11282,15 @@
                 averagePairPerStep,
                 firstHalfAveragePairCount,
                 secondHalfAveragePairCount,
-                quartileStepCounts,
-                quartilePairCountSums,
-                quartileAveragePairCounts,
+                progressPhaseStepCounts,
+                progressPhasePairCountSums,
+                progressPhaseAveragePairCounts,
+                stepPairCountSums,
+                stepPairCountSampleCounts,
+                averageStepPairCounts,
+                winStepPairCountSums,
+                winStepPairCountSampleCounts,
+                winAverageStepPairCounts,
                 zeroTurnCount: connectionTypeTotals.zeroTurnCount,
                 oneTurnCount: connectionTypeTotals.oneTurnCount,
                 sameDirTwoTurnCount: connectionTypeTotals.sameDirTwoTurnCount,
@@ -10498,6 +11299,16 @@
                 averageOneTurnCount,
                 averageSameDirTwoTurnCount,
                 averageReverseTwoTurnCount,
+                availableZeroTurnCountSum: availableConnectionTypeStepTotals.zeroTurnCount,
+                availableOneTurnCountSum: availableConnectionTypeStepTotals.oneTurnCount,
+                availableSameDirTwoTurnCountSum:
+                    availableConnectionTypeStepTotals.sameDirTwoTurnCount,
+                availableReverseTwoTurnCountSum:
+                    availableConnectionTypeStepTotals.reverseTwoTurnCount,
+                averageAvailableZeroTurnCountPerStep,
+                averageAvailableOneTurnCountPerStep,
+                averageAvailableSameDirTwoTurnCountPerStep,
+                averageAvailableReverseTwoTurnCountPerStep,
                 averageTrialErrorPerStep,
                 maxTrialErrorCount,
                 averageActualPairDistance,
@@ -10536,21 +11347,21 @@
             return frontBackDiff.toFixed(4);
         }
 
-        function resolveQuartileAveragePairCounts(metrics) {
+        function resolveProgressPhaseAveragePairCounts(metrics) {
             const safeMetrics = metrics || {};
-            if (Array.isArray(safeMetrics.quartileAveragePairCounts)) {
-                return [0, 1, 2, 3].map((index) => {
-                    const value = Number(safeMetrics.quartileAveragePairCounts[index]);
+            if (Array.isArray(safeMetrics.progressPhaseAveragePairCounts)) {
+                return SIMULATION_PROGRESS_PHASE_LABELS.map((_, index) => {
+                    const value = Number(safeMetrics.progressPhaseAveragePairCounts[index]);
                     return Number.isFinite(value) && value >= 0 ? value : 0;
                 });
             }
-            const stepCounts = Array.isArray(safeMetrics.quartileStepCounts)
-                ? safeMetrics.quartileStepCounts
-                : [0, 0, 0, 0];
-            const pairSums = Array.isArray(safeMetrics.quartilePairCountSums)
-                ? safeMetrics.quartilePairCountSums
-                : [0, 0, 0, 0];
-            return [0, 1, 2, 3].map((index) => {
+            const stepCounts = Array.isArray(safeMetrics.progressPhaseStepCounts)
+                ? safeMetrics.progressPhaseStepCounts
+                : createEmptySimulationProgressPhaseSummary();
+            const pairSums = Array.isArray(safeMetrics.progressPhasePairCountSums)
+                ? safeMetrics.progressPhasePairCountSums
+                : createEmptySimulationProgressPhaseSummary();
+            return SIMULATION_PROGRESS_PHASE_LABELS.map((_, index) => {
                 const stepCount = Number(stepCounts[index]);
                 const pairSum = Number(pairSums[index]);
                 const safeStepCount = Number.isFinite(stepCount) && stepCount > 0 ? stepCount : 0;
@@ -10559,9 +11370,17 @@
             });
         }
 
-        function formatQuartilePairAveragesForExport(metrics) {
-            const quartileAverages = resolveQuartileAveragePairCounts(metrics);
-            return quartileAverages.map((value) => Number(value || 0).toFixed(2));
+        function formatProgressPhasePairAveragesForExport(metrics) {
+            const phaseAverages = resolveProgressPhaseAveragePairCounts(metrics);
+            return phaseAverages.map((value) => Number(value || 0).toFixed(2));
+        }
+
+        function formatAverageStepPairCountsForExport(
+            metrics,
+            scope = STEP_PAIR_EXPORT_SCOPE_ALL
+        ) {
+            const averageStepPairCounts = resolveAverageStepPairCounts(metrics, scope);
+            return averageStepPairCounts.map((value) => Number(value || 0).toFixed(2));
         }
 
         function buildCampaignExportLine(
@@ -10574,7 +11393,8 @@
             initialClusterCount,
             includeLevelColumn = true,
             humanMode = false,
-            humanModeBesidePercent = 70
+            humanModeBesidePercent = 70,
+            stepPairExportScope = STEP_PAIR_EXPORT_SCOPE_ALL
         ) {
             const safeLevelText = (() => {
                 const levelText = String(level ?? '').trim();
@@ -10593,8 +11413,10 @@
                 Number(metrics?.averagePairPerStep || 0).toFixed(2);
             const frontBackPairCompareText =
                 formatFrontBackPairCompareForExport(metrics);
-            const quartilePairAverageTexts =
-                formatQuartilePairAveragesForExport(metrics);
+            const progressPhasePairAverageTexts =
+                formatProgressPhasePairAveragesForExport(metrics);
+            const averageStepPairCountTexts =
+                formatAverageStepPairCountsForExport(metrics, stepPairExportScope);
             const averageTrialErrorPerStep =
                 Number(metrics?.averageTrialErrorPerStep || 0).toFixed(2);
             const maxTrialErrorCount = Math.max(
@@ -10642,6 +11464,12 @@
                 metrics?.averageReverseTwoTurnCount,
                 metrics?.reverseTwoTurnCount
             );
+            const availableConnectionTypeAverageTexts = [
+                Number(metrics?.averageAvailableZeroTurnCountPerStep || 0).toFixed(2),
+                Number(metrics?.averageAvailableOneTurnCountPerStep || 0).toFixed(2),
+                Number(metrics?.averageAvailableSameDirTwoTurnCountPerStep || 0).toFixed(2),
+                Number(metrics?.averageAvailableReverseTwoTurnCountPerStep || 0).toFixed(2)
+            ];
             const safeInitialAdjacentMatchCount = Math.max(
                 0,
                 Math.round(Number(initialAdjacentMatchCount) || 0)
@@ -10651,6 +11479,11 @@
                 Math.round(Number(initialClusterCount) || 0)
             );
 
+            // 导出列顺序核对：实际执行连接类型 4 列之后，紧跟每步可用连接类型 4 列：
+            // 平均每步可用0拐数量、平均每步可用1拐数量、平均每步可用同向2拐数量、平均每步可用反向2拐数量。
+            // 然后再输出 3 个阶段平均可配对数。
+            // 行尾按模拟实际步数动态追加多局平均每步配对数，格式含义为：步1：x，步2：x……
+            // 这里已不再输出旧的 4 个四分位字段。
             const payload =
                 `${JSON.stringify(safeBoardData)}\t` +
                 `${safeDirection}\t${safeWinRate.toFixed(2)}\t` +
@@ -10658,11 +11491,15 @@
                 `${safeInitialClusterCount}\t${averagePairPerStepText}\t` +
                 `${frontBackPairCompareText}\t${zeroTurnCount.toFixed(2)}\t` +
                 `${oneTurnCount.toFixed(2)}\t${sameDirTwoTurnCount.toFixed(2)}\t` +
-                `${reverseTwoTurnCount.toFixed(2)}\t${quartilePairAverageTexts.join('\t')}\t` +
+                `${reverseTwoTurnCount.toFixed(2)}\t${availableConnectionTypeAverageTexts.join('\t')}\t` +
+                `${progressPhasePairAverageTexts.join('\t')}\t` +
                 `${averageTrialErrorPerStep}\t${maxTrialErrorCount}\t` +
                 `${averageActualPairDistance}\t${averageAvailablePairDistance}\t` +
                 `${initialFaceDistributionDistance}\t${averageStepDifficultyScore}\t` +
-                `${maxStepDifficultyScore}\t${humanModeFlag}\t${safeHumanModeBesidePercent}`;
+                `${maxStepDifficultyScore}\t${humanModeFlag}\t${safeHumanModeBesidePercent}` +
+                (averageStepPairCountTexts.length > 0
+                    ? `\t${averageStepPairCountTexts.join('\t')}`
+                    : '');
             return includeLevelColumn ? `${safeLevelText}\t${payload}` : payload;
         }
 
@@ -10745,6 +11582,36 @@
                 statsLocalHumanModeEnabled = Boolean(forceValue);
             }
             renderStatsLocalHumanModeToggle();
+        }
+
+        function getStepPairExportScope(fallback = STEP_PAIR_EXPORT_SCOPE_ALL) {
+            return normalizeStepPairExportScope(stepPairExportScope || fallback);
+        }
+
+        function renderStepPairExportScopeToggle() {
+            const button = document.getElementById('btnStepPairExportScope');
+            if (!button) return;
+            const scope = getStepPairExportScope();
+            const winOnly = scope === STEP_PAIR_EXPORT_SCOPE_WIN;
+            button.classList.toggle('active', winOnly);
+            button.textContent = winOnly ? '每步数据：胜利局' : '每步数据：所有局';
+            button.setAttribute('aria-pressed', winOnly ? 'true' : 'false');
+        }
+
+        function setStepPairExportScope(scope) {
+            stepPairExportScope = normalizeStepPairExportScope(scope);
+            renderStepPairExportScopeToggle();
+            return stepPairExportScope;
+        }
+
+        function toggleStepPairExportScope(forceScope = null) {
+            if (forceScope !== null && forceScope !== undefined) {
+                return setStepPairExportScope(forceScope);
+            }
+            const nextScope = getStepPairExportScope() === STEP_PAIR_EXPORT_SCOPE_WIN
+                ? STEP_PAIR_EXPORT_SCOPE_ALL
+                : STEP_PAIR_EXPORT_SCOPE_WIN;
+            return setStepPairExportScope(nextScope);
         }
 
         function updateSimulateButtonProgress(progressPercent, labelText, targetButton = null) {
@@ -11349,6 +12216,107 @@ function calculateAvailablePairFriendlyScore(pairDistance, connectionType) {
   return distanceFriendlyScore * getConnectionTypeFriendlyWeight(connectionType);
 }
 
+function calculatePairDistanceDifficultyScore(pairDistance) {
+  const safeDistance = Number(pairDistance);
+  if (!Number.isFinite(safeDistance)) return 0;
+  if (safeDistance < 3) return -1;
+  if (safeDistance >= 5 && safeDistance <= 10) return 1;
+  if (safeDistance > 10) return 2;
+  return 0;
+}
+
+function calculateConnectionTypeDifficultyScore(connectionType) {
+  switch (connectionType) {
+    case '直线连接':
+      return -1;
+    case '1拐连接':
+      return 1;
+    case '同向2拐':
+      return 2;
+    case '反向2拐':
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+function getAvailablePairConnectionDetails(boardData, pair) {
+  if (!pair) {
+    return { distance: null, connectionType: '' };
+  }
+  const explicitDistance = Number(pair.connectionDistance ?? pair.distance);
+  let distance = Number.isFinite(explicitDistance) && explicitDistance >= 0
+    ? explicitDistance
+    : null;
+  let connectionType = typeof pair.connectionType === 'string'
+    ? pair.connectionType
+    : '';
+  let path = null;
+  if ((distance === null || !connectionType) && Array.isArray(boardData)) {
+    path = findConnectionPathByLianliankan(
+      boardData,
+      pair.row1,
+      pair.col1,
+      pair.row2,
+      pair.col2
+    );
+    if (distance === null) {
+      const pathDistance = computePathLengthByGridSteps(path);
+      distance = Number.isFinite(pathDistance) && pathDistance >= 0
+        ? pathDistance
+        : null;
+    }
+    if (!connectionType) {
+      connectionType = getPlayConnectionTypeByPath(path);
+    }
+  }
+  return { distance, connectionType };
+}
+
+function calculateAvailablePairDifficultyScore(boardData, pair) {
+  const details = getAvailablePairConnectionDetails(boardData, pair);
+  return calculatePairDistanceDifficultyScore(details.distance) +
+    calculateConnectionTypeDifficultyScore(details.connectionType);
+}
+
+function calculateAvailablePairSceneDifficultyScore(boardData, removablePairs) {
+  if (!Array.isArray(removablePairs) || removablePairs.length === 0) return 0;
+  const totalScore = removablePairs.reduce((total, pair) => {
+    const pairScore = calculateAvailablePairDifficultyScore(boardData, pair);
+    return total + (Number.isFinite(pairScore) ? pairScore : 0);
+  }, 0);
+  return totalScore / removablePairs.length;
+}
+
+function calculatePairAvailabilityPressure(remainingCardCount, availablePairCount) {
+  const remainingCards = Number.isFinite(Number(remainingCardCount))
+    ? Math.max(0, Number(remainingCardCount))
+    : 0;
+  const availablePairs = Number.isFinite(Number(availablePairCount))
+    ? Math.max(0, Number(availablePairCount))
+    : 0;
+  const remainingPairCount = Math.max(0, remainingCards / 2);
+  if (remainingPairCount <= 0) return 0;
+  const unavailablePairGap = Math.max(0, remainingPairCount - availablePairs);
+  return Math.max(0, Math.min(1, unavailablePairGap / remainingPairCount));
+}
+
+function calculateNormalizedStepDifficultyScore({
+  remainingCardCountBefore,
+  availablePairCountBefore,
+  sceneDifficultyScoreBefore
+} = {}) {
+  const pairPressure = calculatePairAvailabilityPressure(
+    remainingCardCountBefore,
+    availablePairCountBefore
+  );
+  if (pairPressure <= 0) return 0;
+  const safeSceneDifficultyScore = Number.isFinite(Number(sceneDifficultyScoreBefore))
+    ? Number(sceneDifficultyScoreBefore)
+    : 0;
+  return Math.max(0, pairPressure * safeSceneDifficultyScore);
+}
+
 function calculateBoardDifficultyScore(boardData, initialRemovableCount, removablePairs) {
   if (!Array.isArray(boardData) || boardData.length === 0) return 0;
   const remainingCount = countRemovableCellCount(boardData);
@@ -11731,6 +12699,30 @@ function pickHumanModePairForSimulation(boardData, direction, options) {
   };
 }
 
+// 模拟导出的阶段配对字段按消除进度核对：
+// 前20%：消除进度 [0%, 20%)；20%-70%：消除进度 [20%, 70%)；
+// 最后30%：消除进度 [70%, 100%)。
+const SIMULATION_PROGRESS_PHASE_LABELS = ['前20%', '20%-70%', '最后30%'];
+const SIMULATION_PROGRESS_PHASE_COUNT = SIMULATION_PROGRESS_PHASE_LABELS.length;
+
+function getSimulationProgressPhaseIndex(stepIndex, totalProgressSteps) {
+  const safeTotalProgressSteps = Number.isFinite(Number(totalProgressSteps))
+    ? Math.max(1, Math.floor(Number(totalProgressSteps)))
+    : 1;
+  const safeStepIndex = Number.isFinite(Number(stepIndex))
+    ? Math.max(0, Math.floor(Number(stepIndex)))
+    : 0;
+  // 用本步开始时的进度归段，保证 10 步时正好是 2 / 5 / 3 步。
+  const progressRatio = Math.max(0, Math.min(0.999999, safeStepIndex / safeTotalProgressSteps));
+  if (progressRatio < 0.2) return 0;
+  if (progressRatio < 0.7) return 1;
+  return 2;
+}
+
+function createEmptySimulationProgressPhaseSummary() {
+  return Array.from({ length: SIMULATION_PROGRESS_PHASE_COUNT }, () => 0);
+}
+
 function summarizeStepPairCounts(stepPairCounts, totalProgressSteps) {
   if (!Array.isArray(stepPairCounts) || stepPairCounts.length === 0) {
     return {
@@ -11743,48 +12735,47 @@ function summarizeStepPairCounts(stepPairCounts, totalProgressSteps) {
       secondHalfStepCount: 0,
       secondHalfPairCountSum: 0,
       secondHalfAveragePairCount: 0,
-      quartileStepCounts: [0, 0, 0, 0],
-      quartilePairCountSums: [0, 0, 0, 0],
-      quartileAveragePairCounts: [0, 0, 0, 0]
+      progressPhaseStepCounts: createEmptySimulationProgressPhaseSummary(),
+      progressPhasePairCountSums: createEmptySimulationProgressPhaseSummary(),
+      progressPhaseAveragePairCounts: createEmptySimulationProgressPhaseSummary(),
+      stepPairCounts: []
     };
   }
 
   let totalPairCountSum = 0;
+  const normalizedStepPairCounts = stepPairCounts.map((rawValue) => {
+    const value = Number(rawValue);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  });
   const safeTotalProgressSteps = Number.isFinite(Number(totalProgressSteps))
     ? Math.max(1, Math.floor(Number(totalProgressSteps)))
-    : Math.max(1, stepPairCounts.length);
-  const quartileStepCounts = [0, 0, 0, 0];
-  const quartilePairCountSums = [0, 0, 0, 0];
-  for (const rawValue of stepPairCounts) {
-    const value = Number(rawValue);
-    if (!Number.isFinite(value) || value < 0) continue;
+    : Math.max(1, normalizedStepPairCounts.length);
+  const progressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+  const progressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+  for (const value of normalizedStepPairCounts) {
     totalPairCountSum += value;
   }
-  for (let index = 0; index < stepPairCounts.length; index++) {
-    const value = Number(stepPairCounts[index]);
-    if (!Number.isFinite(value) || value < 0) continue;
-    const quartileIndex = Math.max(
-      0,
-      Math.min(3, Math.floor((index * 4) / safeTotalProgressSteps))
-    );
-    quartileStepCounts[quartileIndex] += 1;
-    quartilePairCountSums[quartileIndex] += value;
+  for (let index = 0; index < normalizedStepPairCounts.length; index++) {
+    const value = normalizedStepPairCounts[index];
+    const phaseIndex = getSimulationProgressPhaseIndex(index, safeTotalProgressSteps);
+    progressPhaseStepCounts[phaseIndex] += 1;
+    progressPhasePairCountSums[phaseIndex] += value;
   }
-  const quartileAveragePairCounts = quartilePairCountSums.map((sum, index) =>
-    quartileStepCounts[index] > 0
-      ? (sum / quartileStepCounts[index])
+  const progressPhaseAveragePairCounts = progressPhasePairCountSums.map((sum, index) =>
+    progressPhaseStepCounts[index] > 0
+      ? (sum / progressPhaseStepCounts[index])
       : 0
   );
-  const totalStepCount = stepPairCounts.length;
+  const totalStepCount = normalizedStepPairCounts.length;
   const splitIndex = Math.ceil(totalStepCount / 2);
-  const firstHalfCounts = stepPairCounts.slice(0, splitIndex);
-  const secondHalfCounts = stepPairCounts.slice(splitIndex);
+  const firstHalfCounts = normalizedStepPairCounts.slice(0, splitIndex);
+  const secondHalfCounts = normalizedStepPairCounts.slice(splitIndex);
   const firstHalfPairCountSum = firstHalfCounts.reduce(
-    (sum, value) => sum + (Number.isFinite(Number(value)) ? Number(value) : 0),
+    (sum, value) => sum + value,
     0
   );
   const secondHalfPairCountSum = secondHalfCounts.reduce(
-    (sum, value) => sum + (Number.isFinite(Number(value)) ? Number(value) : 0),
+    (sum, value) => sum + value,
     0
   );
   const firstHalfStepCount = firstHalfCounts.length;
@@ -11804,10 +12795,22 @@ function summarizeStepPairCounts(stepPairCounts, totalProgressSteps) {
     secondHalfAveragePairCount: secondHalfStepCount > 0
       ? (secondHalfPairCountSum / secondHalfStepCount)
       : 0,
-    quartileStepCounts,
-    quartilePairCountSums,
-    quartileAveragePairCounts
+    progressPhaseStepCounts,
+    progressPhasePairCountSums,
+    progressPhaseAveragePairCounts,
+    stepPairCounts: normalizedStepPairCounts
   };
+}
+
+function addStepPairCountsToAggregation(stepPairCountSums, stepPairCountSampleCounts, stepPairCounts) {
+  if (!Array.isArray(stepPairCountSums) || !Array.isArray(stepPairCountSampleCounts)) return;
+  if (!Array.isArray(stepPairCounts)) return;
+  for (let index = 0; index < stepPairCounts.length; index++) {
+    const value = Number(stepPairCounts[index]);
+    if (!Number.isFinite(value) || value < 0) continue;
+    stepPairCountSums[index] = (Number(stepPairCountSums[index]) || 0) + value;
+    stepPairCountSampleCounts[index] = (Number(stepPairCountSampleCounts[index]) || 0) + 1;
+  }
 }
 
 function createConnectionTypeCountSummary() {
@@ -11839,6 +12842,28 @@ function accumulateConnectionTypeCount(summary, connectionType) {
   }
 }
 
+function countAvailableConnectionTypeCounts(boardData, removablePairs) {
+  const summary = createConnectionTypeCountSummary();
+  if (!Array.isArray(boardData) || boardData.length === 0) return summary;
+  const pairs = Array.isArray(removablePairs)
+    ? removablePairs
+    : getRemovablePairsForBoard(boardData);
+  if (!Array.isArray(pairs) || pairs.length === 0) return summary;
+  for (const pair of pairs) {
+    if (!pair || typeof pair !== 'object') continue;
+    const path = findConnectionPathByLianliankan(
+      boardData,
+      pair.row1,
+      pair.col1,
+      pair.row2,
+      pair.col2
+    );
+    const connectionType = pair.connectionType || getPlayConnectionTypeByPath(path);
+    accumulateConnectionTypeCount(summary, connectionType);
+  }
+  return summary;
+}
+
 function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemovableCount, options) {
   const humanMode = Boolean(options && options.humanMode);
   const humanModeBesidePercent = normalizeHumanModeBesidePercent(
@@ -11851,6 +12876,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     : countRemovableCellCount(baseBoardData);
   const estimatedTotalSteps = Math.max(1, Math.floor(baseCount / 2));
   const connectionTypeCounts = createConnectionTypeCountSummary();
+  const availableConnectionTypeCountTotals = createConnectionTypeCountSummary();
   let totalTrialErrorCount = 0;
   let maxTrialErrorCount = 0;
   let totalActualPairDistance = 0;
@@ -11869,6 +12895,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       failedProgressPercent: 0,
       pairSummary: summarizeStepPairCounts([], estimatedTotalSteps),
       connectionTypeCounts,
+      availableConnectionTypeCountTotals,
       totalTrialErrorCount: 0,
       maxTrialErrorCount: 0,
       totalActualPairDistance: 0,
@@ -11898,6 +12925,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
           failedProgressPercent: null,
           pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
           connectionTypeCounts,
+          availableConnectionTypeCountTotals,
           totalTrialErrorCount,
           maxTrialErrorCount,
           totalActualPairDistance,
@@ -11923,6 +12951,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         failedProgressPercent: failureProgressPercent,
         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
         connectionTypeCounts,
+        availableConnectionTypeCountTotals,
         totalTrialErrorCount,
         maxTrialErrorCount,
         totalActualPairDistance,
@@ -11936,9 +12965,22 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     }
 
     stepPairCounts.push(removablePairs.length);
-    const beforeBoardScore = calculateBoardDifficultyScore(
+    const availableConnectionTypeCounts = countAvailableConnectionTypeCounts(
       boardData,
-      baseCount,
+      removablePairs
+    );
+    availableConnectionTypeCountTotals.zeroTurnCount +=
+      Number(availableConnectionTypeCounts.zeroTurnCount) || 0;
+    availableConnectionTypeCountTotals.oneTurnCount +=
+      Number(availableConnectionTypeCounts.oneTurnCount) || 0;
+    availableConnectionTypeCountTotals.sameDirTwoTurnCount +=
+      Number(availableConnectionTypeCounts.sameDirTwoTurnCount) || 0;
+    availableConnectionTypeCountTotals.reverseTwoTurnCount +=
+      Number(availableConnectionTypeCounts.reverseTwoTurnCount) || 0;
+    const remainingCardCountBefore = countRemovableCellCount(boardData);
+    const availablePairCountBefore = removablePairs.length;
+    const sceneDifficultyScoreBefore = calculateAvailablePairSceneDifficultyScore(
+      boardData,
       removablePairs
     );
     const availableDistanceSummary = summarizeRemovablePairDistances(boardData, removablePairs);
@@ -11977,6 +13019,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
         failedProgressPercent: failureProgressPercent,
         pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
         connectionTypeCounts,
+        availableConnectionTypeCountTotals,
         totalTrialErrorCount,
         maxTrialErrorCount,
         totalActualPairDistance,
@@ -12005,10 +13048,6 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     }
     const connectionType = getPlayConnectionTypeByPath(linkPath);
     accumulateConnectionTypeCount(connectionTypeCounts, connectionType);
-    const moveDifficultyFactor = calculateMoveDifficultyFactor(
-      actualPairDistance,
-      connectionType
-    );
 
     const firstValue = boardData[selectedPair.row1][selectedPair.col1];
     const selectedBaseId = getMatchableBaseId(firstValue);
@@ -12018,9 +13057,11 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
       triggerBombEffect(boardData);
     }
     applyDirectionShiftUntilStable(boardData, direction);
-    const afterBoardScore = calculateBoardDifficultyScore(boardData, baseCount);
-    const stepDifficultyScore =
-      ((beforeBoardScore + afterBoardScore) / 2) * moveDifficultyFactor;
+    const stepDifficultyScore = calculateNormalizedStepDifficultyScore({
+      remainingCardCountBefore,
+      availablePairCountBefore,
+      sceneDifficultyScoreBefore
+    });
     if (Number.isFinite(stepDifficultyScore) && stepDifficultyScore >= 0) {
       totalStepDifficultyScore += stepDifficultyScore;
       maxStepDifficultyScore = Math.max(maxStepDifficultyScore, stepDifficultyScore);
@@ -12041,6 +13082,7 @@ function simulateSingleGameWithPairStats(baseBoardData, direction, initialRemova
     ),
     pairSummary: summarizeStepPairCounts(stepPairCounts, estimatedTotalSteps),
     connectionTypeCounts,
+    availableConnectionTypeCountTotals,
     totalTrialErrorCount,
     maxTrialErrorCount,
     totalActualPairDistance,
@@ -12475,12 +13517,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
   let partialFirstHalfPairCountSum = 0;
   let partialSecondHalfStepCount = 0;
   let partialSecondHalfPairCountSum = 0;
-  let partialQuartileStepCounts = [0, 0, 0, 0];
-  let partialQuartilePairCountSums = [0, 0, 0, 0];
+  let partialProgressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+  let partialProgressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+  let partialStepPairCountSums = [];
+  let partialStepPairCountSampleCounts = [];
+  let partialWinStepPairCountSums = [];
+  let partialWinStepPairCountSampleCounts = [];
   let partialZeroTurnCount = 0;
   let partialOneTurnCount = 0;
   let partialSameDirTwoTurnCount = 0;
   let partialReverseTwoTurnCount = 0;
+  let partialAvailableZeroTurnCountSum = 0;
+  let partialAvailableOneTurnCountSum = 0;
+  let partialAvailableSameDirTwoTurnCountSum = 0;
+  let partialAvailableReverseTwoTurnCountSum = 0;
   let partialTotalTrialErrorCountSum = 0;
   let partialMaxTrialErrorCount = 0;
   let partialTotalActualPairDistance = 0;
@@ -12522,24 +13572,36 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
     const pairSummary = gameResult && gameResult.pairSummary ? gameResult.pairSummary : {};
     partialTotalStepCount += Number(pairSummary.totalStepCount) || 0;
     partialTotalPairCountSum += Number(pairSummary.totalPairCountSum) || 0;
+    addStepPairCountsToAggregation(
+      partialStepPairCountSums,
+      partialStepPairCountSampleCounts,
+      pairSummary.stepPairCounts
+    );
+    if (gameResult && gameResult.cleared) {
+      addStepPairCountsToAggregation(
+        partialWinStepPairCountSums,
+        partialWinStepPairCountSampleCounts,
+        pairSummary.stepPairCounts
+      );
+    }
     partialFirstHalfStepCount += Number(pairSummary.firstHalfStepCount) || 0;
     partialFirstHalfPairCountSum += Number(pairSummary.firstHalfPairCountSum) || 0;
     partialSecondHalfStepCount += Number(pairSummary.secondHalfStepCount) || 0;
     partialSecondHalfPairCountSum += Number(pairSummary.secondHalfPairCountSum) || 0;
-    const pairQuartileStepCounts = Array.isArray(pairSummary.quartileStepCounts)
-      ? pairSummary.quartileStepCounts
+    const pairProgressPhaseStepCounts = Array.isArray(pairSummary.progressPhaseStepCounts)
+      ? pairSummary.progressPhaseStepCounts
       : [];
-    const pairQuartilePairCountSums = Array.isArray(pairSummary.quartilePairCountSums)
-      ? pairSummary.quartilePairCountSums
+    const pairProgressPhasePairCountSums = Array.isArray(pairSummary.progressPhasePairCountSums)
+      ? pairSummary.progressPhasePairCountSums
       : [];
-    for (let quartileIndex = 0; quartileIndex < 4; quartileIndex++) {
-      const stepCountValue = Number(pairQuartileStepCounts[quartileIndex]);
-      const pairSumValue = Number(pairQuartilePairCountSums[quartileIndex]);
-      partialQuartileStepCounts[quartileIndex] +=
+    for (let phaseIndex = 0; phaseIndex < SIMULATION_PROGRESS_PHASE_COUNT; phaseIndex++) {
+      const stepCountValue = Number(pairProgressPhaseStepCounts[phaseIndex]);
+      const pairSumValue = Number(pairProgressPhasePairCountSums[phaseIndex]);
+      partialProgressPhaseStepCounts[phaseIndex] +=
         Number.isFinite(stepCountValue) && stepCountValue > 0
           ? stepCountValue
           : 0;
-      partialQuartilePairCountSums[quartileIndex] +=
+      partialProgressPhasePairCountSums[phaseIndex] +=
         Number.isFinite(pairSumValue) && pairSumValue > 0
           ? pairSumValue
           : 0;
@@ -12552,6 +13614,15 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
     partialOneTurnCount += Number(connectionTypeCounts.oneTurnCount) || 0;
     partialSameDirTwoTurnCount += Number(connectionTypeCounts.sameDirTwoTurnCount) || 0;
     partialReverseTwoTurnCount += Number(connectionTypeCounts.reverseTwoTurnCount) || 0;
+    const availableConnectionTypeCounts = gameResult && gameResult.availableConnectionTypeCountTotals
+      ? gameResult.availableConnectionTypeCountTotals
+      : {};
+    partialAvailableZeroTurnCountSum += Number(availableConnectionTypeCounts.zeroTurnCount) || 0;
+    partialAvailableOneTurnCountSum += Number(availableConnectionTypeCounts.oneTurnCount) || 0;
+    partialAvailableSameDirTwoTurnCountSum +=
+      Number(availableConnectionTypeCounts.sameDirTwoTurnCount) || 0;
+    partialAvailableReverseTwoTurnCountSum +=
+      Number(availableConnectionTypeCounts.reverseTwoTurnCount) || 0;
     partialTotalTrialErrorCountSum += Number(gameResult && gameResult.totalTrialErrorCount) || 0;
     partialMaxTrialErrorCount = Math.max(
       partialMaxTrialErrorCount,
@@ -12586,12 +13657,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
         firstHalfPairCountSum: partialFirstHalfPairCountSum,
         secondHalfStepCount: partialSecondHalfStepCount,
         secondHalfPairCountSum: partialSecondHalfPairCountSum,
-        quartileStepCounts: partialQuartileStepCounts,
-        quartilePairCountSums: partialQuartilePairCountSums,
+        progressPhaseStepCounts: partialProgressPhaseStepCounts,
+        progressPhasePairCountSums: partialProgressPhasePairCountSums,
+        stepPairCountSums: partialStepPairCountSums,
+        stepPairCountSampleCounts: partialStepPairCountSampleCounts,
+        winStepPairCountSums: partialWinStepPairCountSums,
+        winStepPairCountSampleCounts: partialWinStepPairCountSampleCounts,
         zeroTurnCount: partialZeroTurnCount,
         oneTurnCount: partialOneTurnCount,
         sameDirTwoTurnCount: partialSameDirTwoTurnCount,
         reverseTwoTurnCount: partialReverseTwoTurnCount,
+        availableZeroTurnCountSum: partialAvailableZeroTurnCountSum,
+        availableOneTurnCountSum: partialAvailableOneTurnCountSum,
+        availableSameDirTwoTurnCountSum: partialAvailableSameDirTwoTurnCountSum,
+        availableReverseTwoTurnCountSum: partialAvailableReverseTwoTurnCountSum,
         totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
         maxTrialErrorCount: partialMaxTrialErrorCount,
         totalActualPairDistance: partialTotalActualPairDistance,
@@ -12613,12 +13692,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       partialFirstHalfPairCountSum = 0;
       partialSecondHalfStepCount = 0;
       partialSecondHalfPairCountSum = 0;
-      partialQuartileStepCounts = [0, 0, 0, 0];
-      partialQuartilePairCountSums = [0, 0, 0, 0];
+      partialProgressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+      partialProgressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+      partialStepPairCountSums = [];
+      partialStepPairCountSampleCounts = [];
+      partialWinStepPairCountSums = [];
+      partialWinStepPairCountSampleCounts = [];
       partialZeroTurnCount = 0;
       partialOneTurnCount = 0;
       partialSameDirTwoTurnCount = 0;
       partialReverseTwoTurnCount = 0;
+      partialAvailableZeroTurnCountSum = 0;
+      partialAvailableOneTurnCountSum = 0;
+      partialAvailableSameDirTwoTurnCountSum = 0;
+      partialAvailableReverseTwoTurnCountSum = 0;
       partialTotalTrialErrorCountSum = 0;
       partialMaxTrialErrorCount = 0;
       partialTotalActualPairDistance = 0;
@@ -12646,12 +13733,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
       firstHalfPairCountSum: partialFirstHalfPairCountSum,
       secondHalfStepCount: partialSecondHalfStepCount,
       secondHalfPairCountSum: partialSecondHalfPairCountSum,
-      quartileStepCounts: partialQuartileStepCounts,
-      quartilePairCountSums: partialQuartilePairCountSums,
+      progressPhaseStepCounts: partialProgressPhaseStepCounts,
+      progressPhasePairCountSums: partialProgressPhasePairCountSums,
+      stepPairCountSums: partialStepPairCountSums,
+      stepPairCountSampleCounts: partialStepPairCountSampleCounts,
+      winStepPairCountSums: partialWinStepPairCountSums,
+      winStepPairCountSampleCounts: partialWinStepPairCountSampleCounts,
       zeroTurnCount: partialZeroTurnCount,
       oneTurnCount: partialOneTurnCount,
       sameDirTwoTurnCount: partialSameDirTwoTurnCount,
       reverseTwoTurnCount: partialReverseTwoTurnCount,
+      availableZeroTurnCountSum: partialAvailableZeroTurnCountSum,
+      availableOneTurnCountSum: partialAvailableOneTurnCountSum,
+      availableSameDirTwoTurnCountSum: partialAvailableSameDirTwoTurnCountSum,
+      availableReverseTwoTurnCountSum: partialAvailableReverseTwoTurnCountSum,
       totalTrialErrorCountSum: partialTotalTrialErrorCountSum,
       maxTrialErrorCount: partialMaxTrialErrorCount,
       totalActualPairDistance: partialTotalActualPairDistance,
@@ -12956,12 +14051,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 let firstHalfPairCountSum = 0;
                 let secondHalfStepCount = 0;
                 let secondHalfPairCountSum = 0;
-                let quartileStepCounts = [0, 0, 0, 0];
-                let quartilePairCountSums = [0, 0, 0, 0];
+                let progressPhaseStepCounts = createEmptySimulationProgressPhaseSummary();
+                let progressPhasePairCountSums = createEmptySimulationProgressPhaseSummary();
+                let stepPairCountSums = [];
+                let stepPairCountSampleCounts = [];
+                let winStepPairCountSums = [];
+                let winStepPairCountSampleCounts = [];
                 let zeroTurnCount = 0;
                 let oneTurnCount = 0;
                 let sameDirTwoTurnCount = 0;
                 let reverseTwoTurnCount = 0;
+                let availableZeroTurnCountSum = 0;
+                let availableOneTurnCountSum = 0;
+                let availableSameDirTwoTurnCountSum = 0;
+                let availableReverseTwoTurnCountSum = 0;
                 let totalTrialErrorCountSum = 0;
                 let maxTrialErrorCount = 0;
                 let totalActualPairDistance = 0;
@@ -13058,17 +14161,36 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             const secondHalfPairs = Number.isFinite(Number(data.secondHalfPairCountSum))
                                 ? Number(data.secondHalfPairCountSum)
                                 : 0;
-                            const parseQuartileArray = (raw) => {
-                                const result = [0, 0, 0, 0];
+                            const parseProgressPhaseArray = (raw) => {
+                                const result = createEmptySimulationProgressPhaseSummary();
                                 if (!Array.isArray(raw)) return result;
-                                for (let index = 0; index < 4; index++) {
+                                for (let index = 0; index < SIMULATION_PROGRESS_PHASE_COUNT; index++) {
                                     const value = Number(raw[index]);
                                     result[index] = Number.isFinite(value) && value > 0 ? value : 0;
                                 }
                                 return result;
                             };
-                            const quarterSteps = parseQuartileArray(data.quartileStepCounts);
-                            const quarterPairSums = parseQuartileArray(data.quartilePairCountSums);
+                            const phaseSteps =
+                                parseProgressPhaseArray(data.progressPhaseStepCounts);
+                            const phasePairSums =
+                                parseProgressPhaseArray(data.progressPhasePairCountSums);
+                            const parseDynamicNumberArray = (raw) => {
+                                if (!Array.isArray(raw)) return [];
+                                return raw.map((value) => {
+                                    const numericValue = Number(value);
+                                    return Number.isFinite(numericValue) && numericValue >= 0
+                                        ? numericValue
+                                        : 0;
+                                });
+                            };
+                            const incomingStepPairCountSums =
+                                parseDynamicNumberArray(data.stepPairCountSums);
+                            const incomingStepPairCountSampleCounts =
+                                parseDynamicNumberArray(data.stepPairCountSampleCounts);
+                            const incomingWinStepPairCountSums =
+                                parseDynamicNumberArray(data.winStepPairCountSums);
+                            const incomingWinStepPairCountSampleCounts =
+                                parseDynamicNumberArray(data.winStepPairCountSampleCounts);
                             const zeroTurn = Number.isFinite(Number(data.zeroTurnCount))
                                 ? Number(data.zeroTurnCount)
                                 : 0;
@@ -13081,6 +14203,22 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             const reverseTwoTurn = Number.isFinite(Number(data.reverseTwoTurnCount))
                                 ? Number(data.reverseTwoTurnCount)
                                 : 0;
+                            const availableZeroTurnSum =
+                                Number.isFinite(Number(data.availableZeroTurnCountSum))
+                                    ? Number(data.availableZeroTurnCountSum)
+                                    : 0;
+                            const availableOneTurnSum =
+                                Number.isFinite(Number(data.availableOneTurnCountSum))
+                                    ? Number(data.availableOneTurnCountSum)
+                                    : 0;
+                            const availableSameDirTwoTurnSum =
+                                Number.isFinite(Number(data.availableSameDirTwoTurnCountSum))
+                                    ? Number(data.availableSameDirTwoTurnCountSum)
+                                    : 0;
+                            const availableReverseTwoTurnSum =
+                                Number.isFinite(Number(data.availableReverseTwoTurnCountSum))
+                                    ? Number(data.availableReverseTwoTurnCountSum)
+                                    : 0;
                             const trialErrorCountSum = Number.isFinite(Number(data.totalTrialErrorCountSum))
                                 ? Number(data.totalTrialErrorCountSum)
                                 : 0;
@@ -13124,14 +14262,46 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             firstHalfPairCountSum += firstHalfPairs;
                             secondHalfStepCount += secondHalfSteps;
                             secondHalfPairCountSum += secondHalfPairs;
-                            for (let quartileIndex = 0; quartileIndex < 4; quartileIndex++) {
-                                quartileStepCounts[quartileIndex] += quarterSteps[quartileIndex];
-                                quartilePairCountSums[quartileIndex] += quarterPairSums[quartileIndex];
+                            for (
+                                let phaseIndex = 0;
+                                phaseIndex < SIMULATION_PROGRESS_PHASE_COUNT;
+                                phaseIndex++
+                            ) {
+                                progressPhaseStepCounts[phaseIndex] += phaseSteps[phaseIndex];
+                                progressPhasePairCountSums[phaseIndex] += phasePairSums[phaseIndex];
+                            }
+                            const maxStepCount = Math.max(
+                                incomingStepPairCountSums.length,
+                                incomingStepPairCountSampleCounts.length
+                            );
+                            for (let stepIndex = 0; stepIndex < maxStepCount; stepIndex++) {
+                                stepPairCountSums[stepIndex] =
+                                    (Number(stepPairCountSums[stepIndex]) || 0) +
+                                    (Number(incomingStepPairCountSums[stepIndex]) || 0);
+                                stepPairCountSampleCounts[stepIndex] =
+                                    (Number(stepPairCountSampleCounts[stepIndex]) || 0) +
+                                    (Number(incomingStepPairCountSampleCounts[stepIndex]) || 0);
+                            }
+                            const maxWinStepCount = Math.max(
+                                incomingWinStepPairCountSums.length,
+                                incomingWinStepPairCountSampleCounts.length
+                            );
+                            for (let stepIndex = 0; stepIndex < maxWinStepCount; stepIndex++) {
+                                winStepPairCountSums[stepIndex] =
+                                    (Number(winStepPairCountSums[stepIndex]) || 0) +
+                                    (Number(incomingWinStepPairCountSums[stepIndex]) || 0);
+                                winStepPairCountSampleCounts[stepIndex] =
+                                    (Number(winStepPairCountSampleCounts[stepIndex]) || 0) +
+                                    (Number(incomingWinStepPairCountSampleCounts[stepIndex]) || 0);
                             }
                             zeroTurnCount += zeroTurn;
                             oneTurnCount += oneTurn;
                             sameDirTwoTurnCount += sameDirTwoTurn;
                             reverseTwoTurnCount += reverseTwoTurn;
+                            availableZeroTurnCountSum += availableZeroTurnSum;
+                            availableOneTurnCountSum += availableOneTurnSum;
+                            availableSameDirTwoTurnCountSum += availableSameDirTwoTurnSum;
+                            availableReverseTwoTurnCountSum += availableReverseTwoTurnSum;
                             totalTrialErrorCountSum += trialErrorCountSum;
                             maxTrialErrorCount = Math.max(maxTrialErrorCount, trialErrorMax);
                             totalActualPairDistance += actualDistanceSum;
@@ -13166,12 +14336,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                     firstHalfPairCountSum,
                                     secondHalfStepCount,
                                     secondHalfPairCountSum,
-                                    quartileStepCounts,
-                                    quartilePairCountSums,
+                                    progressPhaseStepCounts,
+                                    progressPhasePairCountSums,
+                                    stepPairCountSums,
+                                    stepPairCountSampleCounts,
+                                    winStepPairCountSums,
+                                    winStepPairCountSampleCounts,
                                     zeroTurnCount,
                                     oneTurnCount,
                                     sameDirTwoTurnCount,
                                     reverseTwoTurnCount,
+                                    availableZeroTurnCountSum,
+                                    availableOneTurnCountSum,
+                                    availableSameDirTwoTurnCountSum,
+                                    availableReverseTwoTurnCountSum,
                                     totalTrialErrorCountSum,
                                     maxTrialErrorCount,
                                     totalActualPairDistance,
@@ -13203,12 +14381,20 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                                 firstHalfPairCountSum,
                                 secondHalfStepCount,
                                 secondHalfPairCountSum,
-                                quartileStepCounts,
-                                quartilePairCountSums,
+                                progressPhaseStepCounts,
+                                progressPhasePairCountSums,
+                                stepPairCountSums,
+                                stepPairCountSampleCounts,
+                                winStepPairCountSums,
+                                winStepPairCountSampleCounts,
                                 zeroTurnCount,
                                 oneTurnCount,
                                 sameDirTwoTurnCount,
                                 reverseTwoTurnCount,
+                                availableZeroTurnCountSum,
+                                availableOneTurnCountSum,
+                                availableSameDirTwoTurnCountSum,
+                                availableReverseTwoTurnCountSum,
                                 totalTrialErrorCountSum,
                                 maxTrialErrorCount,
                                 totalActualPairDistance,
@@ -13366,7 +14552,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     initialClusterCount,
                     false,
                     humanMode,
-                    humanModeBesidePercent
+                    humanModeBesidePercent,
+                    getStepPairExportScope()
                 );
 
                 const info = document.getElementById('info');
@@ -13824,6 +15011,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
 
         function resetStepGenerationState() {
             stepGenerationState = null;
+            clearStepGenerationRhythmHighlights();
+            clearStepGenerationRecentPairHighlights();
             const stepButton = document.getElementById('btnStepGenerate');
             if (stepButton) stepButton.textContent = '分步生成';
         }
@@ -13909,6 +15098,134 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             }
 
             return ordered.map(item => item.group);
+        }
+
+        function getTraceRevealCellPosition(step, positionIndex) {
+            const initialPosition = positionIndex === 1 ? step?.initialPosition1 : step?.initialPosition2;
+            if (
+                initialPosition &&
+                Number.isInteger(initialPosition.row) &&
+                Number.isInteger(initialPosition.col)
+            ) {
+                return { i: initialPosition.row, j: initialPosition.col };
+            }
+            const rowKey = positionIndex === 1 ? 'row1' : 'row2';
+            const colKey = positionIndex === 1 ? 'col1' : 'col2';
+            const row = Math.trunc(Number(step?.[rowKey]));
+            const col = Math.trunc(Number(step?.[colKey]));
+            if (!Number.isInteger(row) || !Number.isInteger(col)) return null;
+            return { i: row, j: col };
+        }
+
+        function buildTraceStepGroupsForReveal(solutionTrace, boardData) {
+            if (!Array.isArray(solutionTrace) || solutionTrace.length === 0) return [];
+            const height = Array.isArray(boardData) ? boardData.length : 0;
+            const width = height > 0 && Array.isArray(boardData[0]) ? boardData[0].length : 0;
+            const groups = [];
+            const used = new Set();
+            for (let index = solutionTrace.length - 1; index >= 0; index--) {
+                const step = solutionTrace[index];
+                const group = [];
+                for (const positionIndex of [1, 2]) {
+                    const position = getTraceRevealCellPosition(step, positionIndex);
+                    if (!position) continue;
+                    if (position.i < 0 || position.i >= height || position.j < 0 || position.j >= width) continue;
+                    const key = `${position.i},${position.j}`;
+                    if (used.has(key)) continue;
+                    used.add(key);
+                    group.push({
+                        i: position.i,
+                        j: position.j,
+                        firstInGroup: group.length === 0
+                    });
+                }
+                if (group.length > 0) {
+                    group.stepMeta = {
+                        phase: step?.phase || null,
+                        waveId: step?.waveId ?? null,
+                        waveRole: step?.waveRole || null,
+                        wavePressureType: step?.wavePressureType || null,
+                        isSameLayerPair: Boolean(step?.isSameLayerPair),
+                        isStuckPair: Boolean(step?.isStuckPair),
+                        connectionType: step?.connectionType || ''
+                    };
+                    groups.push(group);
+                }
+            }
+            return groups;
+        }
+
+        function clearStepGenerationRhythmHighlights() {
+            const groups = document.querySelectorAll('[data-rhythm-logic]');
+            groups.forEach((group) => group.classList.remove('rhythm-config-group-active'));
+            updateStepGenerationPhaseRangeHighlights(null);
+        }
+
+        function updateStepGenerationPhaseRangeHighlights(group) {
+            const phaseItems = document.querySelectorAll('[data-rhythm-phase]');
+            phaseItems.forEach((item) => item.classList.remove('rhythm-phase-range-active'));
+            const phase = group?.stepMeta?.phase || null;
+            if (phase !== 'early' && phase !== 'middle') return;
+            const activePhaseItems = document.querySelectorAll(`[data-rhythm-phase="${phase}"]`);
+            activePhaseItems.forEach((item) => item.classList.add('rhythm-phase-range-active'));
+        }
+
+        function getStepGenerationRhythmLogicKeys(group) {
+            const meta = group?.stepMeta || {};
+            const keys = new Set();
+            if (meta.phase === 'early' || meta.phase === 'middle') {
+                keys.add('stage');
+            }
+            if (meta.waveId !== null && meta.waveId !== undefined) {
+                keys.add('wave');
+            }
+            if (meta.isSameLayerPair) {
+                keys.add('placement');
+            }
+            if (meta.isStuckPair) {
+                keys.add('stuck');
+            }
+            if (
+                ['直线连接', '1拐连接', '同向2拐', '反向2拐'].includes(meta.connectionType)
+            ) {
+                keys.add('connection');
+            }
+            return Array.from(keys);
+        }
+
+        function updateStepGenerationRhythmHighlights(group) {
+            clearStepGenerationRhythmHighlights();
+            updateStepGenerationPhaseRangeHighlights(group);
+            const logicKeys = getStepGenerationRhythmLogicKeys(group);
+            for (const logicKey of logicKeys) {
+                const target = document.querySelector(`[data-rhythm-logic="${logicKey}"]`);
+                if (target) target.classList.add('rhythm-config-group-active');
+            }
+        }
+
+        function clearStepGenerationRecentPairHighlights() {
+            const highlightedCells = document.querySelectorAll('.cell.step-generation-recent-pair');
+            highlightedCells.forEach((cell) =>
+                cell.classList.remove('step-generation-recent-pair')
+            );
+        }
+
+        function markStepGenerationRecentPairHighlights(group) {
+            for (const item of group || []) {
+                const cell = document.getElementById(`cell-${item.i}-${item.j}`);
+                if (cell) cell.classList.add('step-generation-recent-pair');
+            }
+        }
+
+        function buildStepRevealBoardBefore(boardBefore, groups) {
+            const revealBoard = cloneBoardData(boardBefore);
+            for (const group of groups || []) {
+                for (const item of group || []) {
+                    if (!revealBoard[item.i]) continue;
+                    revealBoard[item.i][item.j] = PLACEHOLDER_CELL_ID;
+                }
+            }
+            return revealBoard;
         }
 
         function renderCellNumber(i, j, num) {
@@ -14008,6 +15325,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             }
 
             const currentGroup = groups[stepGenerationState.currentStepIndex];
+            updateStepGenerationRhythmHighlights(currentGroup);
+            clearStepGenerationRecentPairHighlights();
             for (const item of currentGroup) {
                 const { i, j } = item;
                 const num = boardData[i]?.[j] ?? 0;
@@ -14015,6 +15334,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 filledCells[i][j] = num;
                 renderCellNumber(i, j, num);
             }
+            markStepGenerationRecentPairHighlights(currentGroup);
 
             stepGenerationState.currentStepIndex++;
             updateLevelStats(direction);
@@ -15069,9 +16389,873 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             return REVERSE_GENERATION_DIFFICULTY_CONFIGS[key] ? key : fallback;
         }
 
-        function getReverseGenerationDifficultyValue(defaultValue = 'normal') {
-            const select = document.getElementById('reverseDifficulty');
-            return normalizeReverseGenerationDifficulty(select?.value, defaultValue);
+        function getRhythmNumericInputValue(inputId, fallback, minValue, maxValue) {
+            const element = document.getElementById(inputId);
+            const parsed = Number(element?.value);
+            const safeFallback = Number.isFinite(Number(fallback)) ? Number(fallback) : 0;
+            const safeMin = Number.isFinite(Number(minValue)) ? Number(minValue) : -Infinity;
+            const safeMax = Number.isFinite(Number(maxValue)) ? Number(maxValue) : Infinity;
+            const value = Number.isFinite(parsed) ? parsed : safeFallback;
+            const clamped = Math.max(safeMin, Math.min(safeMax, value));
+            if (element && String(element.value) !== String(clamped)) {
+                element.value = String(clamped);
+            }
+            return clamped;
+        }
+
+        function getRhythmInputRange(minInputId, maxInputId, fallbackRange, minValue, maxValue) {
+            const fallback = Array.isArray(fallbackRange) ? fallbackRange : [minValue, maxValue];
+            const left = getRhythmNumericInputValue(minInputId, fallback[0], minValue, maxValue);
+            const right = getRhythmNumericInputValue(maxInputId, fallback[1], minValue, maxValue);
+            return [Math.min(left, right), Math.max(left, right)];
+        }
+
+        function getRhythmGenerationOptionsFromInputs() {
+            const earlyDefaults = RHYTHM_DEFAULT_PHASE_CONFIGS.early;
+            const middleDefaults = RHYTHM_DEFAULT_PHASE_CONFIGS.middle;
+            const earlyPairRange = getRhythmInputRange(
+                'rhythmEarlyPairMin',
+                'rhythmEarlyPairMax',
+                earlyDefaults.pairCountRange,
+                1,
+                99
+            );
+            const earlyDistanceRange = getRhythmInputRange(
+                'rhythmEarlyDistanceMin',
+                'rhythmEarlyDistanceMax',
+                earlyDefaults.distanceRange,
+                1,
+                99
+            );
+            const middlePairRange = getRhythmInputRange(
+                'rhythmMiddlePairMin',
+                'rhythmMiddlePairMax',
+                middleDefaults.pairCountRange,
+                1,
+                99
+            );
+            const middleDistanceRange = getRhythmInputRange(
+                'rhythmMiddleDistanceMin',
+                'rhythmMiddleDistanceMax',
+                middleDefaults.distanceRange,
+                1,
+                99
+            );
+            const sameLayerChance = getRhythmNumericInputValue('rhythmSameLayerChance', 0.5, 0, 1);
+            const stuckPairChance = getRhythmNumericInputValue('rhythmStuckPairChance', 0, 0, 1);
+            const stuckPairCount = Math.round(
+                getRhythmNumericInputValue('rhythmStuckPairCount', 0, 0, 99)
+            );
+            const middleTypeWeights = {
+                '直线连接': getRhythmNumericInputValue('rhythmWeightStraight', 2.5, 0, 20),
+                '1拐连接': getRhythmNumericInputValue('rhythmWeightOneTurn', 4, 0, 20),
+                '同向2拐': getRhythmNumericInputValue('rhythmWeightSameTwoTurn', 3, 0, 20),
+                '反向2拐': getRhythmNumericInputValue('rhythmWeightReverseTwoTurn', 2, 0, 20)
+            };
+            return {
+                waveCountMin: 0,
+                waveCountMax: 0,
+                sameLayerChance,
+                stuckPairChance,
+                stuckPairCount,
+                phaseConfigs: {
+                    early: {
+                        pairCountRange: earlyPairRange,
+                        distanceRange: earlyDistanceRange,
+                        nextPairCountRange: earlyPairRange,
+                        typeWeights: earlyDefaults.typeWeights
+                    },
+                    middle: {
+                        pairCountRange: middlePairRange,
+                        distanceRange: middleDistanceRange,
+                        nextPairCountRange: middlePairRange,
+                        typeWeights: middleTypeWeights
+                    }
+                }
+            };
+        }
+
+        const RHYTHM_GENERATION_ABSTRACT_BLOCK_ID = 1;
+        const RHYTHM_CONNECTION_TYPE_ORDER = ['直线连接', '1拐连接', '同向2拐', '反向2拐'];
+        const RHYTHM_DEFAULT_PHASE_CONFIGS = {
+            early: {
+                pairCountRange: [8, 18],
+                distanceRange: [1, 7],
+                typeWeights: {
+                    '直线连接': 5,
+                    '1拐连接': 4,
+                    '同向2拐': 1.5,
+                    '反向2拐': 1
+                },
+                nextPairCountRange: [8, 20]
+            },
+            middle: {
+                pairCountRange: [4, 12],
+                distanceRange: [3, 12],
+                typeWeights: {
+                    '直线连接': 2.5,
+                    '1拐连接': 4,
+                    '同向2拐': 3,
+                    '反向2拐': 2
+                },
+                nextPairCountRange: [4, 14]
+            },
+            late: {
+                pairCountRange: [1, 999],
+                distanceRange: [1, 999],
+                typeWeights: {
+                    '直线连接': 1,
+                    '1拐连接': 1,
+                    '同向2拐': 1,
+                    '反向2拐': 1
+                },
+                nextPairCountRange: [1, 999]
+            }
+        };
+
+        function clampRhythmRange(rawRange, fallbackRange) {
+            const fallback = Array.isArray(fallbackRange) ? fallbackRange : [0, 999];
+            const left = Number(Array.isArray(rawRange) ? rawRange[0] : NaN);
+            const right = Number(Array.isArray(rawRange) ? rawRange[1] : NaN);
+            const minValue = Number.isFinite(left) ? left : fallback[0];
+            const maxValue = Number.isFinite(right) ? right : fallback[1];
+            return [Math.min(minValue, maxValue), Math.max(minValue, maxValue)];
+        }
+
+        function normalizeRhythmPhaseConfig(phase, overrides = {}) {
+            const defaults = RHYTHM_DEFAULT_PHASE_CONFIGS[phase] || RHYTHM_DEFAULT_PHASE_CONFIGS.middle;
+            const rawConfig = overrides && typeof overrides === 'object' ? overrides : {};
+            const typeWeights = { ...defaults.typeWeights, ...(rawConfig.typeWeights || {}) };
+            return {
+                pairCountRange: clampRhythmRange(rawConfig.pairCountRange, defaults.pairCountRange),
+                distanceRange: clampRhythmRange(rawConfig.distanceRange, defaults.distanceRange),
+                nextPairCountRange: clampRhythmRange(
+                    rawConfig.nextPairCountRange,
+                    defaults.nextPairCountRange || defaults.pairCountRange
+                ),
+                typeWeights
+            };
+        }
+
+        function getRhythmGenerationConfig(options = {}) {
+            const phaseOverrides = options.phaseConfigs || {};
+            return {
+                waveCountMin: Number.isFinite(Number(options.waveCountMin))
+                    ? Math.max(0, Math.min(3, Math.floor(Number(options.waveCountMin))))
+                    : 0,
+                waveCountMax: Number.isFinite(Number(options.waveCountMax))
+                    ? Math.max(0, Math.min(3, Math.floor(Number(options.waveCountMax))))
+                    : 3,
+                phases: {
+                    early: normalizeRhythmPhaseConfig('early', phaseOverrides.early),
+                    middle: normalizeRhythmPhaseConfig('middle', phaseOverrides.middle),
+                    late: normalizeRhythmPhaseConfig('late', phaseOverrides.late)
+                }
+            };
+        }
+
+        function buildRhythmGenerationStagePlan(totalPairCount, options = {}) {
+            const pairCount = Math.max(0, Math.floor(Number(totalPairCount) || 0));
+            if (pairCount <= 0) return [];
+            const config = getRhythmGenerationConfig(options);
+            const earlyEnd = Math.max(1, Math.floor(pairCount * 0.15));
+            const middleEnd = Math.max(earlyEnd + 1, Math.floor(pairCount * 0.65));
+            const plan = Array.from({ length: pairCount }, (_, stepIndex) => {
+                const phase = stepIndex < earlyEnd
+                    ? 'early'
+                    : (stepIndex < middleEnd ? 'middle' : 'late');
+                return {
+                    stepIndex,
+                    phase,
+                    waveId: null,
+                    waveRole: null,
+                    wavePressureType: null,
+                    config: config.phases[phase]
+                };
+            });
+
+            return plan;
+        }
+
+        function buildRhythmGenerationAbstractBoards(sourceBoard, targetOrder) {
+            const boardData = cloneBoardData(sourceBoard);
+            const tokenBoard = sourceBoard.map((row) => Array(row.length).fill(null));
+            const initialTokenPositions = new Map();
+            let nextToken = 1;
+            for (const target of targetOrder || []) {
+                const row = Math.trunc(Number(target?.i));
+                const col = Math.trunc(Number(target?.j));
+                if (!Number.isInteger(row) || !Number.isInteger(col) || !boardData[row]) continue;
+                boardData[row][col] = RHYTHM_GENERATION_ABSTRACT_BLOCK_ID;
+                tokenBoard[row][col] = nextToken;
+                initialTokenPositions.set(nextToken, { row, col });
+                nextToken++;
+            }
+            return { boardData, tokenBoard, initialTokenPositions };
+        }
+
+        function collectRhythmTokenCells(tokenBoard) {
+            const cells = [];
+            if (!Array.isArray(tokenBoard)) return cells;
+            for (let row = 0; row < tokenBoard.length; row++) {
+                const tokenRow = tokenBoard[row];
+                if (!Array.isArray(tokenRow)) continue;
+                for (let col = 0; col < tokenRow.length; col++) {
+                    const token = tokenRow[col];
+                    if (!Number.isInteger(token) || token <= 0) continue;
+                    cells.push({ row, col, token });
+                }
+            }
+            return cells;
+        }
+
+        function getRhythmCellLayerIndex(row, col, width, height) {
+            const safeRow = Math.trunc(Number(row));
+            const safeCol = Math.trunc(Number(col));
+            const safeWidth = Math.trunc(Number(width));
+            const safeHeight = Math.trunc(Number(height));
+            if (
+                !Number.isInteger(safeRow) ||
+                !Number.isInteger(safeCol) ||
+                !Number.isInteger(safeWidth) ||
+                !Number.isInteger(safeHeight) ||
+                safeWidth <= 0 ||
+                safeHeight <= 0 ||
+                safeRow < 0 ||
+                safeCol < 0 ||
+                safeRow >= safeHeight ||
+                safeCol >= safeWidth
+            ) {
+                return null;
+            }
+            return Math.min(
+                safeRow,
+                safeCol,
+                safeHeight - 1 - safeRow,
+                safeWidth - 1 - safeCol
+            ) + 1;
+        }
+
+        function getRhythmScoredCandidateSameLayerState(
+            item,
+            initialTokenPositions,
+            width,
+            height
+        ) {
+            if (!initialTokenPositions || typeof initialTokenPositions.get !== 'function') return null;
+            const candidate = item?.candidate;
+            const first = initialTokenPositions.get(candidate?.token1);
+            const second = initialTokenPositions.get(candidate?.token2);
+            if (!first || !second) return null;
+            const firstLayer = getRhythmCellLayerIndex(first.row, first.col, width, height);
+            const secondLayer = getRhythmCellLayerIndex(second.row, second.col, width, height);
+            if (firstLayer === null || secondLayer === null) return null;
+            return firstLayer === secondLayer;
+        }
+
+        function filterRhythmScoredCandidatesBySameInitialLayer(
+            scoredCandidates,
+            initialTokenPositions,
+            width,
+            height
+        ) {
+            if (!Array.isArray(scoredCandidates) || scoredCandidates.length === 0) return [];
+            return scoredCandidates.filter((item) =>
+                getRhythmScoredCandidateSameLayerState(
+                    item,
+                    initialTokenPositions,
+                    width,
+                    height
+                ) === true
+            );
+        }
+
+        function selectRhythmLayerPreferenceCandidates(
+            scoredCandidates,
+            initialTokenPositions,
+            width,
+            height,
+            preferSameLayer
+        ) {
+            if (!Array.isArray(scoredCandidates) || scoredCandidates.length === 0) return [];
+            const preferredCandidates = scoredCandidates.filter((item) =>
+                getRhythmScoredCandidateSameLayerState(
+                    item,
+                    initialTokenPositions,
+                    width,
+                    height
+                ) === Boolean(preferSameLayer)
+            );
+            return preferredCandidates.length > 0 ? preferredCandidates : scoredCandidates;
+        }
+
+        function filterRhythmScoredCandidatesByInitialBlockedPair(
+            scoredCandidates,
+            initialBoardData,
+            initialTokenPositions
+        ) {
+            if (!Array.isArray(scoredCandidates) || scoredCandidates.length === 0) return [];
+            if (!Array.isArray(initialBoardData) || initialBoardData.length === 0) return [];
+            if (!initialTokenPositions || typeof initialTokenPositions.get !== 'function') return [];
+            return scoredCandidates.filter((item) => {
+                const candidate = item?.candidate;
+                const first = initialTokenPositions.get(candidate?.token1);
+                const second = initialTokenPositions.get(candidate?.token2);
+                if (!first || !second) return false;
+                const path = findConnectionPathByLianliankan(
+                    initialBoardData,
+                    first.row,
+                    first.col,
+                    second.row,
+                    second.col
+                );
+                return !Array.isArray(path) || path.length < 2;
+            });
+        }
+
+        function collectRhythmAvailablePairs(boardData, tokenBoard, options = {}) {
+            const cells = collectRhythmTokenCells(tokenBoard);
+            const exhaustiveLimit = Number.isFinite(Number(options.exhaustiveLimit))
+                ? Math.max(4, Math.floor(Number(options.exhaustiveLimit)))
+                : 44;
+            const maxRandomChecks = Number.isFinite(Number(options.maxRandomChecks))
+                ? Math.max(24, Math.floor(Number(options.maxRandomChecks)))
+                : 900;
+            const pairs = [];
+            const checkedKeys = new Set();
+            const tryPair = (leftIndex, rightIndex) => {
+                if (leftIndex === rightIndex) return;
+                const left = Math.min(leftIndex, rightIndex);
+                const right = Math.max(leftIndex, rightIndex);
+                const key = `${left},${right}`;
+                if (checkedKeys.has(key)) return;
+                checkedKeys.add(key);
+                const first = cells[left];
+                const second = cells[right];
+                const path = findConnectionPathByLianliankan(
+                    boardData,
+                    first.row,
+                    first.col,
+                    second.row,
+                    second.col
+                );
+                if (!Array.isArray(path) || path.length < 2) return;
+                const connectionType = getPlayConnectionTypeByPath(path);
+                pairs.push({
+                    row1: first.row,
+                    col1: first.col,
+                    row2: second.row,
+                    col2: second.col,
+                    token1: first.token,
+                    token2: second.token,
+                    connectionType,
+                    distance: computePathLengthByGridSteps(path) || 0
+                });
+            };
+
+            if (cells.length <= exhaustiveLimit) {
+                for (let left = 0; left < cells.length - 1; left++) {
+                    for (let right = left + 1; right < cells.length; right++) {
+                        tryPair(left, right);
+                    }
+                }
+                return pairs;
+            }
+
+            const maxPairCombos = (cells.length * (cells.length - 1)) / 2;
+            for (
+                let checkIndex = 0;
+                checkIndex < maxRandomChecks && checkedKeys.size < maxPairCombos;
+                checkIndex++
+            ) {
+                const left = Math.floor(Math.random() * cells.length);
+                let right = Math.floor(Math.random() * (cells.length - 1));
+                if (right >= left) right++;
+                tryPair(left, right);
+            }
+            if (pairs.length > 0) return pairs;
+
+            for (let left = 0; left < cells.length - 1; left++) {
+                for (let right = left + 1; right < cells.length; right++) {
+                    tryPair(left, right);
+                    if (pairs.length >= 24) return pairs;
+                }
+            }
+            return pairs;
+        }
+
+        function getRhythmRangeError(value, range) {
+            const safeValue = Number(value);
+            if (!Number.isFinite(safeValue)) return 999;
+            const [minValue, maxValue] = clampRhythmRange(range, [0, 999]);
+            if (safeValue < minValue) return minValue - safeValue;
+            if (safeValue > maxValue) return safeValue - maxValue;
+            return 0;
+        }
+
+        function isRhythmCandidateDistanceInRange(candidate, stageEntry) {
+            const range = stageEntry?.config?.distanceRange;
+            if (!Array.isArray(range)) return true;
+            return getRhythmRangeError(candidate?.distance, range) === 0;
+        }
+
+        function shouldForceRhythmStuckPairByDistance(
+            availablePairs,
+            stageEntry,
+            stuckPairUsedCount,
+            stuckPairLimit
+        ) {
+            if (stageEntry?.phase !== 'middle') return false;
+            if (Math.max(0, Math.floor(Number(stuckPairLimit) || 0)) <=
+                Math.max(0, Math.floor(Number(stuckPairUsedCount) || 0))) {
+                return false;
+            }
+            if (!Array.isArray(availablePairs) || availablePairs.length === 0) return false;
+            return !availablePairs.some((candidate) =>
+                isRhythmCandidateDistanceInRange(candidate, stageEntry)
+            );
+        }
+
+        function applyRhythmCandidateMove(boardData, tokenBoard, direction, candidate) {
+            const nextBoard = cloneBoardData(boardData);
+            const nextTokenBoard = tokenBoard.map((row) => [...row]);
+            nextBoard[candidate.row1][candidate.col1] = EMPTY_CELL_ID;
+            nextBoard[candidate.row2][candidate.col2] = EMPTY_CELL_ID;
+            nextTokenBoard[candidate.row1][candidate.col1] = null;
+            nextTokenBoard[candidate.row2][candidate.col2] = null;
+            applyDirectionShiftUntilStable(nextBoard, direction, nextTokenBoard);
+            return { boardData: nextBoard, tokenBoard: nextTokenBoard };
+        }
+
+        function getRhythmWaveAdjustedConfig(stageEntry) {
+            const baseConfig = stageEntry?.config || RHYTHM_DEFAULT_PHASE_CONFIGS.middle;
+            return {
+                pairCountRange: [...baseConfig.pairCountRange],
+                distanceRange: [...baseConfig.distanceRange],
+                nextPairCountRange: [...baseConfig.nextPairCountRange],
+                typeWeights: { ...baseConfig.typeWeights }
+            };
+        }
+
+        function scoreRhythmCandidate(candidate, context) {
+            const stageConfig = getRhythmWaveAdjustedConfig(context.stageEntry);
+            const currentPairCount = Number(context.currentPairCount) || 0;
+            const nextPairCount = Number(context.nextPairCount) || 0;
+            const pairError =
+                getRhythmRangeError(currentPairCount, stageConfig.pairCountRange) +
+                (getRhythmRangeError(nextPairCount, stageConfig.nextPairCountRange) * 0.8);
+            const distanceError = getRhythmRangeError(candidate.distance, stageConfig.distanceRange);
+            const typeWeight = Number(stageConfig.typeWeights?.[candidate.connectionType]) || 0;
+            const lateRandomness = context.stageEntry?.phase === 'late' ? Math.random() * 6 : 0;
+            return (
+                (typeWeight * 4) +
+                lateRandomness +
+                (Math.random() * 0.75) -
+                (pairError * 1.8) -
+                (distanceError * 1.25)
+            );
+        }
+
+        function planAbstractRhythmSolveTrace(sourceBoard, options = {}) {
+            if (!Array.isArray(sourceBoard) || sourceBoard.length === 0) {
+                return { success: false, message: '抽象棋盘为空。' };
+            }
+            const direction = Number.isFinite(Number(options.direction))
+                ? Math.max(0, Math.min(8, Math.round(Number(options.direction))))
+                : 0;
+            const targetOrder = Array.isArray(options.targetOrder)
+                ? options.targetOrder
+                : [];
+            if (targetOrder.length === 0 || targetOrder.length % 2 !== 0) {
+                return { success: false, message: '抽象轨迹目标格数量必须为正偶数。' };
+            }
+            const totalPairCount = targetOrder.length / 2;
+            const stagePlan = Array.isArray(options.stagePlan) && options.stagePlan.length >= totalPairCount
+                ? options.stagePlan
+                : buildRhythmGenerationStagePlan(totalPairCount, options);
+            const maxSearchAttempts = Number.isFinite(Number(options.maxSearchAttempts))
+                ? Math.max(1, Math.floor(Number(options.maxSearchAttempts)))
+                : 8;
+            const candidateBranchLimit = Number.isFinite(Number(options.candidateBranchLimit))
+                ? Math.max(1, Math.floor(Number(options.candidateBranchLimit)))
+                : 10;
+            const sameLayerChance = Number.isFinite(Number(options.sameLayerChance))
+                ? Math.max(0, Math.min(1, Number(options.sameLayerChance)))
+                : 0;
+            const stuckPairChance = Number.isFinite(Number(options.stuckPairChance))
+                ? Math.max(0, Math.min(1, Number(options.stuckPairChance)))
+                : 0;
+            const stuckPairLimit = Number.isFinite(Number(options.stuckPairCount))
+                ? Math.max(0, Math.floor(Number(options.stuckPairCount)))
+                : 0;
+            const boardHeight = sourceBoard.length;
+            const boardWidth = sourceBoard[0]?.length || 0;
+
+            for (let attempt = 0; attempt < maxSearchAttempts; attempt++) {
+                const initial = buildRhythmGenerationAbstractBoards(sourceBoard, targetOrder);
+                const solutionTrace = [];
+                let boardData = initial.boardData;
+                let tokenBoard = initial.tokenBoard;
+                let failed = false;
+                let stuckPairUsedCount = 0;
+
+                for (let stepIndex = 0; stepIndex < totalPairCount; stepIndex++) {
+                    const availablePairs = collectRhythmAvailablePairs(boardData, tokenBoard, {
+                        exhaustiveLimit: 28,
+                        maxRandomChecks: 220
+                    });
+                    if (availablePairs.length === 0) {
+                        failed = true;
+                        break;
+                    }
+                    const stageEntry = stagePlan[stepIndex] || stagePlan[stagePlan.length - 1];
+                    let selected = null;
+                    let selectedAsStuckPair = false;
+                    let selectedAsSameLayerPair = false;
+                    const forceStuckPairByDistance = shouldForceRhythmStuckPairByDistance(
+                        availablePairs,
+                        stageEntry,
+                        stuckPairUsedCount,
+                        stuckPairLimit
+                    );
+                    const canUseStuckPair =
+                        stageEntry?.phase === 'middle' &&
+                        stuckPairUsedCount < stuckPairLimit &&
+                        (
+                            forceStuckPairByDistance ||
+                            (stuckPairChance > 0 && Math.random() < stuckPairChance)
+                        );
+                    if (canUseStuckPair) {
+                        const stuckCandidates = filterRhythmScoredCandidatesByInitialBlockedPair(
+                            availablePairs.map((candidate) => ({ candidate, score: 0 })),
+                            initial.boardData,
+                            initial.initialTokenPositions
+                        );
+                        if (stuckCandidates.length > 0) {
+                            const stuckPickPool = shuffleArray(stuckCandidates).slice(
+                                0,
+                                Math.min(candidateBranchLimit, stuckCandidates.length)
+                            );
+                            const stuckSelected = stuckPickPool[
+                                Math.floor(Math.random() * stuckPickPool.length)
+                            ];
+                            if (stuckSelected?.candidate) {
+                                selected = {
+                                    candidate: stuckSelected.candidate,
+                                    nextState: applyRhythmCandidateMove(
+                                        boardData,
+                                        tokenBoard,
+                                        direction,
+                                        stuckSelected.candidate
+                                    )
+                                };
+                            }
+                            selectedAsStuckPair = true;
+                        }
+                    }
+
+                    if (!selected) {
+                        const firstPassCandidates = availablePairs
+                            .map((candidate) => ({
+                                candidate,
+                                score: scoreRhythmCandidate(candidate, {
+                                    stageEntry,
+                                    currentPairCount: availablePairs.length,
+                                    nextPairCount: availablePairs.length
+                                })
+                            }))
+                            .sort((left, right) => right.score - left.score)
+                            .slice(0, Math.min(8, availablePairs.length));
+                        const scoredCandidates = [];
+                        for (const { candidate } of firstPassCandidates) {
+                            const nextState = applyRhythmCandidateMove(
+                                boardData,
+                                tokenBoard,
+                                direction,
+                                candidate
+                            );
+                            const nextPairCount = collectRhythmAvailablePairs(
+                                nextState.boardData,
+                                nextState.tokenBoard,
+                                { exhaustiveLimit: 22, maxRandomChecks: 36 }
+                            ).length;
+                            scoredCandidates.push({
+                                candidate,
+                                nextState,
+                                score: scoreRhythmCandidate(candidate, {
+                                    stageEntry,
+                                    currentPairCount: availablePairs.length,
+                                    nextPairCount
+                                })
+                            });
+                        }
+                        scoredCandidates.sort((left, right) => right.score - left.score);
+                        const preferSameLayer =
+                            sameLayerChance > 0 && Math.random() < sameLayerChance;
+                        const candidatePoolSource = sameLayerChance > 0
+                            ? selectRhythmLayerPreferenceCandidates(
+                                scoredCandidates,
+                                initial.initialTokenPositions,
+                                boardWidth,
+                                boardHeight,
+                                preferSameLayer
+                            )
+                            : scoredCandidates;
+                        selectedAsSameLayerPair =
+                            preferSameLayer && candidatePoolSource !== scoredCandidates;
+                        const pickPool = candidatePoolSource.slice(
+                            0,
+                            Math.min(candidateBranchLimit, candidatePoolSource.length)
+                        );
+                        selected = pickPool[Math.floor(Math.random() * pickPool.length)];
+                    }
+                    if (!selected) {
+                        failed = true;
+                        break;
+                    }
+                    const { candidate } = selected;
+                    if (selectedAsStuckPair) {
+                        stuckPairUsedCount++;
+                    }
+                    solutionTrace.push({
+                        row1: candidate.row1,
+                        col1: candidate.col1,
+                        row2: candidate.row2,
+                        col2: candidate.col2,
+                        token1: candidate.token1,
+                        token2: candidate.token2,
+                        connectionType: candidate.connectionType,
+                        distance: candidate.distance,
+                        generationSource: 'rhythm-abstract-trace',
+                        phase: stageEntry?.phase || 'middle',
+                        waveId: stageEntry?.waveId ?? null,
+                        waveRole: stageEntry?.waveRole || null,
+                        wavePressureType: stageEntry?.wavePressureType || null,
+                        isSameLayerPair: selectedAsSameLayerPair,
+                        isStuckPair: selectedAsStuckPair
+                    });
+                    boardData = selected.nextState.boardData;
+                    tokenBoard = selected.nextState.tokenBoard;
+                }
+
+                if (!failed && collectRhythmTokenCells(tokenBoard).length === 0) {
+                    return {
+                        success: true,
+                        solutionTrace,
+                        stagePlan,
+                        initialTokenPositions: initial.initialTokenPositions
+                    };
+                }
+            }
+            return {
+                success: false,
+                message: '抽象节奏轨迹规划失败。'
+            };
+        }
+
+        function allocateRhythmPairOnlyBaseId(usedBaseIds) {
+            if (!(usedBaseIds instanceof Set)) return null;
+            let nextBaseId = 1;
+            while (
+                nextBaseId < BOMB_CELL_ID &&
+                (usedBaseIds.has(nextBaseId) || nextBaseId === PLACEHOLDER_CELL_ID)
+            ) {
+                nextBaseId++;
+            }
+            if (nextBaseId >= BOMB_CELL_ID) return null;
+            usedBaseIds.add(nextBaseId);
+            return nextBaseId;
+        }
+
+        function orderRhythmPairNumbersForTrace(pairNumbers, solutionTrace, reservedBaseIds = null) {
+            const safeTraceLength = Array.isArray(solutionTrace) ? solutionTrace.length : 0;
+            const shuffledPairs = shuffleArray(
+                (Array.isArray(pairNumbers) ? pairNumbers : [])
+                    .filter((number) => Number.isInteger(number) && number > 0)
+            );
+            if (safeTraceLength <= 0) return shuffledPairs;
+            const usedBaseIds = new Set(shuffledPairs);
+            if (reservedBaseIds instanceof Set) {
+                reservedBaseIds.forEach((baseId) => {
+                    if (Number.isInteger(baseId) && baseId > 0) usedBaseIds.add(baseId);
+                });
+            }
+            const pairNumberCounts = new Map();
+            for (const number of shuffledPairs) {
+                pairNumberCounts.set(number, (pairNumberCounts.get(number) || 0) + 1);
+            }
+            const availablePairs = [...shuffledPairs];
+            const result = Array(safeTraceLength).fill(null);
+            for (let index = 0; index < safeTraceLength; index++) {
+                const traceStep = solutionTrace[index];
+                if (!traceStep?.isStuckPair) continue;
+                const uniqueIndex = availablePairs.findIndex(
+                    (number) => pairNumberCounts.get(number) === 1
+                );
+                if (uniqueIndex < 0) continue;
+                result[index] = availablePairs.splice(uniqueIndex, 1)[0];
+            }
+            for (let index = 0; index < safeTraceLength; index++) {
+                const traceStep = solutionTrace[index];
+                if (!traceStep?.isStuckPair || result[index] !== null) continue;
+                const allocatedBaseId = allocateRhythmPairOnlyBaseId(usedBaseIds);
+                if (allocatedBaseId !== null) {
+                    result[index] = allocatedBaseId;
+                }
+            }
+            for (let index = 0; index < safeTraceLength; index++) {
+                if (result[index] !== null) continue;
+                result[index] = availablePairs.shift() ?? shuffledPairs[shuffledPairs.length - 1] ?? 1;
+            }
+            return result;
+        }
+
+        function assignRhythmGeneratedFaces(
+            sourceBoard,
+            targetOrder,
+            solutionTrace,
+            pairNumbers,
+            reservedBaseIds = null
+        ) {
+            const resultBoard = cloneBoardData(sourceBoard);
+            for (const target of targetOrder || []) {
+                if (resultBoard[target.i]) resultBoard[target.i][target.j] = EMPTY_CELL_ID;
+            }
+            const orderedPairNumbers = orderRhythmPairNumbersForTrace(
+                pairNumbers,
+                solutionTrace,
+                reservedBaseIds
+            );
+            for (let index = 0; index < solutionTrace.length; index++) {
+                const step = solutionTrace[index];
+                const baseId = orderedPairNumbers[index];
+                if (!Number.isInteger(baseId) || baseId <= 0) continue;
+                const first = step.initialPosition1;
+                const second = step.initialPosition2;
+                if (!first || !second || !resultBoard[first.row] || !resultBoard[second.row]) continue;
+                resultBoard[first.row][first.col] = baseId;
+                resultBoard[second.row][second.col] = baseId;
+                step.baseId = baseId;
+            }
+            return resultBoard;
+        }
+
+        function buildRhythmGenerationPlanForBoard(sourceBoard, options = {}) {
+            if (!Array.isArray(sourceBoard) || sourceBoard.length === 0) {
+                return { success: false, message: '棋盘数据为空。' };
+            }
+            const height = sourceBoard.length;
+            const width = sourceBoard[0]?.length || 0;
+            if (width <= 0) return { success: false, message: '棋盘宽度无效。' };
+            const isRectBoard = sourceBoard.every((row) => Array.isArray(row) && row.length === width);
+            if (!isRectBoard) return { success: false, message: '棋盘数据必须是规则二维数组。' };
+
+            const direction = Number.isFinite(Number(options.direction))
+                ? Math.max(0, Math.min(8, Math.round(Number(options.direction))))
+                : 0;
+            const autoBombPairCount = Number.isFinite(Number(options.autoBombPairCount))
+                ? Math.max(0, Math.min(AUTO_BOMB_PAIR_COUNT_MAX, Math.round(Number(options.autoBombPairCount))))
+                : 0;
+            const fillOrder = getFillOrder(width, height, direction);
+            const fixedManualBindings = normalizeManualFaceBindings(
+                options.manualFaceBindings,
+                sourceBoard
+            );
+            const targetOrder = collectRegenerateFillOrder(
+                fillOrder,
+                sourceBoard,
+                fixedManualBindings,
+                { includeBombs: autoBombPairCount > 0 }
+            );
+            if (!Array.isArray(targetOrder) || targetOrder.length === 0) {
+                return { success: false, message: '当前棋盘没有可重新生成的数字或占位块。' };
+            }
+            if (targetOrder.length % 2 !== 0) {
+                return { success: false, message: '可生成格子数量必须为偶数。' };
+            }
+
+            const count8 = Number.isFinite(Number(options.count8))
+                ? Math.max(0, Math.floor(Number(options.count8)))
+                : 0;
+            const count6 = Number.isFinite(Number(options.count6))
+                ? Math.max(0, Math.floor(Number(options.count6)))
+                : 0;
+            const poolResult = buildReverseGenerationPool(
+                targetOrder.length,
+                count8,
+                count6,
+                getReservedManualBaseIdSet(fixedManualBindings)
+            );
+            if (!poolResult.success) return poolResult;
+
+            const maxAttempts = Number.isFinite(Number(options.maxAttempts))
+                ? Math.max(1, Math.floor(Number(options.maxAttempts)))
+                : 10;
+            let lastMessage = '';
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const stagePlan = buildRhythmGenerationStagePlan(targetOrder.length / 2, options);
+                const traceResult = planAbstractRhythmSolveTrace(sourceBoard, {
+                    ...options,
+                    direction,
+                    targetOrder,
+                    stagePlan,
+                    maxSearchAttempts: 1
+                });
+                if (!traceResult.success) {
+                    lastMessage = traceResult.message || '节奏轨迹规划失败。';
+                    continue;
+                }
+                const solutionTrace = traceResult.solutionTrace.map((step) => {
+                    const firstInitial = traceResult.initialTokenPositions.get(step.token1);
+                    const secondInitial = traceResult.initialTokenPositions.get(step.token2);
+                    return {
+                        ...step,
+                        initialPosition1: firstInitial,
+                        initialPosition2: secondInitial
+                    };
+                });
+                const boardData = assignRhythmGeneratedFaces(
+                    sourceBoard,
+                    targetOrder,
+                    solutionTrace,
+                    poolResult.pairNumbers,
+                    getReservedManualBaseIdSet(fixedManualBindings)
+                );
+                const verification = verifyReverseSolutionTrace(boardData, direction, solutionTrace);
+                if (!verification.success) {
+                    lastMessage = verification.message || '节奏轨迹真实验证失败。';
+                    continue;
+                }
+                const { attachmentMap } = buildReverseGenerationTargetMaps(targetOrder);
+                const boardWithAttachments = applyReverseGenerationAttachments(boardData, attachmentMap);
+                const autoBombResult = applyAutoBombPairsToGeneratedBoard(
+                    boardWithAttachments,
+                    targetOrder,
+                    autoBombPairCount
+                );
+                if (!autoBombResult.success) {
+                    lastMessage = autoBombResult.message || '自动炸弹生成失败。';
+                    continue;
+                }
+                currentPool = poolResult.pool.map((item) => ({ ...item }));
+                poolCards = shuffleArray(poolResult.cards);
+                return {
+                    success: true,
+                    boardData: boardWithAttachments,
+                    direction,
+                    generatedCellCount: targetOrder.length,
+                    targetOrder,
+                    solutionTrace,
+                    generationStrategy: 'rhythm-abstract-trace',
+                    usedStableAdjacentFallback: false,
+                    pool: poolResult.pool,
+                    stagePlan
+                };
+            }
+            return {
+                success: false,
+                message: lastMessage || '节奏生成未找到可用解，请调整棋盘尺寸或数字配置。'
+            };
         }
 
         function isSameBoardData(leftBoard, rightBoard) {
@@ -15609,6 +17793,17 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 if (candidate) return candidate;
             }
             return null;
+        }
+
+        function findConnectionPathByLianliankan(boardData, startRow, startCol, targetRow, targetCol) {
+            return findConnectionPathByLianliankanWithMaxTurns(
+                boardData,
+                startRow,
+                startCol,
+                targetRow,
+                targetCol,
+                2
+            );
         }
 
         function scoreRandomReverseCandidate(candidate, difficultyConfig) {
@@ -16824,13 +19019,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             }
 
             const boardBefore = cloneBoardData(filledCells);
-            const reverseResult = buildReverseGenerationPlanForBoard(filledCells, {
+            const reverseResult = buildRhythmGenerationPlanForBoard(filledCells, {
                 direction,
                 count8: countCandidate.count8,
                 count6: countCandidate.count6,
                 manualFaceBindings,
                 autoBombPairCount,
-                difficulty: getReverseGenerationDifficultyValue('normal')
+                ...getRhythmGenerationOptionsFromInputs()
             });
             if (!reverseResult.success) {
                 alert(reverseResult.message || '反向生成失败，请调整数字配置。');
@@ -16896,7 +19091,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 ? Math.max(0, Math.floor(Number(options.count6)))
                 : null;
 
-            const reverseResult = buildReverseGenerationPlanForBoard(sourceBoard, {
+            const reverseResult = buildRhythmGenerationPlanForBoard(sourceBoard, {
                 direction: safeDirection,
                 count8: count8Override,
                 count6: count6Override,
@@ -16930,20 +19125,26 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 document.querySelector('input[name="direction"]:checked')?.value || 0,
                 10
             );
-            const fillPlan = buildPlaceholderFillPlan(direction);
+            const fillPlan = buildRegenerateFillPlan(direction);
             if (!fillPlan) return;
 
-            filledCells = cloneBoardData(fillPlan.boardBefore);
+            const traceGroups = buildTraceStepGroupsForReveal(
+                fillPlan.solutionTrace,
+                fillPlan.boardAfter
+            );
+            const groups = traceGroups.length > 0 ? traceGroups : fillPlan.groups;
+
+            filledCells = buildStepRevealBoardBefore(fillPlan.boardBefore, groups);
             syncBoardDisplayByData(filledCells);
 
             stepGenerationState = {
                 boardData: fillPlan.boardAfter,
-                groups: fillPlan.groups,
+                groups,
                 currentStepIndex: 0,
                 direction
             };
 
-            if (fillPlan.groups.length === 0) {
+            if (groups.length === 0) {
                 resetStepGenerationState();
                 return;
             }
@@ -17222,21 +19423,13 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const width = parseInt(document.getElementById('width')?.value, 10) || 8;
             const height = parseInt(document.getElementById('height')?.value, 10) || 14;
             const { count8Range, count6Range } = getCount8And6RangesFromInputs();
-            const direction = parseInt(
-                document.querySelector('input[name="direction"]:checked')?.value,
-                10
-            ) || 0;
-            const reverseDifficulty = getReverseGenerationDifficultyValue('normal');
-
             const values = [
                 width,
                 height,
                 count8Range[0],
                 count8Range[1],
                 count6Range[0],
-                count6Range[1],
-                direction,
-                reverseDifficulty
+                count6Range[1]
             ];
 
             const tsvText = values.join('\t');
@@ -19345,7 +21538,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const shenglvRaw = getCampaignConfigValue(rawItem, ['shenglv', 'winrate']);
             const difficultyRaw = getCampaignConfigValue(
                 rawItem,
-                ['difficulty', 'reverseDifficulty', 'nandu', '难度', '反向生成难度', '生成难度']
+                ['difficulty', 'nandu', '难度']
             );
             const matchNumRaw = getCampaignConfigValue(rawItem, ['match_num', 'matchnum', 'matchNum']);
             const remainRaw = getCampaignConfigValue(
@@ -19662,13 +21855,22 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             averagePairPerStep: 0,
                             firstHalfAveragePairCount: 0,
                             secondHalfAveragePairCount: 0,
-                            quartileAveragePairCounts: [0, 0, 0, 0],
+                            // 兜底值必须和导出列保持 3 阶段顺序：前20%、20%-70%、最后30%。
+                            progressPhaseAveragePairCounts:
+                                createEmptySimulationProgressPhaseSummary(),
+                            stepPairCountSums: [],
+                            stepPairCountSampleCounts: [],
+                            averageStepPairCounts: [],
                             averageFailureProgressPercent: 0,
                             failedGameCount: 0,
                             zeroTurnCount: 0,
                             oneTurnCount: 0,
                             sameDirTwoTurnCount: 0,
                             reverseTwoTurnCount: 0,
+                            averageAvailableZeroTurnCountPerStep: 0,
+                            averageAvailableOneTurnCountPerStep: 0,
+                            averageAvailableSameDirTwoTurnCountPerStep: 0,
+                            averageAvailableReverseTwoTurnCountPerStep: 0,
                             averageTrialErrorPerStep: 0,
                             maxTrialErrorCount: 0,
                             averageActualPairDistance: 0,
@@ -19696,7 +21898,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                             initialClusterCount,
                             true,
                             Boolean(parsedLevel.humanMode),
-                            normalizeHumanModeBesidePercent(parsedLevel.humanModeBesidePercent, 70)
+                            normalizeHumanModeBesidePercent(parsedLevel.humanModeBesidePercent, 70),
+                            getStepPairExportScope()
                         ) + '\n';
                         successCount++;
 
@@ -19902,7 +22105,8 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                         initialClusterCount,
                         true,
                         Boolean(levelItem.humanMode),
-                        normalizeHumanModeBesidePercent(levelItem.humanModeBesidePercent, 70)
+                        normalizeHumanModeBesidePercent(levelItem.humanModeBesidePercent, 70),
+                        getStepPairExportScope()
                     ) + '\n';
 
                     if (index % 2 === 0) {
@@ -20080,39 +22284,16 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const grid = document.createElement('div');
             grid.className = 'agent-step-grid';
             const remainingText = `${Number.isFinite(Number(item.remainingPairsBefore)) ? Number(item.remainingPairsBefore) : '-'} -> ${Number.isFinite(Number(item.remainingPairsAfter)) ? Number(item.remainingPairsAfter) : '-'}`;
-            const remainingCardText = Number.isFinite(Number(item.remainingCardCountAfter))
-                ? String(Math.max(0, Number(item.remainingCardCountAfter)))
-                : '-';
-            const clearedCardText = Number.isFinite(Number(item.clearedCardCountAfter))
-                ? String(Math.max(0, Number(item.clearedCardCountAfter)))
-                : '-';
-            const resultText = outcomeLabel || '-';
             const preStepTrialErrorCountText = Number.isFinite(Number(item.preStepDecisionFailCount))
                 ? String(Math.max(0, Number(item.preStepDecisionFailCount)))
                 : '0';
             const stepDifficultyScoreText = formatAgentMetricNumber(item.stepDifficultyScore);
-            const maxStepDifficultyScoreText = formatAgentMetricNumber(item.maxStepDifficultyScore);
-            const connectionDistanceText = formatAgentMetricNumber(item.connectionDistance);
             const availableDistanceText = formatAgentMetricNumber(item.availableDistanceBefore);
-            const boardDifficultyText = `${formatAgentMetricNumber(item.boardDifficultyBefore)} -> ${formatAgentMetricNumber(item.boardDifficultyAfter)}`;
-            const cancelReasonText = String(item.cancelReason || '').trim() || '-';
             const cellEntries = [
-                ['操作坐标', item.moveText || '未给出'],
-                ['候选数', Number.isFinite(Number(item.candidateCount)) ? String(Math.max(0, Number(item.candidateCount))) : '-'],
-                ['连接/拐点', `${item.connectionType || '-'} / ${Number.isFinite(Number(item.turnCount)) ? Number(item.turnCount) : '-'}`],
-                ['实际配对距离', connectionDistanceText],
-                ['平均可配对距离', availableDistanceText],
-                ['场面难度', boardDifficultyText],
-                ['本步难度分', stepDifficultyScoreText],
-                ['当前最高分', maxStepDifficultyScoreText],
-                ['前置试错次数', preStepTrialErrorCountText],
-                ['局面结果', resultText],
-                ['剩余牌数', remainingCardText],
-                ['已消除牌数', clearedCardText],
-                ['剩余可配对', remainingText],
-                ['操作依据', String(item.reason || '未提供')],
-                ['取消/重选原因', cancelReasonText],
-                ['感受评级', String(item.feelingLevel || '-')]
+                ['剩余配对数', remainingText],
+                ['每步难度分', stepDifficultyScoreText],
+                ['试错次数', preStepTrialErrorCountText],
+                ['平均可配对距离', availableDistanceText]
             ];
             for (const [label, value] of cellEntries) {
                 const cell = document.createElement('div');
@@ -20123,12 +22304,6 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 const valueEl = document.createElement('div');
                 valueEl.className = 'agent-step-value';
                 valueEl.textContent = value;
-                if (label === '感受评级' && item.feelingLevel === '困难') {
-                    valueEl.classList.add('feeling-hard');
-                    valueEl.textContent = item.feelingDetail
-                        ? `困难：${item.feelingDetail}`
-                        : '困难';
-                }
                 cell.appendChild(labelEl);
                 cell.appendChild(valueEl);
                 grid.appendChild(cell);
@@ -20267,6 +22442,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 boardDifficultyAfter: Number(stepPayload.boardDifficultyAfter),
                 stepDifficultyScore: Number(stepPayload.stepDifficultyScore),
                 maxStepDifficultyScore: Number(stepPayload.maxStepDifficultyScore),
+                availableConnectionTypeCountsBefore:
+                    stepPayload?.availableConnectionTypeCountsBefore &&
+                    typeof stepPayload.availableConnectionTypeCountsBefore === 'object'
+                        ? { ...stepPayload.availableConnectionTypeCountsBefore }
+                        : createConnectionTypeCountSummary(),
                 cancelReason: String(stepPayload.cancelReason || ''),
                 remainingPairsBefore: Number(stepPayload.remainingPairsBefore),
                 remainingPairsAfter: Number(stepPayload.remainingPairsAfter),
@@ -21075,16 +23255,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
 
         function getAgentMemoryTrendViewOptions() {
             return [
-                { key: 'pair_count', label: '可配对数' },
-                { key: 'connection_distance', label: '实际配对距离' },
-                { key: 'available_distance_before', label: '平均可配对距离' },
+                { key: 'pair_count', label: '剩余配对数' },
                 { key: 'step_difficulty_score', label: '每步难度分' },
-                { key: 'max_step_difficulty_score', label: '当前最高分' },
                 { key: 'trial_error_count', label: '试错次数' },
-                { key: 'pair_delta_after_move', label: '操作后配对变化' },
-                { key: 'remaining_card_count', label: '剩余牌数' },
-                { key: 'cleared_card_count', label: '已消除牌数' },
-                { key: 'board_difficulty_before_after', label: '场面难度变化' }
+                { key: 'available_distance_before', label: '平均可配对距离' }
             ];
         }
 
@@ -21129,6 +23303,24 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
 
         function buildAgentMemoryTrendPoints(records, viewKey) {
             const points = [];
+            const connectionTypeCountMetricMap = {
+                available_zero_turn_count: {
+                    key: 'zeroTurnCount',
+                    label: '本步0拐数量'
+                },
+                available_one_turn_count: {
+                    key: 'oneTurnCount',
+                    label: '本步1拐数量'
+                },
+                available_same_dir_two_turn_count: {
+                    key: 'sameDirTwoTurnCount',
+                    label: '本步同向2拐数量'
+                },
+                available_reverse_two_turn_count: {
+                    key: 'reverseTwoTurnCount',
+                    label: '本步反向2拐数量'
+                }
+            };
             for (const record of records) {
                 const step = Number(record?.step) || 0;
                 if (viewKey === 'pair_count') {
@@ -21182,6 +23374,18 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                         step,
                         value,
                         tip: `第${step}步：当前最高分 ${formatAgentMetricNumber(value)}`
+                    });
+                    continue;
+                }
+                if (connectionTypeCountMetricMap[viewKey]) {
+                    const metric = connectionTypeCountMetricMap[viewKey];
+                    const value = Number(record?.availableConnectionTypeCountsBefore?.[metric.key]);
+                    if (!Number.isFinite(value) || value < 0) continue;
+                    const safeValue = Math.round(value);
+                    points.push({
+                        step,
+                        value: safeValue,
+                        tip: `第${step}步：${metric.label} ${safeValue}`
                     });
                     continue;
                 }
@@ -21508,6 +23712,11 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     boardDifficultyAfter: item.boardDifficultyAfter,
                     stepDifficultyScore: item.stepDifficultyScore,
                     maxStepDifficultyScore: item.maxStepDifficultyScore,
+                    availableConnectionTypeCountsBefore:
+                        item?.availableConnectionTypeCountsBefore &&
+                        typeof item.availableConnectionTypeCountsBefore === 'object'
+                            ? { ...item.availableConnectionTypeCountsBefore }
+                            : createConnectionTypeCountSummary(),
                     cancelReason: item.cancelReason,
                     candidateCountBefore: item.candidateCountBefore
                 };
@@ -22541,6 +24750,9 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const candidateCountBefore = Number.isFinite(decisionCandidateCount)
                 ? Math.max(0, Math.floor(decisionCandidateCount))
                 : Math.max(0, Number(snapshot.remainingPairs) || 0);
+            const agentAvailablePairCountBefore = Array.isArray(snapshot.removablePairs)
+                ? snapshot.removablePairs.length
+                : (Number(snapshot.remainingPairs) || 0);
             const preStepDecisionFailCount = Math.max(
                 0,
                 Number.isFinite(Number(decisionMeta?.preStepDecisionFailCount))
@@ -22550,6 +24762,14 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             const boardMetricsBefore = buildBoardAccessibilityMetrics(
                 snapshot.boardData,
                 initialRemovableCardCount,
+                snapshot.removablePairs
+            );
+            const sceneDifficultyScoreBefore = calculateAvailablePairSceneDifficultyScore(
+                snapshot.boardData,
+                snapshot.removablePairs
+            );
+            const availableConnectionTypeCountsBefore = countAvailableConnectionTypeCounts(
+                snapshot.boardData,
                 snapshot.removablePairs
             );
             const previousMaxStepDifficultyScore = Math.max(
@@ -22592,6 +24812,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     boardDifficultyAfter: boardMetricsBefore.boardDifficultyScore,
                     stepDifficultyScore: 0,
                     maxStepDifficultyScore: previousMaxStepDifficultyScore,
+                    availableConnectionTypeCountsBefore,
                     cancelReason: validated.error,
                     candidateCountBefore,
                     humanMetrics,
@@ -22611,6 +24832,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     boardDifficultyAfter: boardMetricsBefore.boardDifficultyScore,
                     stepDifficultyScore: 0,
                     maxStepDifficultyScore: previousMaxStepDifficultyScore,
+                    availableConnectionTypeCountsBefore,
                     cancelReason: validated.error,
                     candidateCountBefore,
                     remainingPairsBefore: snapshot.remainingPairs,
@@ -22664,13 +24886,12 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 boardNow,
                 initialRemovableCardCount
             );
-            const moveDifficultyFactor = calculateMoveDifficultyFactor(
-                validated.connectionDistance,
-                validated.connectionType
-            );
             const stepDifficultyScore = success
-                ? ((boardMetricsBefore.boardDifficultyScore + boardMetricsAfter.boardDifficultyScore) / 2) *
-                    moveDifficultyFactor
+                ? calculateNormalizedStepDifficultyScore({
+                    remainingCardCountBefore,
+                    availablePairCountBefore: agentAvailablePairCountBefore,
+                    sceneDifficultyScoreBefore
+                })
                 : 0;
             const maxStepDifficultyScore = Math.max(
                 previousMaxStepDifficultyScore,
@@ -22704,6 +24925,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 boardDifficultyAfter: boardMetricsAfter.boardDifficultyScore,
                 stepDifficultyScore: Number.isFinite(stepDifficultyScore) ? stepDifficultyScore : 0,
                 maxStepDifficultyScore,
+                availableConnectionTypeCountsBefore,
                 cancelReason: String(playModeState?.lastCancelReason || ''),
                 candidateCountBefore,
                 humanMetrics,
@@ -22726,6 +24948,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                 boardDifficultyAfter: result.boardDifficultyAfter,
                 stepDifficultyScore: result.stepDifficultyScore,
                 maxStepDifficultyScore: result.maxStepDifficultyScore,
+                availableConnectionTypeCountsBefore: result.availableConnectionTypeCountsBefore,
                 cancelReason: result.cancelReason,
                 candidateCountBefore: result.candidateCountBefore,
                 remainingPairsBefore: result.remainingPairsBefore,
@@ -23383,6 +25606,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     boardDifficultyAfter: Number(latestStep?.boardDifficultyAfter ?? result?.boardDifficultyAfter),
                     stepDifficultyScore: Number(latestStep?.stepDifficultyScore ?? result?.stepDifficultyScore),
                     maxStepDifficultyScore: Number(latestStep?.maxStepDifficultyScore ?? result?.maxStepDifficultyScore),
+                    availableConnectionTypeCountsBefore:
+                        latestStep?.availableConnectionTypeCountsBefore ||
+                        result?.availableConnectionTypeCountsBefore ||
+                        createConnectionTypeCountSummary(),
                     cancelReason: String(latestStep?.cancelReason || result?.cancelReason || result?.error || ''),
                     remainingPairsBefore: Number(result?.remainingPairsBefore),
                     remainingPairsAfter: Number(result?.remainingPairsAfter),
@@ -23969,6 +26196,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             updateSaveCurrentLevelButtonState();
             updateSimulateUiLabels();
             renderStatsLocalHumanModeToggle();
+            renderStepPairExportScopeToggle();
             setHumanModeBesidePercent(humanModeBesidePercent);
             setWorkerPoolReuseEnabled(
                 Boolean(document.getElementById('workerPoolReuseToggle')?.checked)
@@ -23989,6 +26217,10 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
                     renderBoardBackgroundDropdown();
                     applyBoardBackground(selectedBoardBackgroundIndex);
                     updatePlayOperationSettingsUi();
+                    updateSimulateUiLabels();
+                    renderStatsLocalHumanModeToggle();
+                    renderStepPairExportScopeToggle();
+                    setHumanModeBesidePercent(humanModeBesidePercent);
                     const readyBoard = document.getElementById('board');
                     if (readyBoard) {
                         readyBoard.addEventListener('mousedown', handleBoardCellMouseDown);
@@ -24034,6 +26266,7 @@ function runBatchPairMetrics(games, baseBoardData, direction, taskId, options) {
             });
             window.addEventListener('blur', () => {
                 cancelPlayDragLink('窗口失焦，取消当前连线');
+                cancelPlayClickHoldHint();
                 stopEditorBrush();
                 closeSavedLevelContextMenu();
                 hideSavedLevelPreview();
